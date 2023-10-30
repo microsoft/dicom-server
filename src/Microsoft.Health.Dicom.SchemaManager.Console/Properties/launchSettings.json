@@ -2,7 +2,7 @@
   "profiles": {
     "Microsoft.Health.Dicom.SchemaManager": {
       "commandName": "Project",
-      "commandLineArgs": "apply --connection-string \"server=(local);Initial Catalog=DICOM3;TrustServerCertificate=True;Integrated Security=True\" --version 20",
+      "commandLineArgs": "apply --connection-string \"server=(local);Initial Catalog=DICOM3;TrustServerCertificate=True;Integrated Security=True\" --version 20 -wi=false",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

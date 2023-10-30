@@ -25,6 +25,11 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private static string ConditionNotMetMessage => "Received the following error code: ConditionNotMet";
     private static string SourceConditionNotMetMessage => "Received the following error code: SourceConditionNotMet";
     private readonly bool _isDevEnv;
+    private readonly FileProperties _defaultFileProperties = new FileProperties
+    {
+        Path = "partitionA/123.dcm",
+        ETag = "e45678"
+    };
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
     {
@@ -57,7 +62,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
 
         // Should be able to delete.
-        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, fileProperties);
 
         // The file should no longer exists.
         await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties));
@@ -87,7 +92,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
                 await ConvertStreamToByteArrayAsync(resultStream));
         }
 
-        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, fileProperties2);
     }
 
     [Fact]
@@ -101,7 +106,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         // file is deleted
-        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, fileProperties1);
         await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties1));
 
         // store file again with same path
@@ -120,7 +125,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
                 await ConvertStreamToByteArrayAsync(resultStream));
         }
 
-        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, fileProperties2);
     }
 
     [Fact]
@@ -144,15 +149,31 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     }
 
     [Fact]
+    public async Task GivenFileWithETag_WhenDeletingFileWithDifferentETagForCondition_ThenExpectNoExceptions()
+    {
+        // Note that modifying metadata also changes the etag of the blob
+        var version = _getNextWatermark();
+
+        // store the file with committed blocks
+        FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
+
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+
+        Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
+
+        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, badFileProperties);
+    }
+
+    [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenDataStoreRequestFailedExceptionShouldBeThrown()
     {
         await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(_getNextWatermark(), Partition.Default, new FileProperties()));
     }
 
     [Fact]
-    public async Task GivenANonExistentFile_WhenDeleting_ThenItShouldNotThrowException()
+    public async Task GivenANonExistentFile_WhenDeletingWithFileProperties_ThenItShouldNotThrowException()
     {
-        await _blobDataStore.DeleteFileIfExistsAsync(_getNextWatermark(), Partition.DefaultName);
+        await _blobDataStore.DeleteFileIfExistsAsync(_getNextWatermark(), Partition.Default, _defaultFileProperties);
     }
 
     private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)

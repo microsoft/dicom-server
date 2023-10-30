@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -121,7 +122,8 @@ public partial class UpdateDurableFunctionTests
     }
 
     [Fact]
-    public async Task GivenInstanceUpdateFails_WhenDeleteFile_ThenShouldDeleteSuccessfully()
+    [Obsolete("Obsolete")]
+    public async Task GivenInstanceUpdateFails_WhenDeleteFileV2_ThenShouldDeleteSuccessfully()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
         var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1 });
@@ -134,7 +136,7 @@ public partial class UpdateDurableFunctionTests
             }).Take(1).ToList();
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -145,15 +147,59 @@ public partial class UpdateDurableFunctionTests
         // Assert behavior
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
     }
 
-
     [Fact]
-    public async Task GivenInstanceMetadataList_WhenDeleteFile_ThenShouldDeleteSuccessfully()
+    public async Task GivenInstanceUpdateFails_WhenDeleteFileWithV3_ThenShouldDeleteNewVersionSuccessfullyWithoutFileProperties()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { OriginalVersion = 1 });
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1 }).Take(1).ToList();
+
+        Assert.Null(identifiers[0].InstanceProperties.fileProperties);
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(identifiers[0].InstanceProperties.NewVersion.Value, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.CleanupNewVersionBlobV3Async(
+            new CleanupBlobArgumentsV2(identifiers, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(identifiers[0].InstanceProperties.NewVersion.Value, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceUpdateFails_WhenDeleteFileWithV3_ThenShouldDeleteNewVersionSuccessfullyWithFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1, fileProperties = DefaultFileProperties }).Take(1).ToList();
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.CleanupNewVersionBlobV3Async(
+            new CleanupBlobArgumentsV2(identifiers, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Obsolete("Obsolete")]
+    public async Task GivenInstanceMetadataList_WhenDeleteFileV2_ThenShouldDeleteSuccessfully()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, partition: Partition.Default);
         IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
             new InstanceFileState
             {
@@ -163,21 +209,75 @@ public partial class UpdateDurableFunctionTests
             }).Take(1).ToList();
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(expected[0].Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
         await _updateDurableFunction.DeleteOldVersionBlobV2Async(
-            new CleanupBlobArguments(expected, Partition.Default),
+            new CleanupBlobArguments(expected, identifiers[0].VersionedInstanceIdentifier.Partition),
             NullLogger.Instance);
 
         // Assert behavior
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(expected[0].Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
+    public async Task GivenInstanceMetadataList_WhenDeleteFileV3_ThenShouldDeleteSuccessfullyWithoutFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(
+                studyInstanceUid,
+                partition: Partition.Default,
+                instanceProperty: new InstanceProperties { OriginalVersion = 1 })
+            .Take(1).ToList();
+
+        Assert.Null(identifiers[0].InstanceProperties.fileProperties);
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.DeleteOldVersionBlobV3Async(
+            new CleanupBlobArgumentsV2(identifiers, identifiers[0].VersionedInstanceIdentifier.Partition),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenDeleteFileWithV3_ThenShouldDeleteSuccessfullyWithFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(
+                studyInstanceUid,
+                instanceProperty: new InstanceProperties { OriginalVersion = 1, fileProperties = DefaultFileProperties })
+            .Take(1).ToList();
+
+        Assert.NotNull(identifiers[0].InstanceProperties.fileProperties);
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.DeleteOldVersionBlobV3Async(
+            new CleanupBlobArgumentsV2(identifiers, identifiers[0].VersionedInstanceIdentifier.Partition),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Obsolete("Should use SetOriginalBlobToColdAccessTierV2Async instead")]
     public async Task GivenInstanceMetadataList_WhenChangeAccessTier_ThenShoulChangeSuccessfully()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
@@ -191,7 +291,7 @@ public partial class UpdateDurableFunctionTests
             }).Take(1).ToList();
 
         _fileStore
-            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
+            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -202,7 +302,55 @@ public partial class UpdateDurableFunctionTests
         // Assert behavior
         await _fileStore
             .Received(1)
-            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
+            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenChangeAccessTierV2_ThenShouldChangeSuccessfullyUsingFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var instances = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2, fileProperties = DefaultFileProperties });
+        IReadOnlyList<InstanceMetadata> expected = instances.Take(1).ToList();
+
+        Assert.NotNull(expected[0].InstanceProperties.fileProperties);
+
+        _fileStore
+            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, expected[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.SetOriginalBlobToColdAccessTierV2Async(
+            new CleanupBlobArgumentsV2(expected, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _fileStore
+            .Received(1)
+            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, expected[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenChangeAccessTierV2_ThenShouldChangeSuccessfullyWithoutUsingFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var instances = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2 });
+        IReadOnlyList<InstanceMetadata> expected = instances.Take(1).ToList();
+
+        Assert.Null(expected[0].InstanceProperties.fileProperties);
+
+        _fileStore
+            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.SetOriginalBlobToColdAccessTierV2Async(
+            new CleanupBlobArgumentsV2(expected, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _fileStore
+            .Received(1)
+            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>());
     }
 
 

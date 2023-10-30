@@ -30,18 +30,21 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     }
 
     [Theory]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    public async Task GivenDeletedInstance_WhenCleanupCalledWithDifferentStorePersistence_FilesAndTriesAreRemoved(bool persistBlob, bool persistMetadata)
+    [InlineData(true, true, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    public async Task GivenDeletedInstance_WhenCleanupCalledWithDifferentStorePersistence_FilesAndTriesAreRemoved(bool persistBlob, bool persistMetadata, bool isExternalStore)
     {
-        (var dicomInstanceIdentifier, var fileProperties) = await CreateAndValidateValuesInStores(persistBlob, persistMetadata);
+        (var dicomInstanceIdentifier, var fileProperties) = await CreateAndValidateValuesInStores(persistBlob, persistMetadata, isExternalStore);
         await DeleteAndValidateInstanceForCleanup(dicomInstanceIdentifier);
 
         await Task.Delay(3000, CancellationToken.None);
         (bool success, int retrievedInstanceCount) = await _fixture.DeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier, fileProperties: fileProperties);
+        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier, persistBlob, isExternalStore, fileProperties: fileProperties);
     }
 
     private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -51,7 +54,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }
 
-    private async Task<(VersionedInstanceIdentifier, FileProperties)> CreateAndValidateValuesInStores(bool persistBlob, bool persistMetadata)
+    private async Task<(VersionedInstanceIdentifier, FileProperties)> CreateAndValidateValuesInStores(bool persistBlob, bool persistMetadata, bool isExternalStore)
     {
         var newDataSet = CreateValidMetadataDataset();
 
@@ -76,10 +79,13 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
                 Assert.NotNull(fileProperties);
 
-                await _fixture.IndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperties);
+                await _fixture.IndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, GetFileProperties(fileProperties, isExternalStore));
 
-                // ensure properties were saved
-                Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(version));
+                // ensure properties were saved if using external store
+                if (isExternalStore)
+                {
+                    Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(version));
+                }
 
                 var file = await _fixture.FileStore.GetFileAsync(version, Partition.Default, fileProperties);
 
@@ -92,7 +98,14 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         return (versionedDicomInstanceIdentifier, null);
     }
 
-    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob = false, FileProperties fileProperties = null)
+    private static FileProperties GetFileProperties(FileProperties fileProperties, bool isExternalStore)
+    {
+        // when we want to simulate external store, go ahead and use file properties generated from storing the file 
+        // otherwise, we need null to be stored when ending creating the index
+        return isExternalStore ? fileProperties : null;
+    }
+
+    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob, bool isExternalStore, FileProperties fileProperties = null)
     {
         Assert.True(success);
         Assert.Equal(1, retrievedInstanceCount);
@@ -103,7 +116,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.Partition, fileProperties));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
-        if (persistBlob)
+        if (persistBlob && isExternalStore)
         {
             // ensure properties were deleted
             IReadOnlyList<FileProperty> retrievedFleProperties = await _fixture.IndexDataStoreTestHelper

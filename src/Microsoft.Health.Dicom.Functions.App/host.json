@@ -89,7 +89,7 @@
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
     "Statuses": [ "Completed" ],
-    "ExcludeFunctions": [ "MigratingFrameRangeFilesAsync", "UpdateInstancesAsync", "UpdateInstancesV2Async" ]
+    "ExcludeFunctions": [ "MigratingFrameRangeFilesAsync", "UpdateInstancesV2Async", "UpdateInstancesV3Async" ]
   },
   "SqlServer": {
     "Retry": {

@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.SchemaManager.Properties;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.SqlServer.Features.Schema.Manager.Model;
 
@@ -35,6 +34,7 @@ public class ApplyCommand : Command
         AddOption(CommandOptions.ConnectionStringOption());
         AddOption(CommandOptions.ManagedIdentityClientIdOption());
         AddOption(CommandOptions.AuthenticationTypeOption());
+        AddOption(CommandOptions.EnableWorkloadIdentityOptions());
         AddOption(CommandOptions.VersionOption());
         AddOption(CommandOptions.NextOption());
         AddOption(CommandOptions.LatestOption());

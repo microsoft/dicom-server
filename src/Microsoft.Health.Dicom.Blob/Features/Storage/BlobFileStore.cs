@@ -6,6 +6,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,12 +15,15 @@ using Azure;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Telemetry;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
@@ -35,6 +39,7 @@ public class BlobFileStore : IFileStore
     private readonly IBlobClient _blobClient;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly BlobFileStoreMeter _blobFileStoreMeter;
+    private readonly TelemetryClient _telemetryClient;
 
     private static readonly Action<ILogger, string, bool, Exception> LogBlobClientOperationDelegate =
         LoggerMessage.Define<string, bool>(
@@ -53,13 +58,15 @@ public class BlobFileStore : IFileStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptions<BlobOperationOptions> options,
         BlobFileStoreMeter blobFileStoreMeter,
-        ILogger<BlobFileStore> logger)
+        ILogger<BlobFileStore> logger,
+        TelemetryClient telemetryClient)
     {
         _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
         _blobFileStoreMeter = EnsureArg.IsNotNull(blobFileStoreMeter, nameof(blobFileStoreMeter));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc />
@@ -189,15 +196,45 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
+        EnsureArg.IsNotNull(partition);
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
-        _logger.LogInformation("Trying to delete DICOM instance file with watermark '{Version}'.", version);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
+        _logger.LogInformation("Trying to delete DICOM instance file with watermark: '{Version}' and PartitionKey: {PartitionKey}.", version, partition.Key);
 
         EmitTelemetry(nameof(DeleteFileIfExistsAsync), OperationType.Input);
 
-        await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
+        await ExecuteAsync(async () =>
+        {
+            try
+            {
+                // NOTE - when file does not exist but conditions passed in, it fails on conditions not met
+                return await blobClient.DeleteIfExistsAsync(
+                    DeleteSnapshotsOption.IncludeSnapshots,
+                    conditions: _blobClient.GetConditions(fileProperties),
+                    cancellationToken);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet &&
+                                                    _blobClient.IsExternal)
+            {
+                string message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.ExternalDataStoreBlobModified,
+                    ex.ErrorCode,
+                    "delete",
+                    fileProperties.Path,
+                    fileProperties.ETag);
+
+                _telemetryClient.ForwardLogTrace(message, partition, fileProperties);
+
+                _logger.LogInformation(
+                    "Can not delete blob in external store as it has changed or been deleted. File from watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected. Will not retry",
+                    version, partition.Key);
+            }
+
+            return null;
+        });
     }
 
     private void EmitTelemetry(string operationName, OperationType operationType, long? streamLength = null)
@@ -378,15 +415,16 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, CancellationToken cancellationToken = default)
+    public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition.Name);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
 
         await ExecuteAsync(async () =>
         {
-            Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, cancellationToken: cancellationToken);
+            // SetAccessTierAsync does not support matching on etag
+            Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, conditions: null, cancellationToken: cancellationToken);
             EmitTelemetry(nameof(SetBlobToColdAccessTierAsync), OperationType.Input);
             return response;
         });
@@ -403,9 +441,8 @@ public class BlobFileStore : IFileStore
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, Partition partition, FileProperties fileProperties)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
-        if (_blobClient.IsExternal)
+        if (_blobClient.IsExternal && fileProperties != null)
         {
-            EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
             // does not throw, just appends uri with blobName
             return _blobClient.BlobContainerClient.GetBlockBlobClient(fileProperties.Path);
         }

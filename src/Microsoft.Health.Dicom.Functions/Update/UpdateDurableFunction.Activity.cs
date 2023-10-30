@@ -177,6 +177,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(DeleteOldVersionBlobV2Async))]
+    [Obsolete("Use DeleteOldVersionBlobV3Async instead")]
     public async Task DeleteOldVersionBlobV2Async([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -198,10 +199,90 @@ public partial class UpdateDurableFunction
             },
             async (fileIdentifier, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, partition, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, partition, null, token);
             });
 
         logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously delete all the old blobs if it has more than 2 version.
+    /// </summary>
+    /// <param name="arguments">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="DeleteOldVersionBlobV3Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(DeleteOldVersionBlobV3Async))]
+    public async Task DeleteOldVersionBlobV3Async([ActivityTrigger] CleanupBlobArgumentsV2 arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(arguments.Instances, nameof(arguments.Instances));
+
+        IReadOnlyList<InstanceMetadata> instances = arguments.Instances;
+        Partition partition = arguments.Partition;
+        int fileCount = instances.Where(i => i.InstanceProperties.OriginalVersion.HasValue).Count();
+
+        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileCount);
+
+        await Parallel.ForEachAsync(
+            instances.Where(i => i.InstanceProperties.OriginalVersion.HasValue),
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (instance, token) =>
+            {
+                await _updateInstanceService.DeleteInstanceBlobAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.fileProperties, token);
+            });
+
+        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously delete the new blob when there is a failure while updating the study instances.
+    /// </summary>
+    /// <param name="arguments">arguments which have a list of watermarks to cleanup along with partition they belong to</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="CleanupNewVersionBlobV3Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(CleanupNewVersionBlobV3Async))]
+    public async Task CleanupNewVersionBlobV3Async([ActivityTrigger] CleanupBlobArgumentsV2 arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(arguments.Instances, nameof(arguments.Instances));
+
+        IReadOnlyList<InstanceMetadata> instances = arguments.Instances;
+        Partition partition = arguments.Partition;
+
+        int fileCount = instances.Where(instance => instance.InstanceProperties.NewVersion.HasValue).Count();
+        logger.LogInformation("Begin cleaning up new blobs. Total size {TotalCount}", fileCount);
+
+        await Parallel.ForEachAsync(
+            instances.Where(instance => instance.InstanceProperties.NewVersion.HasValue),
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (instance, token) =>
+            {
+                await _updateInstanceService.DeleteInstanceBlobAsync(instance.InstanceProperties.NewVersion.Value, partition, instance.InstanceProperties.fileProperties, token);
+            });
+
+        logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
     /// <summary>
@@ -216,6 +297,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CleanupNewVersionBlobV2Async))]
+    [Obsolete("Use CleanupNewVersionBlobV3Async instead")]
     public async Task CleanupNewVersionBlobV2Async([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -237,7 +319,7 @@ public partial class UpdateDurableFunction
             },
             async (fileIdentifier, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, partition, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, partition, null, token);
             });
 
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
@@ -255,6 +337,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(SetOriginalBlobToColdAccessTierAsync))]
+    [Obsolete("Use SetOriginalBlobToColdAccessTierV2Async instead")]
     public async Task SetOriginalBlobToColdAccessTierAsync([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -278,7 +361,48 @@ public partial class UpdateDurableFunction
            },
            async (fileIdentifier, token) =>
            {
-               await _fileStore.SetBlobToColdAccessTierAsync(fileIdentifier.Version, partition, token);
+               await _fileStore.SetBlobToColdAccessTierAsync(fileIdentifier.Version, partition, null, token);
+           });
+
+        logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously move all the original version blobs to cold access tier.
+    /// </summary>
+    /// <param name="arguments">arguments which have a list of watermarks to move to cold access tier along with partition they belong to</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="SetOriginalBlobToColdAccessTierV2Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(SetOriginalBlobToColdAccessTierV2Async))]
+    public async Task SetOriginalBlobToColdAccessTierV2Async([ActivityTrigger] CleanupBlobArgumentsV2 arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        IReadOnlyList<InstanceMetadata> instances = arguments.Instances;
+        Partition partition = arguments.Partition;
+
+        int fileCount = instances.Where(i => i.InstanceProperties.NewVersion.HasValue && !i.InstanceProperties.OriginalVersion.HasValue).Count();
+        logger.LogInformation("Begin moving original version blob from hot to cold access tier. Total size {TotalCount}", fileCount);
+
+        // Set to cold tier only for first time update, not for subsequent updates. This is to avoid moving the blob to cold tier multiple times.
+        // If the original version is set, then it means that the instance is updated already.
+        await Parallel.ForEachAsync(
+           instances.Where(i => i.InstanceProperties.NewVersion.HasValue && !i.InstanceProperties.OriginalVersion.HasValue),
+           new ParallelOptions
+           {
+               CancellationToken = default,
+               MaxDegreeOfParallelism = _options.MaxParallelThreads,
+           },
+           async (instance, token) =>
+           {
+               await _fileStore.SetBlobToColdAccessTierAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.fileProperties, token);
            });
 
         logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);

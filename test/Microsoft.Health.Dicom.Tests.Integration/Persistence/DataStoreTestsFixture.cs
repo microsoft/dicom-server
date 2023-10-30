@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -82,8 +84,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
 
         await blobClientInitializer.InitializeDataStoreAsync(new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-        ExternalFileStore = new BlobFileStore(new TestExternalBlobClient(_blobClient, _blobContainerConfiguration.ContainerName), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), new BlobFileStoreMeter(), NullLogger<BlobFileStore>.Instance);
-        FileStore = new BlobFileStore(new TestInternalBlobClient(_blobClient, _blobContainerConfiguration.ContainerName), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), new BlobFileStoreMeter(), NullLogger<BlobFileStore>.Instance);
+        ExternalFileStore = new BlobFileStore(new TestExternalBlobClient(_blobClient, _blobContainerConfiguration.ContainerName), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), new BlobFileStoreMeter(), NullLogger<BlobFileStore>.Instance, new TelemetryClient(new TelemetryConfiguration()));
+        FileStore = new BlobFileStore(new TestInternalBlobClient(_blobClient, _blobContainerConfiguration.ContainerName), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), new BlobFileStoreMeter(), NullLogger<BlobFileStore>.Instance, new TelemetryClient(new TelemetryConfiguration()));
         MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, NameWithPrefix, optionsMonitor, Options.Create(AppSerializerOptions.Json), new BlobStoreMeter(), new BlobRetrieveMeter(), NullLogger<BlobMetadataStore>.Instance);
     }
 
@@ -98,6 +100,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
             await metadataContainer.DeleteIfExistsAsync();
         }
     }
+
+    public BlobContainerClient GetBlobContainerClient() => _blobClient.GetBlobContainerClient(_blobContainerConfiguration.ContainerName);
 
     private class TestInternalBlobClient : IBlobClient
     {

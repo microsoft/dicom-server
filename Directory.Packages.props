@@ -39,12 +39,12 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.12.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.2" />
-    <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="6.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="6.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.CommandLine" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(SdkPackageVersion)" />
@@ -82,7 +82,7 @@
     <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.55" />
     <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.55" />
     <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.55" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.33.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
@@ -104,7 +104,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.33.0" />
     <PackageVersion Include="System.IO.Hashing" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />

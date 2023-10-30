@@ -44,6 +44,7 @@
       ]
     },
     {
+      "allowedVersions": "<7.0.0",
       "groupName": "IdentityModel.Tokens",
       "matchPackagePatterns": [
         "IdentityModel.Tokens"
@@ -65,6 +66,13 @@
       "groupName": "OpenTelemetry",
       "matchPackagePrefixes": [
         "OpenTelemetry"
+      ]
+    },
+    {
+      "allowedVersions": "<3.0.0",
+      "groupName": "SixLabors.ImageSharp",
+      "matchPackagePatterns": [
+        "SixLabors.ImageSharp"
       ]
     },
     {
