@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,11 +30,16 @@ internal class DicomTagsManager : IAsyncDisposable
         _tags = new HashSet<string>();
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not throw on test clean up.")]
     public async ValueTask DisposeAsync()
     {
-        foreach (var tag in _tags)
+        try
         {
-            await DeleteExtendedQueryTagAsync(tag);
+            await Task.WhenAll(_tags.Select(t => DeleteExtendedQueryTagAsync(t)));
+        }
+        catch (Exception)
+        {
+            // Dispose should not throw for test clean up
         }
     }
 
