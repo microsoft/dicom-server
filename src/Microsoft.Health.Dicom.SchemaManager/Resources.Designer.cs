@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SchemaManager.Properties {
+namespace Microsoft.Health.Dicom.SchemaManager {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SchemaManager.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SchemaManager.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -93,6 +93,15 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         internal static string ConnectionStringRequiredValidation {
             get {
                 return ResourceManager.GetString("ConnectionStringRequiredValidation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enables the use of workload identity over managed identity..
+        /// </summary>
+        internal static string EnableWorkloadIdentityDescription {
+            get {
+                return ResourceManager.GetString("EnableWorkloadIdentityDescription", resourceCulture);
             }
         }
         
