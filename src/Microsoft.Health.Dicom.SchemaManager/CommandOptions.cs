@@ -1,10 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System.CommandLine;
-using Microsoft.Health.Dicom.SchemaManager.Properties;
 
 namespace Microsoft.Health.Dicom.SchemaManager;
 
@@ -51,6 +50,20 @@ public static class CommandOptions
         connectionStringOption.AddAlias(OptionAliases.AuthenticationTypeShort);
 
         return connectionStringOption;
+    }
+
+    public static Option EnableWorkloadIdentityOptions()
+    {
+        var enableWorkloadIdentityOptions = new Option<string>(
+            name: OptionAliases.EnableWorkloadIdentity,
+            description: Resources.EnableWorkloadIdentityDescription)
+        {
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        enableWorkloadIdentityOptions.AddAlias(OptionAliases.EnableWorkloadIdentityShort);
+
+        return enableWorkloadIdentityOptions;
     }
 
     public static Option VersionOption()
