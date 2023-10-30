@@ -205,6 +205,7 @@
                         }
                     }
                 ],
+                "image": "[concat(parameters('image'), ':', parameters('imageTag'))]",
                 "osType": "Linux",
                 "restartPolicy": "[parameters('restartPolicy')]"
             }
