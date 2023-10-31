@@ -194,7 +194,7 @@
                     {
                         "name": "[variables('serviceName')]",
                         "properties": {
-                            "image": "[concat(parameters('image'), ':', parameters('imageTag')]",
+                            "image": "[concat(parameters('image'), ':', parameters('imageTag'))]",
                             "resources": {
                                 "requests": {
                                     "cpu": "[parameters('cpuCores')]",
