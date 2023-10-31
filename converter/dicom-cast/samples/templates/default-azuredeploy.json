@@ -146,7 +146,7 @@
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
-        "imageTemp": "dicomoss.azurecr.io/dicom-cast:10.0.637",
+        "image": "[concat(parameters('image'), ':', parameters('imageTag'))]",
         "environmentVariables": [
             {
                 "name": "Fhir__Endpoint",
@@ -195,7 +195,7 @@
                     {
                         "name": "[variables('serviceName')]",
                         "properties": {
-                            "image": "[variables('imageTemp')]",
+                            "image": "[variables('image')]",
                             "resources": {
                                 "requests": {
                                     "cpu": "[parameters('cpuCores')]",
