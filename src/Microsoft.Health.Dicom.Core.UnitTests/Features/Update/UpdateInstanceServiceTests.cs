@@ -212,7 +212,7 @@ public class UpdateInstanceServiceTests
         copyStream.Position = 0;
 
         _fileStore.GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.DefaultName, cancellationToken).Returns(DefaultFileProperties);
+        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(DefaultFileProperties);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -281,7 +281,7 @@ public class UpdateInstanceServiceTests
         var firstBlock = new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length);
 
         _fileStore.CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(Task.CompletedTask);
-        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.DefaultName, cancellationToken).Returns(DefaultFileProperties);
+        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(DefaultFileProperties);
         _fileStore.GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(streamAndStoredFile.Value);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
