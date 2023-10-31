@@ -412,8 +412,11 @@ The following `Accept` header(s) are supported for searching:
 - `application/dicom+json`
 
 ### Search Changes From V1
-If an instance returned validation warnings for [searchable attributes](#searchable-attributes) at the time the [instance was stored](#store-changes-from-v1), those attributes may not be used to search for the stored instance.
-To correct an attribute, delete the stored instance and upload the corrected data.
+If an instance returned validation warnings for [searchable attributes](#searchable-attributes) at the time the [instance was stored](#store-changes-from-v1), those attributes may not be used to search for the stored instance. However, any [searchable attributes](#searchable-attributes) that failed validation will be able to return results if the values are overwritten by instances in the same study/series that are stored after the failed one, or if the values are already stored correctly by a previous instance. If the attribute values are not overwritten, then they will not produce any search results.
+
+An attribute can be corrected in the following ways:
+- Delete the stored instance and upload a new instance with the corrected data
+- Upload a new instance in the same study/series with corrected data
 
 ### Supported Search Parameters
 

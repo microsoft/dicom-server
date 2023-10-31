@@ -33,11 +33,6 @@ public class FeatureConfiguration
     /// <remarks>Use as feature flag to test new API versions.</remarks>
     public bool EnableLatestApiVersion { get; set; }
 
-    /// <summary>
-    /// Enables Dicom update feature
-    /// </summary>
-    public bool EnableUpdate { get; set; }
-
     public bool EnableExternalStore { get; set; }
 
     /// <summary>

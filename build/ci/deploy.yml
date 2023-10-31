@@ -30,8 +30,6 @@ jobs:
         $additionalProperties = @{
             "SqlServer__DeleteAllDataOnStartup" = "$(deleteDataOnStartup)"
             "DicomServer__Security__Authorization__Enabled" = "true"
-            "DicomServer__Features__EnableUpsRs" = "true"
-            "DicomServer__Features__EnableUpdate" = "true"
         }
 
         $sqlAdminPassword = "$(-join((((33,35,37,38,42,43,45,46,95) + (48..57) + (65..90) + (97..122) | Get-Random -Count 20) + ((33,35,37,38,42,43,45,46,95) | Get-Random -Count 1) + ((48..57) | Get-Random -Count 1) + ((65..90) | Get-Random -Count 1) + ((97..122) | Get-Random -Count 1) | Get-Random -Count 24) | % {[char]$_}))"

@@ -154,6 +154,32 @@ public static class Samples
         return result;
     }
 
+    public static DicomFile CreateRandomDicomFileWithFragmentPixelData(
+        string studyInstanceUid = null,
+        string seriesInstanceUid = null,
+        string sopInstanceUid = null,
+        int rows = 50,
+        int columns = 50,
+        int frames = 1,
+        DicomTransferSyntax dicomTransferSyntax = null)
+    {
+        var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: dicomTransferSyntax));
+        var pixelDataSize = rows * columns;
+        const ushort bitsAllocated = 8;
+        result.Dataset.AddOrUpdate(DicomTag.Rows, (ushort)rows);
+        result.Dataset.AddOrUpdate(DicomTag.Columns, (ushort)columns);
+        result.Dataset.AddOrUpdate(DicomTag.BitsAllocated, bitsAllocated);
+
+        var pixelData = new DicomOtherByteFragment(DicomTag.PixelData);
+        for (int i = 0; i < frames; i++)
+        {
+            pixelData.Fragments.Add(CreateRandomPixelData(pixelDataSize));
+        }
+        result.Dataset.AddOrUpdate(pixelData);
+
+        return result;
+    }
+
     public static DicomFile CreateRandomDicomFile(
                 string studyInstanceUid = null,
                 string seriesInstanceUid = null,

@@ -213,6 +213,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 framesRange,
                 message.Frames,
                 responseTransferSyntax,
+                instance.InstanceProperties.fileProperties,
                 cancellationToken);
 
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
@@ -347,6 +348,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IReadOnlyDictionary<int, FrameRange> framesRange,
         IReadOnlyCollection<int> frames,
         string responseTransferSyntax,
+        FileProperties fileProperties,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         long streamTotalLength = 0;
@@ -360,7 +362,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartition(), frameRange, fileProperties, cancellationToken);
             streamTotalLength += frameRange.Length;
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);

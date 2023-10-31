@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,27 +20,32 @@ public static class SchemaManagerServiceCollectionBuilder
 {
     public static IServiceCollection AddSchemaManager(this IServiceCollection services, IConfiguration config)
     {
-        services.AddCliCommands();
+        EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(config, nameof(config));
 
+        services.AddCliCommands();
         services.SetCommandLineOptions(config);
 
-        services.AddOptions<SqlServerDataStoreConfiguration>().Configure<IOptions<CommandLineOptions>>((s, c) =>
-        {
-            s.ConnectionString = c.Value.ConnectionString;
+        services
+            .AddOptions<SqlServerDataStoreConfiguration>()
+            .Configure<IOptions<CommandLineOptions>>((s, c) =>
+            {
+                s.ConnectionString = c.Value.ConnectionString;
 
 #pragma warning disable CS0618 // Type or member is obsolete
-            s.AuthenticationType = c.Value.AuthenticationType ?? SqlServerAuthenticationType.ConnectionString;
+                s.AuthenticationType = c.Value.AuthenticationType ?? SqlServerAuthenticationType.ConnectionString;
 
-            if (!string.IsNullOrWhiteSpace(c.Value.ManagedIdentityClientId))
-            {
-                s.ManagedIdentityClientId = c.Value.ManagedIdentityClientId;
-            }
+                if (!string.IsNullOrWhiteSpace(c.Value.ManagedIdentityClientId))
+                    s.ManagedIdentityClientId = c.Value.ManagedIdentityClientId;
 #pragma warning restore CS0618 // Type or member is obsolete
-        });
+            });
 
         services.AddSqlServerConnection();
-
         services.AddSqlServerManagement<SchemaVersion>();
+
+        // Optionally add support for Workload Identity
+        if (bool.TryParse(config[OptionAliases.EnableWorkloadIdentity], out bool enableWorkloadIdentity) && enableWorkloadIdentity)
+            services.EnableWorkloadManagedIdentity();
 
         services.AddSingleton<BaseSchemaRunner>();
         services.AddSingleton<IBaseSchemaRunner, DicomBaseSchemaRunner>();
