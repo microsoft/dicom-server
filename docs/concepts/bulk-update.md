@@ -43,9 +43,6 @@ Bulk update is a feature that enables updates of DICOM attributes/metadata witho
 
 After a study is updated, there are two versions of the instances that can be retrieved: the original, unmodified instances and the latest version with updated attributes.  Intermediate versions are not persisted.  
 
-## Feature Enablement
-The bulk update feature can be enabled by setting the configuration key `DicomServer:Features:EnableUpdate` to `true` through your local [appsettings.json](../../src/Microsoft.Health.Dicom.Web/appsettings.json) file or host-specific options.
-
 ## API Design
 Following URIs assume an implicit DICOM service base URI. For example, the base URI of a DICOM server running locally would be `https://localhost:63838/`.
 Example requests can be sent in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json).
