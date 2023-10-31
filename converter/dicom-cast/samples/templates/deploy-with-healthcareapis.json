@@ -59,7 +59,7 @@
       }
     },
     "imageTag": {
-      "type": "String",
+      "type": "string",
       "metadata": {
           "description": "Image tag. Ex: 10.0.479. You can find the latest https://github.com/microsoft/dicom-server/tags"
       }
@@ -195,7 +195,7 @@
   "resources": [{
       "type": "Microsoft.HealthcareApis/workspaces",
       "name": "[parameters('workspaceName')]",
-      "apiVersion": "2020-11-01-preview",
+      "apiVersion": "2021-11-01",
       "location": "[parameters('workspaceRegion')]",
       "properties": {}
     },
@@ -203,7 +203,7 @@
       "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
       "kind": "fhir-R4",
       "name": "[variables('fhirServiceName')]",
-      "apiVersion": "2020-11-01-preview",
+      "apiVersion": "2021-11-01",
       "location": "[parameters('workspaceRegion')]",
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces', parameters('workspaceName'))]"
@@ -218,7 +218,7 @@
     {
       "type": "Microsoft.HealthcareApis/workspaces/dicomservices",
       "name": "[variables('dicomServiceName')]",
-      "apiVersion": "2020-11-01-preview",
+      "apiVersion": "2021-11-01",
       "location": "[parameters('workspaceRegion')]",
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces', parameters('workspaceName'))]"
@@ -247,7 +247,7 @@
             "value": "[parameters('imageTag')]"
           },
           "image": {
-            "value": "[concat(parameters('image'), ':', parameters('imageTag'))]"
+            "value": "[parameters('image')]"
           },
           "storageAccountSku": {
             "value": "[parameters('storageAccountSku')]"
