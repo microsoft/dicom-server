@@ -705,8 +705,9 @@ public class RetrieveResourceServiceTests
 
         await _fileStore.GetFileFrameAsync(
             Arg.Is<long>(x => x == 3),
-            Partition.DefaultName,
+            Partition.Default,
             Arg.Any<FrameRange>(),
+            null,
             Arg.Any<CancellationToken>());
     }
 
@@ -738,8 +739,93 @@ public class RetrieveResourceServiceTests
 
         await _fileStore.GetFileFrameAsync(
             Arg.Is<long>(x => x == originalVersion),
-            Partition.DefaultName,
+            Partition.Default,
             Arg.Any<FrameRange>(),
+            null,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetFramesWithFileProperties_WithNoTranscode_ExpectGetFileFrameAsyncUsedFileProperties()
+    {
+        // arrange
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
+            ResourceType.Frames,
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, fileProperties = DefaultFileProperties });
+        InstanceMetadata instance = versionedInstanceIdentifiers[0];
+
+        var framesToRequest = new List<int> { 1 };
+
+        _fileStore.GetFilePropertiesAsync(
+                instance.VersionedInstanceIdentifier.Version,
+                instance.VersionedInstanceIdentifier.Partition.Name,
+                DefaultCancellationToken)
+            .Returns(new FileProperties { ContentLength = new RetrieveConfiguration().MaxDicomFileSize });
+
+        Dictionary<int, FrameRange> range = new Dictionary<int, FrameRange>();
+        range.Add(0, new FrameRange(0, 1));
+
+        _framesRangeCache.GetAsync(
+            instance.VersionedInstanceIdentifier.Version,
+            instance.VersionedInstanceIdentifier.Version,
+            Arg.Any<Func<long, CancellationToken, Task<IReadOnlyDictionary<int, FrameRange>>>>(),
+            Arg.Any<CancellationToken>()).Returns(range);
+
+        // act
+        RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+            new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() }),
+            DefaultCancellationToken);
+
+        List<RetrieveResourceInstance> fastFrames = await response.ResponseInstances.ToListAsync();
+        Assert.NotEmpty(fastFrames);
+
+        // assert
+        await _fileStore.GetFileFrameAsync(
+            Arg.Is<long>(x => x == instance.VersionedInstanceIdentifier.Version),
+            Partition.Default,
+            Arg.Any<FrameRange>(),
+            Arg.Is<FileProperties>(f => f.Path == DefaultFileProperties.Path && f.ETag == DefaultFileProperties.ETag),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetFramesWithFileProperties_WithUpdatedInstanceAndWithNoTranscode_ExpectGetFileFrameAsyncUsesFileProperties()
+    {
+        // arrange
+        List<InstanceMetadata> instances = SetupInstanceIdentifiersList(
+            ResourceType.Frames,
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 1, fileProperties = DefaultFileProperties });
+
+        var framesToRequest = new List<int> { 1 };
+
+        var instance = instances[0];
+        _fileStore.GetFilePropertiesAsync(instance.InstanceProperties.OriginalVersion.Value, instance.VersionedInstanceIdentifier.Partition.Name,
+                DefaultCancellationToken)
+            .Returns(new FileProperties { ContentLength = new RetrieveConfiguration().MaxDicomFileSize });
+
+        Dictionary<int, FrameRange> range = new Dictionary<int, FrameRange>();
+        range.Add(0, new FrameRange(0, 1));
+
+        _framesRangeCache.GetAsync(
+            instance.InstanceProperties.OriginalVersion,
+            instance.InstanceProperties.OriginalVersion.Value,
+            Arg.Any<Func<long, CancellationToken, Task<IReadOnlyDictionary<int, FrameRange>>>>(),
+            Arg.Any<CancellationToken>()).Returns(range);
+
+        // act
+        RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
+              new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() }),
+              DefaultCancellationToken);
+
+        List<RetrieveResourceInstance> fastFrames = await response.ResponseInstances.ToListAsync();
+        Assert.NotEmpty(fastFrames);
+
+        // assert
+        await _fileStore.GetFileFrameAsync(
+            Arg.Is<long>(x => x == instance.InstanceProperties.OriginalVersion.Value),
+            Partition.Default,
+            Arg.Any<FrameRange>(),
+            Arg.Is<FileProperties>(f => f.Path == DefaultFileProperties.Path && f.ETag == DefaultFileProperties.ETag),
             Arg.Any<CancellationToken>());
     }
 

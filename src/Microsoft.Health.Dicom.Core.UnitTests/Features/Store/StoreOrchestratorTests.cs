@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -115,6 +116,44 @@ public class StoreOrchestratorTests
     }
 
     [Fact]
+    public async Task GivenFilesAreSuccessfullyStored_WhenStoringFileWithFragmentPixelData_ThenStatusIsUpdatedToCreatedAndHasFrameDataSetToTrue()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var seriesInstanceUid = TestUidGenerator.Generate();
+        var sopInstanceUid = TestUidGenerator.Generate();
+
+        using (var stream = new MemoryStream())
+        {
+            DicomFile dicomFile = Samples.CreateRandomDicomFileWithFragmentPixelData(
+                studyInstanceUid,
+                seriesInstanceUid,
+                sopInstanceUid,
+                rows: 1,
+                columns: 1,
+                frames: 1);
+
+            await dicomFile.SaveAsync(stream);
+
+            _indexDataStore
+                .BeginCreateInstanceIndexAsync(Arg.Any<Partition>(), dicomFile.Dataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
+                .Returns(DefaultVersion);
+            _dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomFile.Dataset);
+            _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(stream);
+
+            _fileStore.StoreFileAsync(
+                    Arg.Any<long>(),
+                    DefaultVersionedInstanceIdentifier.Partition.Name,
+                    Arg.Any<Stream>(),
+                    cancellationToken: DefaultCancellationToken)
+                .Returns(DefaultFileProperties);
+
+            await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
+
+            await ValidateStatusUpdateAsync(_queryTags, hasFrameMetadata: true, dicomFile.Dataset);
+        }
+    }
+
+    [Fact]
     public async Task GivenFailedToStoreFile_WhenStoringFile_ThenCleanupShouldBeAttempted()
     {
         _fileStore.StoreFileAsync(
@@ -168,19 +207,19 @@ public class StoreOrchestratorTests
     private Task ValidateStatusUpdateAsync()
         => ValidateStatusUpdateAsync(_queryTags);
 
-    private Task ValidateStatusUpdateAsync(IEnumerable<QueryTag> expectedTags)
+    private Task ValidateStatusUpdateAsync(IEnumerable<QueryTag> expectedTags, bool hasFrameMetadata = false, DicomDataset dataset = null)
         => _indexDataStore
             .Received(1)
             .EndCreateInstanceIndexAsync(
                 1,
-                _dicomDataset,
+                dataset ?? _dicomDataset,
                 DefaultVersion,
                 expectedTags,
                 fileProperties: Arg.Is<FileProperties>(
                     p => p.Path == DefaultFileProperties.Path
                          && p.ETag == DefaultFileProperties.ETag),
                 allowExpiredTags: false,
-                hasFrameMetadata: false,
+                hasFrameMetadata: hasFrameMetadata,
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()
