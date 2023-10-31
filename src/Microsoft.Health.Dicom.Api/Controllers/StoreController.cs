@@ -38,8 +38,6 @@ public class StoreController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<StoreController> _logger;
-    private readonly bool _dicomUpdateEnabled;
-    private readonly bool _dataPartitionsEnabled;
     private readonly bool _asyncOperationDisabled;
 
     public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
@@ -50,8 +48,6 @@ public class StoreController : ControllerBase
 
         _mediator = mediator;
         _logger = logger;
-        _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
-        _dataPartitionsEnabled = featureConfiguration.Value.EnableDataPartitions;
         _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
     }
 
@@ -103,13 +99,6 @@ public class StoreController : ControllerBase
     [AuditEventType(AuditEventSubType.UpdateStudy)]
     public async Task<IActionResult> UpdateAsync([FromBody][Required] UpdateSpecification updateSpecification)
     {
-        // Using Data partitions feature flag to enable/disable update feature since existing users already use it and we can
-        // avoid multiple feature flags toggling for private preview .
-        if (!_dicomUpdateEnabled && !_dataPartitionsEnabled)
-        {
-            throw new DicomUpdateFeatureDisabledException();
-        }
-
         if (_asyncOperationDisabled)
         {
             throw new DicomAsyncOperationDisabledException();
