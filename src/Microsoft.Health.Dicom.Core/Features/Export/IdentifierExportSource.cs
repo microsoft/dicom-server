@@ -41,7 +41,6 @@ internal sealed class IdentifierExportSource : IExportSource
 
     public async IAsyncEnumerator<ReadResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        IEnumerable<ReadResult> results = Enumerable.Empty<ReadResult>();
         foreach (DicomIdentifier identifier in _identifiers)
         {
             // Attempt to read the data
