@@ -21,6 +21,7 @@ using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -63,8 +64,9 @@ internal sealed class AzureBlobExportSink : IExportSink
             return false;
         }
 
-        using Stream sourceStream = await _source.GetStreamingFileAsync(value.Instance.VersionedInstanceIdentifier.Version, value.Instance.VersionedInstanceIdentifier.Partition, value.Instance.InstanceProperties.fileProperties, cancellationToken);
-        BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(value.Instance.VersionedInstanceIdentifier));
+        InstanceMetadata i = value.Instance;
+        using Stream sourceStream = await _source.GetStreamingFileAsync(i.VersionedInstanceIdentifier.Version, i.VersionedInstanceIdentifier.Partition, i.InstanceProperties.fileProperties, cancellationToken);
+        BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(i.VersionedInstanceIdentifier));
 
         try
         {
@@ -73,8 +75,8 @@ internal sealed class AzureBlobExportSink : IExportSink
         }
         catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500) // Do not include client errors
         {
-            CopyFailure?.Invoke(this, new CopyFailureEventArgs(value.Instance.VersionedInstanceIdentifier, ex));
-            EnqueueError(DicomIdentifier.ForInstance(value.Instance.VersionedInstanceIdentifier), ex.Message);
+            CopyFailure?.Invoke(this, new CopyFailureEventArgs(i.VersionedInstanceIdentifier, ex));
+            EnqueueError(DicomIdentifier.ForInstance(i.VersionedInstanceIdentifier), ex.Message);
             return false;
         }
     }
