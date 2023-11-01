@@ -67,17 +67,32 @@ internal sealed class AzureBlobExportSink : IExportSink
         InstanceMetadata i = value.Instance;
         try
         {
-            using Stream sourceStream = await _source.GetStreamingFileAsync(i.VersionedInstanceIdentifier.Version, i.VersionedInstanceIdentifier.Partition, i.InstanceProperties.fileProperties, cancellationToken);
+            using Stream sourceStream = await _source.GetStreamingFileAsync(i.VersionedInstanceIdentifier.Version,
+                i.VersionedInstanceIdentifier.Partition, i.InstanceProperties.fileProperties, cancellationToken);
             BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(i.VersionedInstanceIdentifier));
-            await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload }, cancellationToken);
+            await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload },
+                cancellationToken);
             return true;
+        }
+        catch (DataStoreException ex) when (ex.IsExternal)
+        {
+            throw;
+        }
+        catch (DataStoreRequestFailedException ex) when (ex.IsExternal)
+        {
+            return LogFailure(i, ex);
         }
         catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500) // Do not include client errors
         {
-            CopyFailure?.Invoke(this, new CopyFailureEventArgs(i.VersionedInstanceIdentifier, ex));
-            EnqueueError(DicomIdentifier.ForInstance(i.VersionedInstanceIdentifier), ex.Message);
-            return false;
+            return LogFailure(i, ex);
         }
+    }
+
+    private bool LogFailure(InstanceMetadata i, Exception ex)
+    {
+        CopyFailure?.Invoke(this, new CopyFailureEventArgs(i.VersionedInstanceIdentifier, ex));
+        EnqueueError(DicomIdentifier.ForInstance(i.VersionedInstanceIdentifier), ex.Message);
+        return false;
     }
 
     public ValueTask DisposeAsync()

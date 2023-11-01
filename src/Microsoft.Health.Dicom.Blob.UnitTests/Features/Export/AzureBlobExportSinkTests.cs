@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,6 +21,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Export;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
@@ -28,6 +30,7 @@ using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Serialization;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Export;
@@ -139,6 +142,99 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         Assert.Equal(DicomIdentifier.ForSeries("1.2.3", "4.5"), error.Identifier);
         Assert.Equal("Cannot find series.", error.Error);
     }
+
+    [Fact]
+    public async Task GivenGetStreamingFileAsyncFailureOnConditionNotMet_WhenCopyingFromIDPExternalStore_ThenWriteToErrorLog()
+    {
+        var instance = new InstanceMetadata(
+            new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1),
+            new InstanceProperties
+            {
+                fileProperties = new FileProperties
+                {
+                    Path = "partition1/123.dcm",
+                    ETag = "e456"
+                }
+            });
+        using var fileStream = new MemoryStream();
+        using var tokenSource = new CancellationTokenSource();
+
+        // when using external store, it is possible to have had the file we are attempting to export change since we've indexed it
+        // in that case, its etag will be different from file properties we passed in and the etag matching condition error will be thrown
+
+        DataStoreRequestFailedException expectedException = new DataStoreRequestFailedException(
+            new RequestFailedException(
+                status: 412,
+                message: "Condition was not met.",
+                errorCode: BlobErrorCode.ConditionNotMet.ToString(),
+                innerException: new Exception("Condition not met.")),
+            isExternal: true);
+
+        _fileStore.GetStreamingFileAsync(
+                instance.VersionedInstanceIdentifier.Version,
+                instance.VersionedInstanceIdentifier.Partition,
+                instance.InstanceProperties.fileProperties,
+                cancellationToken: tokenSource.Token)
+            .Throws(expectedException);
+
+        Assert.False(await _sink.CopyAsync(ReadResult.ForInstance(instance), tokenSource.Token));
+
+        await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.fileProperties, cancellationToken: tokenSource.Token);
+        _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(Arg.Any<string>());
+        await _destBlob
+            .DidNotReceiveWithAnyArgs()
+            .UploadAsync(Arg.Any<string>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>());
+
+        // Check errors
+        ExportErrorLogEntry error = await GetErrorsAsync(tokenSource.Token).SingleAsync();
+        Assert.Equal(DicomIdentifier.ForInstance("1.2", "3.4.5", "6.7.8.9.10"), error.Identifier);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.ConditionNotMet.ToString()), error.Error);
+    }
+
+    [Fact]
+    public async Task GivenGetStreamingFileAsyncFailureOnNoAccess_WhenCopyingFromIDPExternalStore_ThenExpectExceptionThrown()
+    {
+        var instance = new InstanceMetadata(
+            new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1),
+            new InstanceProperties
+            {
+                fileProperties = new FileProperties
+                {
+                    Path = "partition1/123.dcm",
+                    ETag = "e456"
+                }
+            });
+        using var fileStream = new MemoryStream();
+        using var tokenSource = new CancellationTokenSource();
+
+        // when using external store, it is possible that we do not have access or some other issue occurs, resulting in
+        // DataStoreException, for which we want to fail the operation and allow retries
+
+        string expectedMessage = "Simulated failure.";
+        DataStoreException expectedException = new DataStoreException(expectedMessage, isExternal: true);
+
+        _fileStore.GetStreamingFileAsync(
+                instance.VersionedInstanceIdentifier.Version,
+                instance.VersionedInstanceIdentifier.Partition,
+                instance.InstanceProperties.fileProperties,
+                cancellationToken: tokenSource.Token)
+            .Throws(expectedException);
+
+        DataStoreException thrownException = await Assert.ThrowsAsync<DataStoreException>(async () => await _sink.CopyAsync(ReadResult.ForInstance(instance), tokenSource.Token));
+
+        await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.fileProperties, cancellationToken: tokenSource.Token);
+        _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(Arg.Any<string>());
+        await _destBlob
+            .DidNotReceiveWithAnyArgs()
+            .UploadAsync(Arg.Any<string>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>());
+
+        // Check errors
+        await _errorBlob
+            .DidNotReceiveWithAnyArgs()
+            .AppendBlockAsync(Arg.Any<Stream>(), null, Arg.Any<CancellationToken>());
+        Assert.Equal(expectedMessage, thrownException.Message);
+    }
+
 
     [Fact]
     public async Task GivenCopyFailure_WhenCopying_ThenWriteToErrorLog()
