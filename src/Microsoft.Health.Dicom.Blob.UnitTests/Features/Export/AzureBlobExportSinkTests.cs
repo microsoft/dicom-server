@@ -220,7 +220,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
                 cancellationToken: tokenSource.Token)
             .Throws(expectedException);
 
-        DataStoreException thrownException = await Assert.ThrowsAsync<DataStoreException>(async () => await _sink.CopyAsync(ReadResult.ForInstance(instance), tokenSource.Token));
+        DataStoreException thrownException = await Assert.ThrowsAsync<DataStoreException>(() => _sink.CopyAsync(ReadResult.ForInstance(instance), tokenSource.Token));
 
         await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.fileProperties, cancellationToken: tokenSource.Token);
         _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(Arg.Any<string>());

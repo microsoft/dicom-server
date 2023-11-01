@@ -67,10 +67,16 @@ internal sealed class AzureBlobExportSink : IExportSink
         InstanceMetadata i = value.Instance;
         try
         {
-            using Stream sourceStream = await _source.GetStreamingFileAsync(i.VersionedInstanceIdentifier.Version,
-                i.VersionedInstanceIdentifier.Partition, i.InstanceProperties.fileProperties, cancellationToken);
+            using Stream sourceStream = await _source.GetStreamingFileAsync(
+                i.VersionedInstanceIdentifier.Version,
+                i.VersionedInstanceIdentifier.Partition,
+                i.InstanceProperties.fileProperties,
+                cancellationToken);
+
             BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(i.VersionedInstanceIdentifier));
-            await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload },
+            await destBlob.UploadAsync(
+                sourceStream,
+                new BlobUploadOptions { TransferOptions = _blobOptions.Upload },
                 cancellationToken);
             return true;
         }
