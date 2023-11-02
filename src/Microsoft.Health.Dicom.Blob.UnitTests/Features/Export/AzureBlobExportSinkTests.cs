@@ -150,7 +150,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
             new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1),
             new InstanceProperties
             {
-                fileProperties = new FileProperties
+                FileProperties = new FileProperties
                 {
                     Path = "partition1/123.dcm",
                     ETag = "e456"
@@ -174,13 +174,13 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _fileStore.GetStreamingFileAsync(
                 instance.VersionedInstanceIdentifier.Version,
                 instance.VersionedInstanceIdentifier.Partition,
-                instance.InstanceProperties.fileProperties,
+                instance.InstanceProperties.FileProperties,
                 cancellationToken: tokenSource.Token)
             .Throws(expectedException);
 
         DataStoreRequestFailedException thrownException = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _sink.CopyAsync(ReadResult.ForInstance(instance), tokenSource.Token));
 
-        await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.fileProperties, cancellationToken: tokenSource.Token);
+        await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.FileProperties, cancellationToken: tokenSource.Token);
         _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(Arg.Any<string>());
         await _destBlob
             .DidNotReceiveWithAnyArgs()
@@ -200,7 +200,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
             new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1),
             new InstanceProperties
             {
-                fileProperties = new FileProperties
+                FileProperties = new FileProperties
                 {
                     Path = "partition1/123.dcm",
                     ETag = "e456"
@@ -218,13 +218,13 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _fileStore.GetStreamingFileAsync(
                 instance.VersionedInstanceIdentifier.Version,
                 instance.VersionedInstanceIdentifier.Partition,
-                instance.InstanceProperties.fileProperties,
+                instance.InstanceProperties.FileProperties,
                 cancellationToken: tokenSource.Token)
             .Throws(expectedException);
 
         Assert.False(await _sink.CopyAsync(ReadResult.ForInstance(instance), tokenSource.Token));
 
-        await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.fileProperties, cancellationToken: tokenSource.Token);
+        await _fileStore.Received(1).GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, fileProperties: instance.InstanceProperties.FileProperties, cancellationToken: tokenSource.Token);
         _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(Arg.Any<string>());
         await _destBlob
             .DidNotReceiveWithAnyArgs()

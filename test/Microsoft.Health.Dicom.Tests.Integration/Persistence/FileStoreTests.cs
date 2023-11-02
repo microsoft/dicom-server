@@ -133,7 +133,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         // Store the file.
         await AddFileAsync(version, fileData, $"{nameof(GivenFileAndStored_WhenAccessTierChanged_ThenTierIsSetCorrectly)}.fileData");
 
-        var properties = await _blobDataStore.GetFilePropertiesAsync(version, Partition.DefaultName);
+        var properties = await _blobDataStore.GetFilePropertiesAsync(version, Partition.Default, null);
 
         var blockBlobClient = _containerClient.GetBlockBlobClient(properties.Path);
 

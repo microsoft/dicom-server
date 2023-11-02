@@ -576,7 +576,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    fileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
                     NewVersion = 3
                 }
             ),
@@ -589,7 +589,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    fileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
                     NewVersion = 4
                 }
             )
@@ -1294,7 +1294,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    fileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
                     NewVersion = 3
                 }
             ),
@@ -1307,7 +1307,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    fileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
                     NewVersion = 4
                 }
             )
@@ -1542,7 +1542,7 @@ public partial class UpdateDurableFunctionTests
     {
         List<InstanceMetadata> instanceMetadataList = expectedInstancesWithNewWatermark.Select(x => new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, "0", "0", x.Version), new InstanceProperties
         {
-            fileProperties = new FileProperties
+            FileProperties = new FileProperties
             {
                 ETag = $"etag-{x.NewVersion.ToString()}",
                 Path = $"path-{x.NewVersion.ToString()}",

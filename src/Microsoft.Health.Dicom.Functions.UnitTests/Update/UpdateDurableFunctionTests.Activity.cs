@@ -156,7 +156,7 @@ public partial class UpdateDurableFunctionTests
         var studyInstanceUid = TestUidGenerator.Generate();
         var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1 }).Take(1).ToList();
 
-        Assert.Null(identifiers[0].InstanceProperties.fileProperties);
+        Assert.Null(identifiers[0].InstanceProperties.FileProperties);
 
         _updateInstanceService
             .DeleteInstanceBlobAsync(identifiers[0].InstanceProperties.NewVersion.Value, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
@@ -177,7 +177,7 @@ public partial class UpdateDurableFunctionTests
     public async Task GivenInstanceUpdateFails_WhenDeleteFileWithV3_ThenShouldDeleteNewVersionSuccessfullyWithFileProperties()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1, fileProperties = DefaultFileProperties }).Take(1).ToList();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1, FileProperties = DefaultFileProperties }).Take(1).ToList();
 
         _updateInstanceService
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>())
@@ -233,7 +233,7 @@ public partial class UpdateDurableFunctionTests
                 instanceProperty: new InstanceProperties { OriginalVersion = 1 })
             .Take(1).ToList();
 
-        Assert.Null(identifiers[0].InstanceProperties.fileProperties);
+        Assert.Null(identifiers[0].InstanceProperties.FileProperties);
 
         _updateInstanceService
             .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
@@ -256,13 +256,13 @@ public partial class UpdateDurableFunctionTests
         var studyInstanceUid = TestUidGenerator.Generate();
         var identifiers = GetInstanceIdentifiersList(
                 studyInstanceUid,
-                instanceProperty: new InstanceProperties { OriginalVersion = 1, fileProperties = DefaultFileProperties })
+                instanceProperty: new InstanceProperties { OriginalVersion = 1, FileProperties = DefaultFileProperties })
             .Take(1).ToList();
 
-        Assert.NotNull(identifiers[0].InstanceProperties.fileProperties);
+        Assert.NotNull(identifiers[0].InstanceProperties.FileProperties);
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.FileProperties, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -273,7 +273,7 @@ public partial class UpdateDurableFunctionTests
         // Assert behavior
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.FileProperties, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -309,13 +309,13 @@ public partial class UpdateDurableFunctionTests
     public async Task GivenInstanceMetadataList_WhenChangeAccessTierV2_ThenShouldChangeSuccessfullyUsingFileProperties()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
-        var instances = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2, fileProperties = DefaultFileProperties });
+        var instances = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2, FileProperties = DefaultFileProperties });
         IReadOnlyList<InstanceMetadata> expected = instances.Take(1).ToList();
 
-        Assert.NotNull(expected[0].InstanceProperties.fileProperties);
+        Assert.NotNull(expected[0].InstanceProperties.FileProperties);
 
         _fileStore
-            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, expected[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>())
+            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, expected[0].InstanceProperties.FileProperties, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -326,7 +326,7 @@ public partial class UpdateDurableFunctionTests
         // Assert behavior
         await _fileStore
             .Received(1)
-            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, expected[0].InstanceProperties.fileProperties, Arg.Any<CancellationToken>());
+            .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, expected[0].InstanceProperties.FileProperties, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public partial class UpdateDurableFunctionTests
         var instances = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2 });
         IReadOnlyList<InstanceMetadata> expected = instances.Take(1).ToList();
 
-        Assert.Null(expected[0].InstanceProperties.fileProperties);
+        Assert.Null(expected[0].InstanceProperties.FileProperties);
 
         _fileStore
             .SetBlobToColdAccessTierAsync(expected[0].VersionedInstanceIdentifier.Version, expected[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())

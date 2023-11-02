@@ -758,7 +758,8 @@ public class RetrieveResourceServiceTests
 
         _fileStore.GetFilePropertiesAsync(
                 instance.VersionedInstanceIdentifier.Version,
-                instance.VersionedInstanceIdentifier.Partition.Name,
+                instance.VersionedInstanceIdentifier.Partition,
+                instance.InstanceProperties.FileProperties,
                 DefaultCancellationToken)
             .Returns(new FileProperties { ContentLength = new RetrieveConfiguration().MaxDicomFileSize });
 
@@ -799,8 +800,7 @@ public class RetrieveResourceServiceTests
         var framesToRequest = new List<int> { 1 };
 
         var instance = instances[0];
-        _fileStore.GetFilePropertiesAsync(instance.InstanceProperties.OriginalVersion.Value, instance.VersionedInstanceIdentifier.Partition.Name,
-                DefaultCancellationToken)
+        _fileStore.GetFilePropertiesAsync(instance.InstanceProperties.OriginalVersion.Value, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.FileProperties, DefaultCancellationToken)
             .Returns(new FileProperties { ContentLength = new RetrieveConfiguration().MaxDicomFileSize });
 
         Dictionary<int, FrameRange> range = new Dictionary<int, FrameRange>();
