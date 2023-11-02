@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -41,7 +40,6 @@ internal sealed class IdentifierExportSource : IExportSource
 
     public async IAsyncEnumerator<ReadResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        IEnumerable<ReadResult> results = Enumerable.Empty<ReadResult>();
         foreach (DicomIdentifier identifier in _identifiers)
         {
             // Attempt to read the data
