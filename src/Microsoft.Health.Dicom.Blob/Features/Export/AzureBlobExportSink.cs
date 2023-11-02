@@ -91,15 +91,15 @@ internal sealed class AzureBlobExportSink : IExportSink
 
     private static bool ShouldContinue(Exception ex)
     {
-        // Can continue if the data has been modified in the source
-        if (ex is DataStoreRequestFailedException dsrfe)
-            return dsrfe.IsExternal && dsrfe.ResponseCode == (int)HttpStatusCode.PreconditionFailed;
-
-        // don't continue when data store is not available and using external
-        if (ex is DataStoreException dse && dse.IsExternal)
+        // don't continue if the data has been modified in the source as it is likely an issue that won't be fixed by retrying
+        if (ex is DataStoreRequestFailedException dsrfe && dsrfe.IsExternal && dsrfe.ResponseCode == (int)HttpStatusCode.PreconditionFailed)
             return false;
 
-        // Can continue if the issue copying to the destination was not due to the client configuration
+        // continue when data store is not available and using external as it may be a transient issue
+        if (ex is DataStoreException dse && dse.IsExternal)
+            return true;
+
+        // continue if the issue copying to the destination was not due to the client configuration
         if (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500)
             return true;
 
