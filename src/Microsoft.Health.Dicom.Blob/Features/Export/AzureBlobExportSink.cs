@@ -89,15 +89,20 @@ internal sealed class AzureBlobExportSink : IExportSink
         }
     }
 
+    /// <summary>
+    /// When to continue copying to the destination, skipping this specific file and not retrying.
+    /// Otherwise, we let the exception be thrown, failing the entire export operation and allowing it to retry.
+    /// </summary>
     private static bool ShouldContinue(Exception ex)
     {
-        // don't continue if the data has been modified in the source as it is likely an issue that won't be fixed by retrying
+        // continue if the data has been modified in the source as it is likely an issue that won't be fixed by retrying
+        // and no need to fail an entire operation for an issue with a single file
         if (ex is DataStoreRequestFailedException dsrfe && dsrfe.IsExternal && dsrfe.ResponseCode == (int)HttpStatusCode.PreconditionFailed)
-            return false;
-
-        // continue when data store is not available and using external as it may be a transient issue
-        if (ex is DataStoreException dse && dse.IsExternal)
             return true;
+
+        // don't continue when data store is not available and using external as it may be a transient issue
+        if (ex is DataStoreException dse && dse.IsExternal)
+            return false;
 
         // continue if the issue copying to the destination was not due to the client configuration
         if (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500)
