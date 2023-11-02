@@ -217,7 +217,7 @@ public class RetrieveResourceServiceTests
                 HasFrameMetadata = true,
                 OriginalVersion = originalVersion,
                 TransferSyntaxUid = "1.2.840.10008.1.2.4.90",
-                fileProperties = fileProperties
+                FileProperties = fileProperties
             });
         _fileStore.GetFilePropertiesAsync(originalVersion, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, fileProperties, DefaultCancellationToken)
             .Returns(new FileProperties { ContentLength = new RetrieveConfiguration().MaxDicomFileSize });
@@ -241,7 +241,7 @@ public class RetrieveResourceServiceTests
 
         await _fileStore
             .Received(1)
-            .GetFilePropertiesAsync(Arg.Is<long>(x => x == originalVersion), versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, versionedInstanceIdentifiers.First().InstanceProperties.fileProperties, DefaultCancellationToken);
+            .GetFilePropertiesAsync(Arg.Is<long>(x => x == originalVersion), versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, versionedInstanceIdentifiers.First().InstanceProperties.FileProperties, DefaultCancellationToken);
 
         await _fileStore
             .DidNotReceive()
@@ -263,7 +263,7 @@ public class RetrieveResourceServiceTests
         var streamsAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instanceMetadata.VersionedInstanceIdentifier), _recyclableMemoryStreamManager);
 
         _fileStore.GetFileAsync(0, _dicomRequestContextAccessor.RequestContext.DataPartition, null, DefaultCancellationToken).Returns(streamsAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, _dicomRequestContextAccessor.RequestContext.DataPartition, instanceMetadata.InstanceProperties.fileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFile.Value.Length });
+        _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, _dicomRequestContextAccessor.RequestContext.DataPartition, instanceMetadata.InstanceProperties.FileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFile.Value.Length });
         string transferSyntax = "1.2.840.10008.1.2.1";
         _retrieveTranscoder.TranscodeFileAsync(streamsAndStoredFile.Value, transferSyntax).Returns(CopyStream(streamsAndStoredFile.Value));
 
@@ -394,7 +394,7 @@ public class RetrieveResourceServiceTests
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager);
 
         var expectedFileProperties = withFileProperties
-            ? versionedInstanceIdentifiers.First().InstanceProperties.fileProperties
+            ? versionedInstanceIdentifiers.First().InstanceProperties.FileProperties
             : null;
 
         _fileStore.GetStreamingFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, expectedFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
@@ -522,7 +522,7 @@ public class RetrieveResourceServiceTests
     public async Task GetInstances_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
     {
         // arrange object with originalTransferSyntax
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, instanceProperty: new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax, fileProperties = null });
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, instanceProperty: new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax, FileProperties = null });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFilesArray = await Task.WhenAll(versionedInstanceIdentifiers.Select(
@@ -751,7 +751,7 @@ public class RetrieveResourceServiceTests
         // arrange
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Frames,
-            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, fileProperties = DefaultFileProperties });
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, FileProperties = DefaultFileProperties });
         InstanceMetadata instance = versionedInstanceIdentifiers[0];
 
         var framesToRequest = new List<int> { 1 };
@@ -794,7 +794,7 @@ public class RetrieveResourceServiceTests
         // arrange
         List<InstanceMetadata> instances = SetupInstanceIdentifiersList(
             ResourceType.Frames,
-            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 1, fileProperties = DefaultFileProperties });
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 1, FileProperties = DefaultFileProperties });
 
         var framesToRequest = new List<int> { 1 };
 
@@ -833,7 +833,7 @@ public class RetrieveResourceServiceTests
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
-        instanceProperty ??= withFileProperties ? new InstanceProperties { fileProperties = DefaultFileProperties } : new InstanceProperties();
+        instanceProperty ??= withFileProperties ? new InstanceProperties { FileProperties = DefaultFileProperties } : new InstanceProperties();
         partition ??= _dicomRequestContextAccessor.RequestContext.DataPartition;
 
         switch (resourceType)

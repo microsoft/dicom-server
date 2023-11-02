@@ -253,7 +253,7 @@ public class UpdateInstanceServiceTests
         long fileIdentifier = 456;
         long newFileIdentifier = 789;
 
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier, instanceProperty: new InstanceProperties { OriginalVersion = 123, NewVersion = newFileIdentifier, fileProperties = DefaultFileProperties });
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier, instanceProperty: new InstanceProperties { OriginalVersion = 123, NewVersion = newFileIdentifier, FileProperties = DefaultFileProperties });
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
@@ -323,7 +323,7 @@ public class UpdateInstanceServiceTests
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
         newVersion ??= version;
-        instanceProperty ??= new InstanceProperties { NewVersion = newVersion, fileProperties = DefaultFileProperties };
+        instanceProperty ??= new InstanceProperties { NewVersion = newVersion, FileProperties = DefaultFileProperties };
         partition ??= Partition.Default;
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version, partition), instanceProperty));
         return dicomInstanceIdentifiersList;

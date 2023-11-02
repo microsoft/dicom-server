@@ -396,7 +396,7 @@ public class RetrieveRenderedServiceTests
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
-        instanceProperty ??= new InstanceProperties { fileProperties = DefaultFileProperties };
+        instanceProperty ??= new InstanceProperties { FileProperties = DefaultFileProperties };
         partition ??= Partition.Default;
 
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partition), instanceProperty));
