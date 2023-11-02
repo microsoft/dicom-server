@@ -82,7 +82,7 @@ internal class SqlInstanceStoreV46 : SqlInstanceStoreV34
                                 HasFrameMetadata = rHasFrameMetadata,
                                 OriginalVersion = originalWatermark,
                                 NewVersion = newWatermark,
-                                fileProperties = string.IsNullOrEmpty(eTag) || string.IsNullOrEmpty(filePath)
+                                FileProperties = string.IsNullOrEmpty(eTag) || string.IsNullOrEmpty(filePath)
                                     ? null
                                     : new FileProperties { ETag = eTag, Path = filePath }
                             }));

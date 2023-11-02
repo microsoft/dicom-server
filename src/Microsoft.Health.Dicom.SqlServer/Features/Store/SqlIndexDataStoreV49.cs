@@ -86,7 +86,7 @@ internal class SqlIndexDataStoreV49 : SqlIndexDataStoreV47
             return new InstanceProperties
             {
                 OriginalVersion = originalWatermark,
-                fileProperties = new FileProperties
+                FileProperties = new FileProperties
                 {
                     Path = filePath,
                     ETag = eTag
