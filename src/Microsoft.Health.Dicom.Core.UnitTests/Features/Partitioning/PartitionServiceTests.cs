@@ -54,19 +54,19 @@ public class PartitionServiceTests
     {
         _partitionStore.GetPartitionAsync("notfound", CancellationToken.None).Returns((Partition)null);
 
-        await Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _partitionService.GetPartitionAsync("notfound", CancellationToken.None));
+        await Assert.ThrowsAsync<DataPartitionsNotFoundException>(() => _partitionService.GetPartitionAsync("notfound", CancellationToken.None));
     }
 
     [Fact]
     public async Task GivenAnInvalidPartition_WhenAttemptingToGet_ThrowsInvalidPartition()
     {
-        await Assert.ThrowsAsync<InvalidPartitionNameException>(async () => await _partitionService.GetPartitionAsync("test#$", CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidPartitionNameException>(() => _partitionService.GetPartitionAsync("test#$", CancellationToken.None));
     }
 
     [Fact]
     public async Task GivenAnInvalidPartition_WhenAttemptingToGetOrAdd_ThrowsInvalidPartition()
     {
-        await Assert.ThrowsAsync<InvalidPartitionNameException>(async () => await _partitionService.GetOrAddPartitionAsync("test#$", CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidPartitionNameException>(() => _partitionService.GetOrAddPartitionAsync("test#$", CancellationToken.None));
     }
 
     [Fact]

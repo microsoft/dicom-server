@@ -70,8 +70,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         Assert.Equal("Tag: (0008,0020) not found in dataset", thrownException.Message);
 
         // attempting to query with invalid attr produces a BadRequest
-        DicomWebException caughtException = await Assert.ThrowsAsync<DicomWebException>(
-            async () => await GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
+        DicomWebException caughtException = await Assert.ThrowsAsync<DicomWebException>(() => GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
 
         Assert.Contains(
             "BadRequest: Invalid query: specified Date value 'NotAValidStudyDate' is invalid for attribute 'StudyDate'" +
