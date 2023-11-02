@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,24 +81,28 @@ internal sealed class AzureBlobExportSink : IExportSink
                 cancellationToken);
             return true;
         }
-        catch (DataStoreException ex) when (ex.IsExternal)
+        catch (Exception ex) when (ShouldContinue(ex))
         {
-            throw;
-        }
-        catch (DataStoreRequestFailedException ex) when (ex.IsExternal)
-        {
-            return LogFailure(i, ex);
-        }
-        catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500) // Do not include client errors
-        {
-            return LogFailure(i, ex);
+            CopyFailure?.Invoke(this, new CopyFailureEventArgs(i.VersionedInstanceIdentifier, ex));
+            EnqueueError(DicomIdentifier.ForInstance(i.VersionedInstanceIdentifier), ex.Message);
+            return false;
         }
     }
 
-    private bool LogFailure(InstanceMetadata i, Exception ex)
+    private static bool ShouldContinue(Exception ex)
     {
-        CopyFailure?.Invoke(this, new CopyFailureEventArgs(i.VersionedInstanceIdentifier, ex));
-        EnqueueError(DicomIdentifier.ForInstance(i.VersionedInstanceIdentifier), ex.Message);
+        // Can continue if the data has been modified in the source
+        if (ex is DataStoreRequestFailedException dsrfe)
+            return dsrfe.IsExternal && dsrfe.ResponseCode == (int)HttpStatusCode.PreconditionFailed;
+
+        // don't continue when data store is not available and using external
+        if (ex is DataStoreException dse && dse.IsExternal)
+            return false;
+
+        // Can continue if the issue copying to the destination was not due to the client configuration
+        if (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500)
+            return true;
+
         return false;
     }
 

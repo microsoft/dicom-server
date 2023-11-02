@@ -235,7 +235,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         Assert.Equal(expectedMessage, thrownException.Message);
     }
 
-
     [Fact]
     public async Task GivenCopyFailure_WhenCopying_ThenWriteToErrorLog()
     {
