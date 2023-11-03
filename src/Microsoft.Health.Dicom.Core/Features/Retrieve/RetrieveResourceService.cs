@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
@@ -39,6 +40,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     private readonly ILogger<RetrieveResourceService> _logger;
     private readonly IInstanceMetadataCache _instanceMetadataCache;
     private readonly IFramesRangeCache _framesRangeCache;
+    private readonly IRateLimiterFactory _rateLimiterFactory;
     private readonly RetrieveMeter _retrieveMeter;
 
     public RetrieveResourceService(
@@ -53,6 +55,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IFramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
         RetrieveMeter retrieveMeter,
+        IRateLimiterFactory rateLimiterFactory,
         ILogger<RetrieveResourceService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -67,6 +70,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         _retrieveMeter = EnsureArg.IsNotNull(retrieveMeter, nameof(retrieveMeter));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
+        EnsureArg.IsNotNull(rateLimiterFactory, nameof(rateLimiterFactory));
 
         _instanceStore = instanceStore;
         _blobDataStore = blobDataStore;
@@ -79,6 +83,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         _logger = logger;
         _instanceMetadataCache = instanceMetadataCache;
         _framesRangeCache = framesRangeCache;
+        _rateLimiterFactory = rateLimiterFactory;
     }
 
     public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)
@@ -127,26 +132,31 @@ public class RetrieveResourceService : IRetrieveResourceService
             // transcoding of single instance
             if (needsTranscoding)
             {
-                _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition.Name, false, cancellationToken);
-                LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
-                SetTranscodingBillingProperties(fileProperties.ContentLength);
+                RateLimiter limiter = _rateLimiterFactory.GetRateLimiter();
+                using RateLimitLease lease = await limiter.AcquireAsync(permitCount: 1, cancellationToken: cancellationToken);
+                if (lease.IsAcquired)
+                {
+                    _logger.LogInformation("Transcoding Instance");
+                    FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition.Name, false, cancellationToken);
+                    LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
+                    SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.fileProperties, cancellationToken);
-                Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
+                    using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.fileProperties, cancellationToken);
+                    Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
-                IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
-                    GetTranscodedStreams(
-                        isOriginalTransferSyntaxRequested,
-                        transcodedStream,
-                        instance,
-                        requestedTransferSyntax)
-                    .ToAsyncEnumerable();
+                    IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
+                        GetTranscodedStreams(
+                            isOriginalTransferSyntaxRequested,
+                            transcodedStream,
+                            instance,
+                            requestedTransferSyntax)
+                        .ToAsyncEnumerable();
 
-                return new RetrieveResourceResponse(
-                    transcodedEnum,
-                    validAcceptHeader.MediaType.ToString(),
-                    validAcceptHeader.IsSinglePart);
+                    return new RetrieveResourceResponse(
+                        transcodedEnum,
+                        validAcceptHeader.MediaType.ToString(),
+                        validAcceptHeader.IsSinglePart);
+                }
             }
 
             // no transcoding

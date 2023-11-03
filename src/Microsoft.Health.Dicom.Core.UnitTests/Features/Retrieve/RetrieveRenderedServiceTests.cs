@@ -27,6 +27,7 @@ using NSubstitute;
 using Xunit;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
+
 using Microsoft.Health.Dicom.Core.Web;
 using Xunit.Abstractions;
 

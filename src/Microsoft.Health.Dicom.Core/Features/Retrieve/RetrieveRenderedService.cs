@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
@@ -39,6 +40,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
     private readonly RetrieveConfiguration _retrieveConfiguration;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly ILogger<RetrieveRenderedService> _logger;
+    private readonly IRateLimiterFactory _rateLimiterFactory;
     private readonly RetrieveMeter _retrieveMeter;
 
     public RetrieveRenderedService(
@@ -48,6 +50,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
         RetrieveMeter retrieveMeter,
+        IRateLimiterFactory rateLimiterFactory,
         ILogger<RetrieveRenderedService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -57,6 +60,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _retrieveMeter = EnsureArg.IsNotNull(retrieveMeter, nameof(retrieveMeter));
         EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(rateLimiterFactory, nameof(rateLimiterFactory));
 
         _instanceStore = instanceStore;
         _blobDataStore = blobDataStore;
@@ -64,6 +68,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         _retrieveConfiguration = retrieveConfiguration?.Value;
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         _logger = logger;
+        _rateLimiterFactory = rateLimiterFactory;
     }
 
     public async Task<RetrieveRenderedResponse> RetrieveRenderedImageAsync(RetrieveRenderedRequest request, CancellationToken cancellationToken)
@@ -96,20 +101,25 @@ public class RetrieveRenderedService : IRetrieveRenderedService
                 RetrieveMeter.RetrieveInstanceCountTelemetryDimension(isRendered: true));
 
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.fileProperties, cancellationToken);
-            sw.Start();
 
-            DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
-            DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
+            RateLimiter limiter = _rateLimiterFactory.GetRateLimiter();
+            using RateLimitLease lease = await limiter.AcquireAsync(permitCount: 1, cancellationToken: cancellationToken);
+            if (lease.IsAcquired)
+            {
+                sw.Start();
+                DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
+                DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
-            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), request.Quality, cancellationToken);
-            string outputContentType = returnHeader.MediaType.ToString();
+                Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), request.Quality, cancellationToken);
+                string outputContentType = returnHeader.MediaType.ToString();
 
-            sw.Stop();
-            _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
+                sw.Stop();
+                _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
 
-            _dicomRequestContextAccessor.RequestContext.BytesRendered = resultStream.Length;
+                _dicomRequestContextAccessor.RequestContext.BytesRendered = resultStream.Length;
 
-            return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
+                return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
+            }
         }
 
         catch (DataStoreException e)

@@ -34,6 +34,7 @@
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Threading.RateLimiting" />
   </ItemGroup>
 
   <ItemGroup>
