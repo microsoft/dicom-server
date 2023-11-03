@@ -124,7 +124,7 @@ public class DeleteService : IDeleteService
                             _fileStore.DeleteFileIfExistsAsync(
                                 deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
                                 deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition,
-                                deletedInstanceIdentifier.InstanceProperties.fileProperties,
+                                deletedInstanceIdentifier.InstanceProperties.FileProperties,
                                 cancellationToken),
                             _metadataStore.DeleteInstanceMetadataIfExistsAsync(
                                 deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
@@ -139,7 +139,7 @@ public class DeleteService : IDeleteService
                         // To that end, we only need to delete by "original watermark" to catch changes from Update operation if not IDP.
                         if (!_isExternalStoreEnabled && deletedInstanceIdentifier.InstanceProperties.OriginalVersion.HasValue)
                         {
-                            tasks.Add(_fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken));
+                            tasks.Add(_fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.FileProperties, cancellationToken));
                             tasks.Add(_metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken));
                         }
 

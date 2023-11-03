@@ -45,8 +45,8 @@ internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV42
         List<FilePropertyTableTypeRow> filePropertiesRows = instanceMetadataList.Select(instanceMetadata
             => new FilePropertyTableTypeRow(
                 instanceMetadata.InstanceProperties.NewVersion.Value,
-                instanceMetadata.InstanceProperties.fileProperties.Path,
-                instanceMetadata.InstanceProperties.fileProperties.ETag
+                instanceMetadata.InstanceProperties.FileProperties.Path,
+                instanceMetadata.InstanceProperties.FileProperties.ETag
                 ))
             .ToList();
 

@@ -93,8 +93,8 @@ public class UpdateInstanceService : IUpdateInstanceService
         if (isPreUpdated)
         {
             _logger.LogInformation("Begin copying instance file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
-            await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, partition, instance.InstanceProperties.fileProperties, cancellationToken);
-            newFileProperties = await _fileStore.GetFilePropertiesAsync(newFileIdentifier, partition.Name, cancellationToken);
+            await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, partition, instance.InstanceProperties.FileProperties, cancellationToken);
+            newFileProperties = await _fileStore.GetFilePropertiesAsync(newFileIdentifier, partition, instance.InstanceProperties.FileProperties, cancellationToken);
         }
         else
         {
@@ -102,7 +102,7 @@ public class UpdateInstanceService : IUpdateInstanceService
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             // If not pre-updated get the file stream, GetFileAsync will open the stream
-            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, partition, instance.InstanceProperties.fileProperties, cancellationToken);
+            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, partition, instance.InstanceProperties.FileProperties, cancellationToken);
 
             // Read the file and check if there is any large DICOM item in the file.
             DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand, LargeObjectSizeInBytes);

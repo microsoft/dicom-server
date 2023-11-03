@@ -107,7 +107,7 @@ public partial class UpdateDurableFunction
                             instance.VersionedInstanceIdentifier,
                             new InstanceProperties
                             {
-                                fileProperties = fileProperties,
+                                FileProperties = fileProperties,
                                 NewVersion = instance.InstanceProperties.NewVersion,
                                 OriginalVersion = instance.InstanceProperties.OriginalVersion
                             }));
@@ -239,7 +239,7 @@ public partial class UpdateDurableFunction
             },
             async (instance, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.fileProperties, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, token);
             });
 
         logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
@@ -279,7 +279,7 @@ public partial class UpdateDurableFunction
             },
             async (instance, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(instance.InstanceProperties.NewVersion.Value, partition, instance.InstanceProperties.fileProperties, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(instance.InstanceProperties.NewVersion.Value, partition, instance.InstanceProperties.FileProperties, token);
             });
 
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
@@ -402,7 +402,7 @@ public partial class UpdateDurableFunction
            },
            async (instance, token) =>
            {
-               await _fileStore.SetBlobToColdAccessTierAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.fileProperties, token);
+               await _fileStore.SetBlobToColdAccessTierAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, token);
            });
 
         logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);

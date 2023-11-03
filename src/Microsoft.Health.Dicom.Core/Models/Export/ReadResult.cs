@@ -16,13 +16,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 public readonly struct ReadResult
 {
     /// <summary>
-    /// Gets the resolved instance identifier.
+    /// Gets the resolved instance metadata.
     /// </summary>
     /// <remarks>
     /// This value is non-<see langword="null"/> if the read was successful.
     /// </remarks>
     /// <value>The successfully read identifier, if successful; otherwise <see langword="null"/>.</value>
-    public VersionedInstanceIdentifier Identifier { get; }
+    public InstanceMetadata Instance { get; }
 
     /// <summary>
     /// Gets the failure associated with the read.
@@ -33,19 +33,19 @@ public readonly struct ReadResult
     /// <value>The failure that caused the read to fail, if unsuccessful; otherwise <see langword="null"/>.</value>
     public ReadFailureEventArgs Failure { get; }
 
-    private ReadResult(VersionedInstanceIdentifier identifier, ReadFailureEventArgs failure)
+    private ReadResult(InstanceMetadata instance, ReadFailureEventArgs failure)
     {
-        Identifier = identifier;
+        Instance = instance;
         Failure = failure;
     }
 
     /// <summary>
     /// Creates a new instance of the <see cref="ReadResult"/> class for an instance identifier.
     /// </summary>
-    /// <param name="identifier">A DICOM SOP instance identifier.</param>
+    /// <param name="instance">A DICOM instance metadata</param>
     /// <returns>A successful instance of the <see cref="ReadResult"/> structure.</returns>
-    public static ReadResult ForIdentifier(VersionedInstanceIdentifier identifier)
-        => new ReadResult(EnsureArg.IsNotNull(identifier, nameof(identifier)), null);
+    public static ReadResult ForInstance(InstanceMetadata instance)
+        => new ReadResult(EnsureArg.IsNotNull(instance, nameof(instance)), null);
 
     /// <summary>
     /// Creates a new instance of the <see cref="ReadResult"/> class for a read failure.
