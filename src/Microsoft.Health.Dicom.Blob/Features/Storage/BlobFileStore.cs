@@ -296,6 +296,7 @@ public class BlobFileStore : IFileStore
         });
     }
 
+    /// <inheritdoc />
     public async Task<long> GetFilePropertiesContentLengthAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
         if (fileProperties is not null && fileProperties.ContentLength != 0)
