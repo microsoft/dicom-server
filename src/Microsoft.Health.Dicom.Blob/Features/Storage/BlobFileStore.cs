@@ -296,10 +296,24 @@ public class BlobFileStore : IFileStore
         });
     }
 
+    public async Task<long> GetFilePropertiesContentLengthAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
+    {
+        if (fileProperties is not null && fileProperties.ContentLength != 0)
+        {
+            return fileProperties.ContentLength;
+        }
+        FileProperties fp = await GetFilePropertiesAsync(version, partition, fileProperties, cancellationToken);
+        return fp.ContentLength;
+    }
+
     /// <inheritdoc />
     public async Task<FileProperties> GetFilePropertiesAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
+        // until we have backfilled contentLength, we have to continue to support retrieving file properties off of 
+        // external store fp. Once backfilled, the signature of GetFilePropertiesAsync can change to exclude passing in
+        // fileProperties
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
+
         _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
 
         return await ExecuteAsync(async () =>
@@ -388,14 +402,14 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
+    public async Task<FileProperties> CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
         var blobClient = GetExistingInstanceBlockBlobClient(originalVersion, partition, fileProperties);
         var copyBlobClient = GetNewInstanceBlockBlobClient(newVersion, partition.Name);
         _logger.LogInformation("Trying to copy DICOM instance file from original version '{Version}' to new path with new version'{NewVersion}'.", originalVersion, newVersion);
 
-        await ExecuteAsync(async () =>
+        return await ExecuteAsync<FileProperties>(async () =>
            {
                BlobCopyFromUriOptions options = new BlobCopyFromUriOptions();
                options.SourceConditions = _blobClient.GetConditions(fileProperties);
@@ -409,10 +423,9 @@ public class BlobFileStore : IFileStore
                    await operation.WaitForCompletionAsync(cancellationToken);
 
                    EmitTelemetry(nameof(CopyFileAsync), OperationType.Input);
-                   return true;
                }
 
-               return false;
+               return await GetFilePropertiesAsync(newVersion, partition, fileProperties, cancellationToken);
            });
     }
 

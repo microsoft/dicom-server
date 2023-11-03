@@ -59,6 +59,16 @@ public interface IFileStore
     Task<FileProperties> GetFilePropertiesAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns content length of file properties.
+    /// </summary>
+    /// <param name="version">The DICOM instance version when file properties not known.</param>
+    /// <param name="partition">Partition of the instance to get file properties on when file properties not known</param>
+    /// <param name="fileProperties">When file properties known, will use to get content length and match on etag</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Content length of file properties</returns>
+    Task<long> GetFilePropertiesContentLengthAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Asynchronously get a specific range of bytes from the blob
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
@@ -136,8 +146,8 @@ public interface IFileStore
     /// <param name="partition">Partition to use when operating on file</param>
     /// <param name="fileProperties">blob file Properties</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
-    Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
+    /// <returns>FileProperties of the copied blob</returns>
+    Task<FileProperties> CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously change blob access tier to cold tier.

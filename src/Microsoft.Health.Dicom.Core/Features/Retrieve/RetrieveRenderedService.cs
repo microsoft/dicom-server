@@ -88,11 +88,11 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance, partition, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
 
-            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, true, cancellationToken);
+            long contentLength = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, true, cancellationToken);
             _logger.LogInformation(
-                "Retrieving rendered Instance for watermark {Watermark} of size {ContentLength}", instance.VersionedInstanceIdentifier.Version, fileProperties.ContentLength);
+                "Retrieving rendered Instance for watermark {Watermark} of size {ContentLength}", instance.VersionedInstanceIdentifier.Version, contentLength);
             _retrieveMeter.RetrieveInstanceCount.Add(
-                fileProperties.ContentLength,
+                contentLength,
                 RetrieveMeter.RetrieveInstanceCountTelemetryDimension(isRendered: true));
 
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.FileProperties, cancellationToken);

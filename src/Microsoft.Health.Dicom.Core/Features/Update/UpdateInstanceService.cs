@@ -93,8 +93,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         if (isPreUpdated)
         {
             _logger.LogInformation("Begin copying instance file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
-            await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, partition, instance.InstanceProperties.FileProperties, cancellationToken);
-            newFileProperties = await _fileStore.GetFilePropertiesAsync(newFileIdentifier, partition, instance.InstanceProperties.FileProperties, cancellationToken);
+            newFileProperties = await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, partition, instance.InstanceProperties.FileProperties, cancellationToken);
         }
         else
         {

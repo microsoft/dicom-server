@@ -12,7 +12,9 @@ CREATE TABLE dbo.FileProperty (
     FilePath        NVARCHAR (4000) NOT NULL,
     -- ETag is of unspecified size and its generation is opaque to us. In practice, these are typically short hashes 
     -- no more than 100 characters long. We will use max available as it is a varchar.
-    ETag            NVARCHAR (4000)  NOT NULL
+    ETag            NVARCHAR (4000)  NOT NULL,
+    -- ContentLength represents length os stream of blob we ended up storing
+    ContentLength   BIGINT           NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty ON dbo.FileProperty(
