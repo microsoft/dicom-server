@@ -148,7 +148,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.Contains(ExpectedFailedSubstring(), copyFileEx.Message);
 
         var getFilePropsEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFilePropertiesAsync(version, Partition.Default, badFileProperties));
-        Assert.Contains(ExpectedFailedSubstring(), getFilePropsEx.Message);
+        Assert.Contains(ConditionNotMetMessage, getFilePropsEx.Message);
     }
 
     [Fact]
