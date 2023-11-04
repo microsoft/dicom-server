@@ -203,7 +203,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             foreach (ChangeFeedRow row in changeFeedEntries)
             {
                 metadataListByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
-                Assert.Equal(actual.InstanceProperties.fileProperties.Path, row.FilePath);
+                Assert.Equal(actual.InstanceProperties.FileProperties.Path, row.FilePath);
             }
         }
     }
@@ -217,7 +217,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
                 updatedInstance.VersionedInstanceIdentifier,
                 new InstanceProperties
                 {
-                    fileProperties = new FileProperties
+                    FileProperties = new FileProperties
                     {
                         Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
                         ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}"

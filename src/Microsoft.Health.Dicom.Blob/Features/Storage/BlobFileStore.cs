@@ -280,15 +280,15 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetStreamingFileAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task<Stream> GetStreamingFileAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        BlockBlobClient blobClient = GetNewInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
 
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
         return await ExecuteAsync(async () =>
         {
-            Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+            Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: _blobClient.GetConditions(fileProperties), rangeGetContentHash: false, cancellationToken);
 
             EmitTelemetry(nameof(GetStreamingFileAsync), OperationType.Output, result.Value.Details.ContentLength);
 
@@ -297,14 +297,16 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> GetFilePropertiesAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task<FileProperties> GetFilePropertiesAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        BlockBlobClient blobClient = GetNewInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
 
         return await ExecuteAsync(async () =>
         {
-            BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
+            BlobProperties blobProperties = await blobClient.GetPropertiesAsync(
+                conditions: _blobClient.GetConditions(fileProperties),
+                cancellationToken);
 
             EmitTelemetry(nameof(GetFilePropertiesAsync), OperationType.Output);
 

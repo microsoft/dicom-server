@@ -212,7 +212,7 @@ public class UpdateInstanceServiceTests
         copyStream.Position = 0;
 
         _fileStore.GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.DefaultName, cancellationToken).Returns(DefaultFileProperties);
+        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(DefaultFileProperties);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -253,7 +253,7 @@ public class UpdateInstanceServiceTests
         long fileIdentifier = 456;
         long newFileIdentifier = 789;
 
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier, instanceProperty: new InstanceProperties { OriginalVersion = 123, NewVersion = newFileIdentifier, fileProperties = DefaultFileProperties });
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier, instanceProperty: new InstanceProperties { OriginalVersion = 123, NewVersion = newFileIdentifier, FileProperties = DefaultFileProperties });
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
@@ -281,7 +281,7 @@ public class UpdateInstanceServiceTests
         var firstBlock = new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length);
 
         _fileStore.CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(Task.CompletedTask);
-        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.DefaultName, cancellationToken).Returns(DefaultFileProperties);
+        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(DefaultFileProperties);
         _fileStore.GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(streamAndStoredFile.Value);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
@@ -323,7 +323,7 @@ public class UpdateInstanceServiceTests
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
         newVersion ??= version;
-        instanceProperty ??= new InstanceProperties { NewVersion = newVersion, fileProperties = DefaultFileProperties };
+        instanceProperty ??= new InstanceProperties { NewVersion = newVersion, FileProperties = DefaultFileProperties };
         partition ??= Partition.Default;
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version, partition), instanceProperty));
         return dicomInstanceIdentifiersList;

@@ -36,5 +36,5 @@ public class InstanceProperties
     /// <summary>
     /// File properties of instance
     /// </summary>
-    public FileProperties fileProperties { get; init; }
+    public FileProperties FileProperties { get; init; }
 }

@@ -10,6 +10,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 
 public class DataStoreRequestFailedException : ConditionalExternalException
 {
+    public int ResponseCode => InnerException is RequestFailedException ex ? ex.Status : 0;
+
+    public string ErrorCode => InnerException is RequestFailedException ex ? ex.ErrorCode : null;
+
     public DataStoreRequestFailedException(RequestFailedException ex, bool isExternal = false)
         : base(
             (isExternal ?

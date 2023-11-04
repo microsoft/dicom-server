@@ -392,7 +392,7 @@ public class DeleteServiceTests
                 generateUniqueFileProperties: false).Take(1).ToList();
 
         // ensure no instances contain file properties
-        Assert.DoesNotContain(responseList, i => i.InstanceProperties.fileProperties != null);
+        Assert.DoesNotContain(responseList, i => i.InstanceProperties.FileProperties != null);
 
         _indexDataStore
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -422,7 +422,7 @@ public class DeleteServiceTests
                 .Received(1)
                 .DeleteInstanceMetadataIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, CancellationToken.None);
 
-            Assert.Null(instance.InstanceProperties.fileProperties);
+            Assert.Null(instance.InstanceProperties.FileProperties);
 
             // delete both original and new version's blobs and fileProperties are null and not used
             await _fileDataStore
@@ -448,7 +448,7 @@ public class DeleteServiceTests
             GeneratedDeletedInstanceList(2, generateUniqueFileProperties: true);
 
         // ensure instances contain file properties that are not null
-        Assert.DoesNotContain(responseList, i => i.InstanceProperties.fileProperties == null);
+        Assert.DoesNotContain(responseList, i => i.InstanceProperties.FileProperties == null);
 
         _indexDataStore
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -474,11 +474,11 @@ public class DeleteServiceTests
                 .Received(1)
                 .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
 
-            Assert.NotNull(instance.InstanceProperties.fileProperties);
+            Assert.NotNull(instance.InstanceProperties.FileProperties);
 
             await _fileDataStore
                .Received(1)
-               .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
+               .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.FileProperties, CancellationToken.None);
         }
 
         await _indexDataStore
@@ -529,7 +529,7 @@ public class DeleteServiceTests
                 ETag = "e" + Guid.NewGuid()
             };
         }
-        instanceProperties ??= new InstanceProperties() { fileProperties = fileProperties };
+        instanceProperties ??= new InstanceProperties() { FileProperties = fileProperties };
         partition ??= Partition.Default;
         var deletedInstanceList = new List<InstanceMetadata>();
         for (int i = 0; i < numberOfResults; i++)

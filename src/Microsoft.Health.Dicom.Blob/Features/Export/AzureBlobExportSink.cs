@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -63,20 +65,50 @@ internal sealed class AzureBlobExportSink : IExportSink
             return false;
         }
 
-        using Stream sourceStream = await _source.GetStreamingFileAsync(value.Identifier.Version, value.Identifier.Partition.Name, cancellationToken);
-        BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(value.Identifier));
-
+        InstanceMetadata i = value.Instance;
         try
         {
-            await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload }, cancellationToken);
+            using Stream sourceStream = await _source.GetStreamingFileAsync(
+                i.VersionedInstanceIdentifier.Version,
+                i.VersionedInstanceIdentifier.Partition,
+                i.InstanceProperties.FileProperties,
+                cancellationToken);
+
+            BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(i.VersionedInstanceIdentifier));
+            await destBlob.UploadAsync(
+                sourceStream,
+                new BlobUploadOptions { TransferOptions = _blobOptions.Upload },
+                cancellationToken);
             return true;
         }
-        catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500) // Do not include client errors
+        catch (Exception ex) when (ShouldContinue(ex))
         {
-            CopyFailure?.Invoke(this, new CopyFailureEventArgs(value.Identifier, ex));
-            EnqueueError(DicomIdentifier.ForInstance(value.Identifier), ex.Message);
+            CopyFailure?.Invoke(this, new CopyFailureEventArgs(i.VersionedInstanceIdentifier, ex));
+            EnqueueError(DicomIdentifier.ForInstance(i.VersionedInstanceIdentifier), ex.Message);
             return false;
         }
+    }
+
+    /// <summary>
+    /// When to continue copying to the destination, skipping this specific file and not retrying.
+    /// Otherwise, we let the exception be thrown, failing the entire export operation and allowing it to retry.
+    /// </summary>
+    private static bool ShouldContinue(Exception ex)
+    {
+        // continue if the data has been modified in the source as it is likely an issue that won't be fixed by retrying
+        // and no need to fail an entire operation for an issue with a single file
+        if (ex is DataStoreRequestFailedException dsrfe && dsrfe.IsExternal && dsrfe.ResponseCode == (int)HttpStatusCode.PreconditionFailed)
+            return true;
+
+        // don't continue when data store is not available and using external as it may be a transient issue
+        if (ex is DataStoreException dse && dse.IsExternal)
+            return false;
+
+        // continue if the issue copying to the destination was not due to the client configuration
+        if (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500)
+            return true;
+
+        return false;
     }
 
     public ValueTask DisposeAsync()
