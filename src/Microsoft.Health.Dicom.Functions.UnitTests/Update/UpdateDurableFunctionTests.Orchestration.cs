@@ -615,8 +615,8 @@ public partial class UpdateDurableFunctionTests
                 _options.RetryOptions, Arg.Any<UpdateInstanceWatermarkArgumentsV2>()).Returns(instanceMetadataList);
 
         context
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+            .CallActivityWithRetryAsync<UpdateInstanceResponse>(
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV3Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, instanceMetadataList, expectedInput.ChangeDataset)))
             .ThrowsAsync(new FunctionFailedException("Function failed"));

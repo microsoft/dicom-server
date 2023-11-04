@@ -184,7 +184,7 @@ public partial class UpdateDurableFunction
                                 instance.VersionedInstanceIdentifier,
                                 new InstanceProperties
                                 {
-                                    fileProperties = fileProperties,
+                                    FileProperties = fileProperties,
                                     NewVersion = instance.InstanceProperties.NewVersion,
                                     OriginalVersion = instance.InstanceProperties.OriginalVersion
                                 }));
