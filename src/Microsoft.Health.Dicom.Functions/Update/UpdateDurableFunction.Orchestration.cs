@@ -223,7 +223,7 @@ public partial class UpdateDurableFunction
 
                     instanceMetadataList = response.InstanceMetadataList;
 
-                    if (response.Errors != null && response.Errors.Any())
+                    if (response.Errors != null && response.Errors.Count > 0)
                     {
                         isFailedToUpdateStudy = true;
                         numberofStudyFailed++;
@@ -232,9 +232,9 @@ public partial class UpdateDurableFunction
                     else
                     {
                         await context.CallActivityWithRetryAsync(
-                        nameof(CompleteUpdateStudyV3Async),
-                        _options.RetryOptions,
-                        new CompleteStudyArgumentsV2(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadataList(instanceMetadataList)));
+                            nameof(CompleteUpdateStudyV3Async),
+                            _options.RetryOptions,
+                            new CompleteStudyArgumentsV2(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadataList(instanceMetadataList)));
 
                         totalNoOfInstances += instances.Count;
                     }
@@ -322,11 +322,11 @@ public partial class UpdateDurableFunction
             $"Failed to update instances for study {studyInstanceUid}",
         };
 
+        if (input.Errors != null)
+            errors.AddRange(input.Errors);
+
         if (instanceErrors != null)
             errors.AddRange(instanceErrors);
-
-        if (input.Errors != null)
-            errors.AddRange(errors);
 
         input.Errors = errors;
 
