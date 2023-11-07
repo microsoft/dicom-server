@@ -288,16 +288,20 @@ public class BlobFileStore : IFileStore
 
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
-        Response<BlobDownloadStreamingResult> result = await ExecuteAsync(
-            action: () => blobClient.DownloadStreamingAsync(
-                range: default,
-                conditions: _blobClient.GetConditions(fileProperties),
-                rangeGetContentHash: false,
-                cancellationToken),
+        BlobDownloadStreamingResult result = await ExecuteAsync(
+            action: async () =>
+            {
+                Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(
+                    range: default,
+                    conditions: _blobClient.GetConditions(fileProperties),
+                    rangeGetContentHash: false,
+                    cancellationToken);
+                return result.Value;
+            },
             operationName: nameof(GetStreamingFileAsync),
-            extractLength: long? (result) => result.Value.Details.ContentLength);
+            extractLength: long? (result) => result.Details.ContentLength);
 
-        return result.Value.Content;
+        return result.Content;
     }
 
     /// <inheritdoc />
@@ -344,16 +348,20 @@ public class BlobFileStore : IFileStore
             range.Offset,
             range.Length);
 
-        Response<BlobDownloadStreamingResult> result = await ExecuteAsync(
-            action: () => blob.DownloadStreamingAsync(
-                range: new HttpRange(range.Offset, range.Length),
-                conditions: _blobClient.GetConditions(fileProperties),
-                rangeGetContentHash: false,
-                cancellationToken),
+        BlobDownloadStreamingResult result = await ExecuteAsync(
+            action: async () =>
+            {
+                Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(
+                    range: new HttpRange(range.Offset, range.Length),
+                    conditions: _blobClient.GetConditions(fileProperties),
+                    rangeGetContentHash: false,
+                    cancellationToken);
+                return result.Value;
+            },
             operationName: nameof(GetFileFrameAsync),
-            extractLength: long? (result) => result.Value.Details.ContentLength);
+            extractLength: long? (result) => result.Details.ContentLength);
 
-        return result.Value.Content;
+        return result.Content;
     }
 
     /// <inheritdoc />
@@ -379,12 +387,16 @@ public class BlobFileStore : IFileStore
             Conditions = _blobClient.GetConditions(fileProperties),
         };
 
-        Response<BlobDownloadResult> result = await ExecuteAsync(
-            action: () => blob.DownloadContentAsync(blobDownloadOptions, cancellationToken),
+        BlobDownloadResult result = await ExecuteAsync(
+            action: async () =>
+            {
+                Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
+                return result.Value;
+            },
             operationName: nameof(GetFileContentInRangeAsync),
-            extractLength: long? (result) => result.Value.Details.ContentLength);
+            extractLength: long? (result) => result.Details.ContentLength);
 
-        return result.Value.Content;
+        return result.Content;
     }
 
     /// <inheritdoc />
