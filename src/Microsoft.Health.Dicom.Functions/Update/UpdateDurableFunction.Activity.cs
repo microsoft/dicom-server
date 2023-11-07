@@ -150,67 +150,46 @@ public partial class UpdateDurableFunction
 
         DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
 
-        int processed = 0;
-
         logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadataList.Count);
 
-        ConcurrentBag<InstanceMetadata> updatedInstances = new ConcurrentBag<InstanceMetadata>();
+        var updatedInstances = new ConcurrentBag<InstanceMetadata>();
         var errors = new ConcurrentBag<string>();
 
-        while (processed < arguments.InstanceMetadataList.Count)
-        {
-            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceMetadataList.Count - processed);
-            var batch = arguments.InstanceMetadataList.Skip(processed).Take(batchSize).ToList();
-
-            logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
-            await Parallel.ForEachAsync(
-                batch,
-                new ParallelOptions
+        await Parallel.ForEachAsync(
+            arguments.InstanceMetadataList,
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (instance, token) =>
+            {
+                try
                 {
-                    CancellationToken = default,
-                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
-                },
-                async (instance, token) =>
+                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
+                    updatedInstances.Add(
+                        new InstanceMetadata(
+                            instance.VersionedInstanceIdentifier,
+                            new InstanceProperties
+                            {
+                                FileProperties = fileProperties,
+                                NewVersion = instance.InstanceProperties.NewVersion,
+                                OriginalVersion = instance.InstanceProperties.OriginalVersion
+                            }));
+                }
+                catch (DataStoreRequestFailedException ex)
                 {
-                    try
-                    {
-                        FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
-                        updatedInstances.Add(
-                            new InstanceMetadata(
-                                instance.VersionedInstanceIdentifier,
-                                new InstanceProperties
-                                {
-                                    FileProperties = fileProperties,
-                                    NewVersion = instance.InstanceProperties.NewVersion,
-                                    OriginalVersion = instance.InstanceProperties.OriginalVersion
-                                }));
-                    }
-                    catch (DataStoreRequestFailedException ex)
-                    {
-                        logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
-                        errors.Add($"{ex.Message}. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
-                    }
-                    catch (DataStoreException)
-                    {
-                        logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
-                        errors.Add($"Failed to update instance. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
-                    }
-                });
+                    logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
+                    errors.Add($"{ex.Message}. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
+                }
+                catch (DataStoreException)
+                {
+                    logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
+                    errors.Add($"Failed to update instance. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
+                }
+            });
 
-            logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}. Total Failed {FailedCount}",
-                batch[0],
-                batch[^1],
-                batchSize,
-                errors.Count);
-
-            processed += batchSize;
-        }
-
-        logger.LogInformation("Completed updating all instance blobs. Total instace count {TotalCount}. Total Failed {FailedCount}", processed, errors.Count);
+        logger.LogInformation("Completed updating all instance blobs. Total instace count {TotalCount}. Total Failed {FailedCount}", arguments.InstanceMetadataList.Count, errors.Count);
 
         return new UpdateInstanceResponse(updatedInstances.ToList(), errors.ToList());
     }

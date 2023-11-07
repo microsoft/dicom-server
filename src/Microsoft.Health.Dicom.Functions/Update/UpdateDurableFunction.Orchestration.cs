@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -208,7 +209,6 @@ public partial class UpdateDurableFunction
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instances.Count);
 
             var totalNoOfInstances = input.TotalNumberOfInstanceUpdated;
-            int numberofStudyFailed = input.NumberOfStudyFailed;
 
             if (instances.Count > 0)
             {
@@ -223,10 +223,10 @@ public partial class UpdateDurableFunction
 
                     instanceMetadataList = response.InstanceMetadataList;
 
-                    if (response.Errors != null && response.Errors.Count > 0)
+                    if (response.Errors?.Count > 0)
                     {
                         isFailedToUpdateStudy = true;
-                        numberofStudyFailed++;
+                        logger.LogWarning("Failed to update instances for study. Total instance failed for study {TotalFailed}", response.Errors.Count);
                         await HandleException(context, input, studyInstanceUid, instances, response.Errors);
                     }
                     else
@@ -242,7 +242,6 @@ public partial class UpdateDurableFunction
                 catch (FunctionFailedException ex)
                 {
                     isFailedToUpdateStudy = true;
-                    numberofStudyFailed++;
 
                     logger.LogError(ex, "Failed to update instances for study", ex);
 
@@ -278,7 +277,7 @@ public partial class UpdateDurableFunction
                     Partition = input.Partition,
                     PartitionKey = input.PartitionKey,
                     NumberOfStudyCompleted = numberOfStudyCompleted,
-                    NumberOfStudyFailed = numberofStudyFailed,
+                    NumberOfStudyFailed = input.NumberOfStudyFailed,
                     TotalNumberOfInstanceUpdated = totalNoOfInstances,
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
@@ -317,18 +316,20 @@ public partial class UpdateDurableFunction
         IReadOnlyList<InstanceMetadata> instances,
         IReadOnlyList<string> instanceErrors)
     {
-        var errors = new List<string>
-        {
-            $"Failed to update instances for study {studyInstanceUid}",
-        };
+        var errors = new List<string>();
 
         if (input.Errors != null)
+        {
             errors.AddRange(input.Errors);
+        }
+
+        errors.Add($"Failed to update instances for study {studyInstanceUid}");
 
         if (instanceErrors != null)
             errors.AddRange(instanceErrors);
 
         input.Errors = errors;
+        input.NumberOfStudyFailed++;
 
         // Cleanup the new version when the update activity fails
         await TryCleanupActivityV3(context, instances, input.Partition);
