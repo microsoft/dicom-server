@@ -285,6 +285,11 @@ public partial class UpdateDurableFunction
         }
         else
         {
+            if (input.TotalNumberOfInstanceUpdated > 0)
+            {
+                replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
+            }
+
             if (input.Errors?.Count > 0)
             {
                 logger.LogWarning("Update operation completed with errors. {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
@@ -300,11 +305,6 @@ public partial class UpdateDurableFunction
                 logger.LogInformation("Update operation completed successfully. {NumberOfStudyUpdated}, {TotalNumberOfInstanceUpdated}.",
                     input.NumberOfStudyCompleted,
                     input.TotalNumberOfInstanceUpdated);
-            }
-
-            if (input.TotalNumberOfInstanceUpdated > 0)
-            {
-                replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
             }
         }
     }
