@@ -220,12 +220,12 @@ public class BlobFileStore : IFileStore
             partition.Key);
 
         await ExecuteAsync(
-            action: async () =>
+            action: () =>
             {
                 try
                 {
                     // NOTE - when file does not exist but conditions passed in, it fails on conditions not met
-                    return await blobClient.DeleteIfExistsAsync(
+                    return blobClient.DeleteIfExistsAsync(
                         DeleteSnapshotsOption.IncludeSnapshots,
                         conditions: _blobClient.GetConditions(fileProperties),
                         cancellationToken);
@@ -272,7 +272,7 @@ public class BlobFileStore : IFileStore
         //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
         //stream = result.Value.Content;
         return await ExecuteAsync(
-            action: async () => await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
+            action: () => blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
             operationName: nameof(GetFileAsync),
             extractLength: long? (stream) => stream.Length);
     }
@@ -289,7 +289,7 @@ public class BlobFileStore : IFileStore
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
         Response<BlobDownloadStreamingResult> result = await ExecuteAsync(
-            action: async () => await blobClient.DownloadStreamingAsync(
+            action: () => blobClient.DownloadStreamingAsync(
                 range: default,
                 conditions: _blobClient.GetConditions(fileProperties),
                 rangeGetContentHash: false,
@@ -345,7 +345,7 @@ public class BlobFileStore : IFileStore
             range.Length);
 
         Response<BlobDownloadStreamingResult> result = await ExecuteAsync(
-            action: async () => await blob.DownloadStreamingAsync(
+            action: () => blob.DownloadStreamingAsync(
                 range: new HttpRange(range.Offset, range.Length),
                 conditions: _blobClient.GetConditions(fileProperties),
                 rangeGetContentHash: false,
@@ -380,7 +380,7 @@ public class BlobFileStore : IFileStore
         };
 
         Response<BlobDownloadResult> result = await ExecuteAsync(
-            action: async () => await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken),
+            action: () => blob.DownloadContentAsync(blobDownloadOptions, cancellationToken),
             operationName: nameof(GetFileContentInRangeAsync),
             extractLength: long? (result) => result.Value.Details.ContentLength);
 
@@ -465,15 +465,10 @@ public class BlobFileStore : IFileStore
         _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
 
         await ExecuteAsync(
-            action: async () =>
-            {
-                // SetAccessTierAsync does not support matching on etag
-                Response response = await blobClient.SetAccessTierAsync(
-                    AccessTier.Cold,
-                    conditions: null,
-                    cancellationToken: cancellationToken);
-                return response;
-            },
+            action: () => blobClient.SetAccessTierAsync(
+                AccessTier.Cold,
+                conditions: null, // SetAccessTierAsync does not support matching on etag
+                cancellationToken: cancellationToken),
             operationName: nameof(SetBlobToColdAccessTierAsync));
     }
 
@@ -519,7 +514,7 @@ public class BlobFileStore : IFileStore
 
     private async Task<T> ExecuteAsync<T>(
         Func<Task<T>> action,
-        string operationName, 
+        string operationName,
         Func<T, long?> extractLength = null)
     {
         try
