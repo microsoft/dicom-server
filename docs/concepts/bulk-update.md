@@ -96,7 +96,7 @@ Content-Type: application/json
 
 | Name              | Type                                        | Description                                                  |
 | ----------------- | ------------------------------------------- | ------------------------------------------------------------ |
-| 202 (Accepted)    | [Operation Reference](#operation-reference) | Extended query tag(s) have been added, and a long-running operation has been started to re-index existing DICOM instances |
+| 202 (Accepted)    | [Operation Reference](#operation-reference) | A long-running operation has been started to update DICOM attributes |
 | 400 (Bad Request) |                                             | Request body has invalid data                                |
 
 ### Operation Status
@@ -210,3 +210,5 @@ There is no change in other APIs. All the other APIs supports only latest versio
 > Only one update operation can be performed at a time.
 
 > There is no way to delete only the latest version or revert back to original version.
+
+> QIDO doesn't support querying extended query tag after it is updated. 
