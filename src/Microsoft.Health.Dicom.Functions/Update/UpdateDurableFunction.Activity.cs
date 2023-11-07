@@ -192,12 +192,12 @@ public partial class UpdateDurableFunction
                     catch (DataStoreRequestFailedException ex)
                     {
                         logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
-                        errors.Add($"{ex.Message}. Instance UIDs - {instance.VersionedInstanceIdentifier}");
+                        errors.Add($"{ex.Message}. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
                     }
                     catch (DataStoreException)
                     {
                         logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
-                        errors.Add($"Failed to update instance. Instance UIDs - {instance.VersionedInstanceIdentifier}");
+                        errors.Add($"Failed to update instance. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
                     }
                 });
 
@@ -408,6 +408,9 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);
     }
+
+    private static string ToInstanceString(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        => $"PartitionKey: {versionedInstanceIdentifier.Partition.Name}, StudyInstanceUID: {versionedInstanceIdentifier.StudyInstanceUid}, SeriesInstanceUID: {versionedInstanceIdentifier.SeriesInstanceUid}, SOPInstanceUID: {versionedInstanceIdentifier.SopInstanceUid}";
 
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
 }
