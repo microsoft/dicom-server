@@ -205,7 +205,10 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties,
+    public async Task DeleteFileIfExistsAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(partition);
@@ -227,9 +230,7 @@ public class BlobFileStore : IFileStore
                         conditions: _blobClient.GetConditions(fileProperties),
                         cancellationToken);
                 }
-                catch (RequestFailedException ex) when (
-                    ex.ErrorCode == BlobErrorCode.ConditionNotMet &&
-                    _blobClient.IsExternal)
+                catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet && _blobClient.IsExternal)
                 {
                     string message = string.Format(
                         CultureInfo.InvariantCulture,
@@ -253,7 +254,10 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileAsync(long version, Partition partition, FileProperties fileProperties,
+    public async Task<Stream> GetFileAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
@@ -274,7 +278,10 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetStreamingFileAsync(long version, Partition partition, FileProperties fileProperties,
+    public async Task<Stream> GetStreamingFileAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
         CancellationToken cancellationToken)
     {
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
@@ -294,8 +301,11 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> GetFilePropertiesAsync(long version, Partition partition,
-        FileProperties fileProperties, CancellationToken cancellationToken)
+    public async Task<FileProperties> GetFilePropertiesAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
+        CancellationToken cancellationToken)
     {
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
@@ -318,8 +328,12 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileFrameAsync(long version, Partition partition, FrameRange range,
-        FileProperties fileProperties, CancellationToken cancellationToken)
+    public async Task<Stream> GetFileFrameAsync(
+        long version,
+        Partition partition,
+        FrameRange range,
+        FileProperties fileProperties,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 
@@ -337,15 +351,18 @@ public class BlobFileStore : IFileStore
                 rangeGetContentHash: false,
                 cancellationToken),
             operationName: nameof(GetFileFrameAsync),
-            extractLength: long? (result) => result.Value.Details.ContentLength
-        );
+            extractLength: long? (result) => result.Value.Details.ContentLength);
 
         return result.Value.Content;
     }
 
     /// <inheritdoc />
-    public async Task<BinaryData> GetFileContentInRangeAsync(long version, Partition partition,
-        FileProperties fileProperties, FrameRange range, CancellationToken cancellationToken)
+    public async Task<BinaryData> GetFileContentInRangeAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
+        FrameRange range,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
         EnsureArg.IsNotNull(partition, nameof(partition));
@@ -371,8 +388,11 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, Partition partition,
-        FileProperties fileProperties, CancellationToken cancellationToken = default)
+    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
@@ -397,8 +417,12 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task CopyFileAsync(long originalVersion, long newVersion, Partition partition,
-        FileProperties fileProperties, CancellationToken cancellationToken)
+    public async Task CopyFileAsync(
+        long originalVersion,
+        long newVersion,
+        Partition partition,
+        FileProperties fileProperties,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
         var blobClient = GetExistingInstanceBlockBlobClient(originalVersion, partition, fileProperties);
@@ -430,7 +454,10 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, FileProperties fileProperties,
+    public async Task SetBlobToColdAccessTierAsync(
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
@@ -472,7 +499,9 @@ public class BlobFileStore : IFileStore
     /// <param name="partition">Partition within which the file should live in</param>
     /// <param name="fileProperties">File properties to use for external store. If not using external store, set to null.</param>
     /// <remarks>Always use on existing files whether using for external or internal store.</remarks>
-    protected virtual BlockBlobClient GetExistingInstanceBlockBlobClient(long version, Partition partition,
+    protected virtual BlockBlobClient GetExistingInstanceBlockBlobClient(
+        long version,
+        Partition partition,
         FileProperties fileProperties)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
@@ -488,7 +517,9 @@ public class BlobFileStore : IFileStore
         return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
-    private async Task<T> ExecuteAsync<T>(Func<Task<T>> action, string operationName,
+    private async Task<T> ExecuteAsync<T>(
+        Func<Task<T>> action,
+        string operationName, 
         Func<T, long?> extractLength = null)
     {
         try
