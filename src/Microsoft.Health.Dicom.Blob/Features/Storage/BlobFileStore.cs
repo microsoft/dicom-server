@@ -84,7 +84,7 @@ public class BlobFileStore : IFileStore
         stream.Seek(0, SeekOrigin.Begin);
 
         return ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 BlobContentInfo info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
                 return new FileProperties
@@ -116,7 +116,7 @@ public class BlobFileStore : IFileStore
         int maxBufferSize = (int)blockLengths.Max(x => x.Value);
 
         return ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
                 FileProperties fileProperties;
@@ -168,7 +168,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
         return ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
                 _logger.LogInformation(
@@ -220,7 +220,7 @@ public class BlobFileStore : IFileStore
             partition.Key);
 
         return ExecuteAsync(
-            action: () =>
+            func: () =>
             {
                 try
                 {
@@ -272,7 +272,7 @@ public class BlobFileStore : IFileStore
         //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
         //stream = result.Value.Content;
         return ExecuteAsync(
-            action: () => blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
+            func: () => blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
             operationName: nameof(GetFileAsync),
             extractLength: long? (stream) => stream.Length);
     }
@@ -289,7 +289,7 @@ public class BlobFileStore : IFileStore
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
         BlobDownloadStreamingResult result = await ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(
                     range: default,
@@ -315,7 +315,7 @@ public class BlobFileStore : IFileStore
         _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
 
         return ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 BlobProperties blobProperties = await blobClient.GetPropertiesAsync(
                     conditions: _blobClient.GetConditions(fileProperties),
@@ -349,7 +349,7 @@ public class BlobFileStore : IFileStore
             range.Length);
 
         BlobDownloadStreamingResult result = await ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(
                     range: new HttpRange(range.Offset, range.Length),
@@ -388,7 +388,7 @@ public class BlobFileStore : IFileStore
         };
 
         BlobDownloadResult result = await ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
                 return result.Value;
@@ -411,7 +411,7 @@ public class BlobFileStore : IFileStore
         _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' firstBlock.", version);
 
         return ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 BlockList blockList = await blobClient.GetBlockListAsync(
                     BlockListTypes.Committed,
@@ -445,7 +445,7 @@ public class BlobFileStore : IFileStore
             newVersion);
 
         return ExecuteAsync(
-            action: async () =>
+            func: async () =>
             {
                 BlobCopyFromUriOptions options = new BlobCopyFromUriOptions();
                 options.SourceConditions = _blobClient.GetConditions(fileProperties);
@@ -477,7 +477,7 @@ public class BlobFileStore : IFileStore
         _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
 
         return ExecuteAsync(
-            action: () => blobClient.SetAccessTierAsync(
+            func: () => blobClient.SetAccessTierAsync(
                 AccessTier.Cold,
                 conditions: null, // SetAccessTierAsync does not support matching on etag
                 cancellationToken: cancellationToken),
@@ -525,13 +525,13 @@ public class BlobFileStore : IFileStore
     }
 
     private async Task<T> ExecuteAsync<T>(
-        Func<Task<T>> action,
+        Func<Task<T>> func,
         string operationName,
         Func<T, long?> extractLength = null)
     {
         try
         {
-            var resp = await action();
+            var resp = await func();
             EmitTelemetry(nameof(operationName), OperationType.Input, extractLength?.Invoke(resp));
             return resp;
         }
