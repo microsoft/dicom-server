@@ -569,7 +569,7 @@ public class BlobFileStore : IFileStore
     {
         _blobFileStoreMeter.BlobFileStoreOperationCount.Add(
             1,
-            BlobFileStoreMeter.CreateBlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
+            BlobFileStoreMeter.CreateTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
 
         if (streamLength == null)
         {
@@ -581,7 +581,7 @@ public class BlobFileStore : IFileStore
             LogBlobClientOperationWithStreamDelegate(_logger, operationName, streamLength.Value, null);
             _blobFileStoreMeter.BlobFileStoreOperationStreamSize.Add(
                 length,
-                BlobFileStoreMeter.CreateBlobFileStoreOperationTelemetryDimension(
+                BlobFileStoreMeter.CreateTelemetryDimension(
                     operationName,
                     operationType,
                     _blobClient.IsExternal));
