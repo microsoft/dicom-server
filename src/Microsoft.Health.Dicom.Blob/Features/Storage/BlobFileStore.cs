@@ -208,7 +208,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public Task DeleteFileIfExistsAsync(
+    public async Task DeleteFileIfExistsAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -222,13 +222,13 @@ public class BlobFileStore : IFileStore
             version,
             partition.Key);
 
-        return ExecuteAsync(
-            func: () =>
+        await ExecuteAsync(
+            func: async () =>
             {
                 try
                 {
                     // NOTE - when file does not exist but conditions passed in, it fails on conditions not met
-                    return blobClient.DeleteIfExistsAsync(
+                    return await blobClient.DeleteIfExistsAsync(
                         DeleteSnapshotsOption.IncludeSnapshots,
                         conditions: _blobClient.GetConditions(fileProperties),
                         cancellationToken);
