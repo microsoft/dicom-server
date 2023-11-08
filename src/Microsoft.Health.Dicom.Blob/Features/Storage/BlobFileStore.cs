@@ -70,7 +70,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> StoreFileAsync(
+    public Task<FileProperties> StoreFileAsync(
         long version,
         string partitionName,
         Stream stream,
@@ -83,7 +83,7 @@ public class BlobFileStore : IFileStore
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
         stream.Seek(0, SeekOrigin.Begin);
 
-        return await ExecuteAsync(
+        return ExecuteAsync(
             action: async () =>
             {
                 BlobContentInfo info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
@@ -99,7 +99,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> StoreFileInBlocksAsync(
+    public Task<FileProperties> StoreFileInBlocksAsync(
         long version,
         Partition partition,
         Stream stream,
@@ -115,7 +115,7 @@ public class BlobFileStore : IFileStore
 
         int maxBufferSize = (int)blockLengths.Max(x => x.Value);
 
-        return await ExecuteAsync(
+        return ExecuteAsync(
             action: async () =>
             {
                 byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
@@ -155,7 +155,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> UpdateFileBlockAsync(
+    public Task<FileProperties> UpdateFileBlockAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -167,7 +167,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(partition, nameof(partition));
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
-        return await ExecuteAsync(
+        return ExecuteAsync(
             action: async () =>
             {
                 BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
@@ -205,7 +205,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(
+    public Task DeleteFileIfExistsAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -219,7 +219,7 @@ public class BlobFileStore : IFileStore
             version,
             partition.Key);
 
-        await ExecuteAsync(
+        return ExecuteAsync(
             action: () =>
             {
                 try
@@ -254,7 +254,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileAsync(
+    public Task<Stream> GetFileAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -271,7 +271,7 @@ public class BlobFileStore : IFileStore
         // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetrievableStream
         //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
         //stream = result.Value.Content;
-        return await ExecuteAsync(
+        return ExecuteAsync(
             action: () => blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
             operationName: nameof(GetFileAsync),
             extractLength: long? (stream) => stream.Length);
@@ -305,7 +305,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> GetFilePropertiesAsync(
+    public Task<FileProperties> GetFilePropertiesAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -314,7 +314,7 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
 
-        return await ExecuteAsync(
+        return ExecuteAsync(
             action: async () =>
             {
                 BlobProperties blobProperties = await blobClient.GetPropertiesAsync(
@@ -400,7 +400,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(
+    public Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -410,7 +410,7 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' firstBlock.", version);
 
-        return await ExecuteAsync(
+        return ExecuteAsync(
             action: async () =>
             {
                 BlockList blockList = await blobClient.GetBlockListAsync(
@@ -429,7 +429,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task CopyFileAsync(
+    public Task CopyFileAsync(
         long originalVersion,
         long newVersion,
         Partition partition,
@@ -444,7 +444,7 @@ public class BlobFileStore : IFileStore
             originalVersion,
             newVersion);
 
-        await ExecuteAsync(
+        return ExecuteAsync(
             action: async () =>
             {
                 BlobCopyFromUriOptions options = new BlobCopyFromUriOptions();
@@ -466,7 +466,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task SetBlobToColdAccessTierAsync(
+    public Task SetBlobToColdAccessTierAsync(
         long version,
         Partition partition,
         FileProperties fileProperties,
@@ -476,7 +476,7 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetExistingInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
 
-        await ExecuteAsync(
+        return ExecuteAsync(
             action: () => blobClient.SetAccessTierAsync(
                 AccessTier.Cold,
                 conditions: null, // SetAccessTierAsync does not support matching on etag
