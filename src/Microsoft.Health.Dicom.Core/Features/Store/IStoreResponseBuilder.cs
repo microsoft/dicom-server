@@ -23,7 +23,7 @@ public interface IStoreResponseBuilder
     StoreResponse BuildResponse(string studyInstanceUid, bool returnWarning202 = false);
 
     /// <summary>
-    /// Adds a Success entry to the response.
+    /// Adds a Deleted entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
     /// <param name="storeValidationResult">Store validation errors and warnings</param>

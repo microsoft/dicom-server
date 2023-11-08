@@ -67,11 +67,11 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
     public async Task GivenANumberOfDeletedEntriesAndBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledCorrectNumberOfTimes(int numberOfDeletedInstances, int expectedDeleteCount)
     {
         _deleteService
-            .CleanupDeletedInstancesAsync()
+            .CleanUpDeletedInstancesAsync()
             .ReturnsForAnyArgs(GetDeleteSummary);
 
         await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-        await _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
+        await _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanUpDeletedInstancesAsync();
 
         DeleteSummary GetDeleteSummary(CallInfo callInfo)
         {
@@ -83,7 +83,7 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
                 _cancellationTokenSource.Cancel();
             }
 
-            return new DeleteSummary { ProcessedCount = returnValue, Success = true };
+            return new DeleteSummary { Found = returnValue, Deleted = true };
         }
     }
 
@@ -93,11 +93,11 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
         int iterations = 3;
         int count = 0;
         _deleteService
-            .CleanupDeletedInstancesAsync()
+            .CleanUpDeletedInstancesAsync()
             .ReturnsForAnyArgs(GetDeleteSummary);
 
         await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-        await _deleteService.ReceivedWithAnyArgs(4).CleanupDeletedInstancesAsync();
+        await _deleteService.ReceivedWithAnyArgs(4).CleanUpDeletedInstancesAsync();
 
         DeleteSummary GetDeleteSummary(CallInfo callInfo)
         {
@@ -109,7 +109,7 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
 
             _cancellationTokenSource.Cancel();
 
-            return new DeleteSummary { ProcessedCount = 1, Success = true };
+            return new DeleteSummary { Found = 1, Deleted = true };
         }
     }
 
@@ -122,7 +122,7 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
         const int TotalExhausted = 42;
 
         _deleteService
-            .CleanupDeletedInstancesAsync()
+            .CleanUpDeletedInstancesAsync()
             .ReturnsForAnyArgs(GetDeleteSummary);
 
         await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
@@ -143,8 +143,8 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
                     OldestDeletion = oldest,
                     TotalExhaustedRetries = TotalExhausted,
                 },
-                ProcessedCount = BatchSize - 1,
-                Success = success,
+                Found = BatchSize - 1,
+                Deleted = success,
             };
         }
     }
@@ -155,7 +155,7 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
     public async Task GivenNoMetrics_WhenFinishedDeleting_ThenSkipSendingMetrics(bool success)
     {
         _deleteService
-            .CleanupDeletedInstancesAsync()
+            .CleanUpDeletedInstancesAsync()
             .ReturnsForAnyArgs(GetDeleteSummary);
 
         await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
@@ -169,8 +169,8 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
             return new DeleteSummary
             {
                 Metrics = null,
-                ProcessedCount = BatchSize - 1,
-                Success = success,
+                Found = BatchSize - 1,
+                Deleted = success,
             };
         }
     }

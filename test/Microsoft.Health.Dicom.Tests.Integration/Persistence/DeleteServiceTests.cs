@@ -43,7 +43,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         await DeleteAndValidateInstanceForCleanup(dicomInstanceIdentifier);
 
         await Task.Delay(3000, CancellationToken.None);
-        DeleteSummary actual = await _fixture.DeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _fixture.DeleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
         await ValidateRemoval(actual, dicomInstanceIdentifier, persistBlob, isExternalStore, fileProperties: fileProperties);
     }
@@ -108,8 +108,8 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
     private async Task ValidateRemoval(DeleteSummary actual, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob, bool isExternalStore, FileProperties fileProperties = null)
     {
-        Assert.True(actual.Success);
-        Assert.Equal(1, actual.ProcessedCount);
+        Assert.True(actual.Deleted);
+        Assert.Equal(1, actual.Found);
 
         fileProperties ??= new FileProperties();
 

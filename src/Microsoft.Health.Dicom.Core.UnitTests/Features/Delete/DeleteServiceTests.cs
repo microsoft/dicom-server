@@ -198,7 +198,7 @@ public class DeleteServiceTests
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
         await ValidateSuccessfulCleanupDeletedInstanceCall(actual, responseList.Select(x => x.VersionedInstanceIdentifier).ToList());
     }
@@ -210,10 +210,10 @@ public class DeleteServiceTests
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(new List<InstanceMetadata>());
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.True(actual.Success);
-        Assert.Equal(0, actual.ProcessedCount);
+        Assert.True(actual.Deleted);
+        Assert.Equal(0, actual.Found);
 
         await _indexDataStore
             .ReceivedWithAnyArgs(1)
@@ -254,10 +254,10 @@ public class DeleteServiceTests
                 .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-            Assert.True(actual.Success);
-            Assert.Equal(1, actual.ProcessedCount);
+            Assert.True(actual.Deleted);
+            Assert.Equal(1, actual.Found);
 
             await _indexDataStore
                 .Received(1)
@@ -281,10 +281,10 @@ public class DeleteServiceTests
                 .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-            DeleteSummary actual = await _deleteServiceWithExternalStore.CleanupDeletedInstancesAsync(CancellationToken.None);
+            DeleteSummary actual = await _deleteServiceWithExternalStore.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-            Assert.True(actual.Success);
-            Assert.Equal(1, actual.ProcessedCount);
+            Assert.True(actual.Deleted);
+            Assert.Equal(1, actual.Found);
 
             await _indexDataStore
                 .Received(1)
@@ -305,10 +305,10 @@ public class DeleteServiceTests
             .DeleteInstanceMetadataIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.True(actual.Success);
-        Assert.Equal(1, actual.ProcessedCount);
+        Assert.True(actual.Deleted);
+        Assert.Equal(1, actual.Found);
 
         await _indexDataStore
             .Received(1)
@@ -332,10 +332,10 @@ public class DeleteServiceTests
             .IncrementDeletedInstanceRetryAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.False(actual.Success);
-        Assert.Equal(1, actual.ProcessedCount);
+        Assert.False(actual.Deleted);
+        Assert.Equal(1, actual.Found);
 
         await _indexDataStore
             .Received(1)
@@ -349,10 +349,10 @@ public class DeleteServiceTests
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.False(actual.Success);
-        Assert.Equal(0, actual.ProcessedCount);
+        Assert.False(actual.Deleted);
+        Assert.Equal(0, actual.Found);
 
         await _indexDataStore
             .DidNotReceiveWithAnyArgs()
@@ -378,7 +378,7 @@ public class DeleteServiceTests
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
         await ValidateSuccessfulCleanupDeletedInstanceCall(actual, responseList.Select(x => x.VersionedInstanceIdentifier).ToList());
     }
@@ -399,10 +399,10 @@ public class DeleteServiceTests
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
-        DeleteSummary actual = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteService.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.True(actual.Success);
-        Assert.Equal(responseList.Count, actual.ProcessedCount);
+        Assert.True(actual.Deleted);
+        Assert.Equal(responseList.Count, actual.Found);
 
         await _indexDataStore
             .ReceivedWithAnyArgs(1)
@@ -455,10 +455,10 @@ public class DeleteServiceTests
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
-        DeleteSummary actual = await _deleteServiceWithExternalStore.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _deleteServiceWithExternalStore.CleanUpDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.True(actual.Success);
-        Assert.Equal(responseList.Count, actual.ProcessedCount);
+        Assert.True(actual.Deleted);
+        Assert.Equal(responseList.Count, actual.Found);
 
         await _indexDataStore
             .ReceivedWithAnyArgs(1)
@@ -491,8 +491,8 @@ public class DeleteServiceTests
 
     private async Task ValidateSuccessfulCleanupDeletedInstanceCall(DeleteSummary actual, IReadOnlyCollection<VersionedInstanceIdentifier> responseList, FileProperties expectedFileProperties = null)
     {
-        Assert.True(actual.Success);
-        Assert.Equal(responseList.Count, actual.ProcessedCount);
+        Assert.True(actual.Deleted);
+        Assert.Equal(responseList.Count, actual.Found);
 
         await _indexDataStore
             .ReceivedWithAnyArgs(1)

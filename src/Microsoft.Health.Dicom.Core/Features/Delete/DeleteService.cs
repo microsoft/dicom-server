@@ -88,32 +88,48 @@ public class DeleteService : IDeleteService
         return _indexDataStore.DeleteInstanceIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
     }
 
-    public async Task<DeleteSummary> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
+    public async Task<DeleteSummary> CleanUpDeletedInstancesAsync(CancellationToken cancellationToken)
     {
-        bool success = true;
-        int retrievedInstanceCount = 0;
-
+        int deletedCount = 0;
+        IReadOnlyList<InstanceMetadata> candidates;
         using ITransactionScope transactionScope = _transactionHandler.BeginTransaction();
 
-        IReadOnlyList<InstanceMetadata> deleted = await GetDeletedInstancesAsync(cancellationToken);
-        if (deleted != null)
+        try
         {
-            retrievedInstanceCount = deleted.Count;
-            foreach (InstanceMetadata metadata in deleted)
+            candidates = await _indexDataStore.RetrieveDeletedInstancesWithPropertiesAsync(
+                _options.BatchSize,
+                _options.MaxRetries,
+                cancellationToken);
+
+            foreach (InstanceMetadata metadata in candidates)
             {
                 if (!await TryDeleteInstanceDataAsync(metadata, cancellationToken))
-                    success = false;
+                    deletedCount++;
             }
-
-            if (!TryCommit(transactionScope))
-                success = false;
+        }
+        finally
+        {
+            transactionScope.Complete();
         }
 
         return new DeleteSummary
         {
-            ProcessedCount = retrievedInstanceCount,
-            Metrics = await GetMetricsAsync(cancellationToken),
-            Success = deleted is not null && success,
+            Found = candidates.Count,
+            Deleted = deletedCount,
+        };
+    }
+
+    public async Task<DeleteMetrics?> GetMetricsAsync(CancellationToken cancellationToken = default)
+    {
+        Task<DateTimeOffset> oldestWaitingToBeDeleted = _indexDataStore.GetOldestDeletedAsync(cancellationToken);
+        Task<int> numReachedMaxedRetry = _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(
+            _options.MaxRetries,
+            cancellationToken);
+
+        return new DeleteMetrics
+        {
+            OldestDeletion = await oldestWaitingToBeDeleted,
+            TotalExhaustedRetries = await numReachedMaxedRetry,
         };
     }
 
@@ -121,29 +137,12 @@ public class DeleteService : IDeleteService
     {
         _logger.LogInformation("Instances queued for deletion: {Count}", identifiers.Count);
         _telemetryClient.ForwardLogTrace($"Instances queued for deletion: {identifiers.Count}");
-        foreach (var identifier in identifiers)
+        foreach (VersionedInstanceIdentifier identifier in identifiers)
         {
             _logger.LogInformation(
                 "Instance queued for deletion. Instance Watermark: {Watermark} , PartitionKey: {PartitionKey} , ExternalStore: {ExternalStore}",
                 identifier.Version, identifier.Partition.Key, _isExternalStoreEnabled);
             _telemetryClient.ForwardLogTrace("Instance queued for deletion", identifier);
-        }
-    }
-
-    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
-    private async Task<IReadOnlyList<InstanceMetadata>> GetDeletedInstancesAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await _indexDataStore.RetrieveDeletedInstancesWithPropertiesAsync(
-                _options.BatchSize,
-                _options.MaxRetries,
-                cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogCritical(e, "Failed to retrieve instances to cleanup.");
-            return null;
         }
     }
 
@@ -167,8 +166,8 @@ public class DeleteService : IDeleteService
                     cancellationToken)
             };
 
-            // NOTE: in the input deleted we're going to have a row for each version in IDP,
-            // but for non-IDP we'll have a single row whose original version needs to be explicitly deleted below.
+            // NOTE: in the input candidates we're going to have a row for each version in IDP,
+            // but for non-IDP we'll have a single row whose original version needs to be explicitly candidates below.
             // To that end, we only need to delete by "original watermark" to catch changes from Update operation if not IDP.
             if (!_isExternalStoreEnabled && metadata.InstanceProperties.OriginalVersion.HasValue)
             {
@@ -177,7 +176,6 @@ public class DeleteService : IDeleteService
             }
 
             await Task.WhenAll(tasks);
-
             await _indexDataStore.DeleteDeletedInstanceAsync(metadata.VersionedInstanceIdentifier, cancellationToken);
         }
         catch (Exception cleanupException)
@@ -202,44 +200,6 @@ public class DeleteService : IDeleteService
         }
 
         return true; // If we failed, but there are still retries left, we'll return true for now
-    }
-
-    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
-    private bool TryCommit(ITransactionScope transactionScope)
-    {
-        try
-        {
-            transactionScope.Complete();
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogCritical(e, "Failed to commit transaction.");
-            return false;
-        }
-    }
-
-    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
-    private async Task<DeleteMetrics?> GetMetricsAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            Task<DateTimeOffset> oldestWaitingToBeDeleted = _indexDataStore.GetOldestDeletedAsync(cancellationToken);
-            Task<int> numReachedMaxedRetry = _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(
-                _options.MaxRetries,
-                cancellationToken);
-
-            return new DeleteMetrics
-            {
-                OldestDeletion = await oldestWaitingToBeDeleted,
-                TotalExhaustedRetries = await numReachedMaxedRetry,
-            };
-        }
-        catch (Exception e)
-        {
-            _logger.LogCritical(e, "Failed to fetch metrics.");
-            return null;
-        }
     }
 
     private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)

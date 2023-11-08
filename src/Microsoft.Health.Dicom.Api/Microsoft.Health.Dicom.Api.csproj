@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Microsoft.OpenApi" />
+    <PackageReference Include="Polly" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />

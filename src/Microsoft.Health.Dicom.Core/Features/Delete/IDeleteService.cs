@@ -17,7 +17,9 @@ public interface IDeleteService
 
     Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default);
 
-    Task<DeleteSummary> CleanupDeletedInstancesAsync(CancellationToken cancellationToken = default);
+    Task<DeleteSummary> CleanUpDeletedInstancesAsync(CancellationToken cancellationToken = default);
+
+    Task<DeleteMetrics> GetMetricsAsync(CancellationToken cancellationToken = default);
 
     Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken);
 }
