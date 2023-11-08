@@ -6,14 +6,14 @@
     <PackageVersion Include="Azure.Identity" Version="1.10.3" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.0.0" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.18.0" />
-    <PackageVersion Include="Azure.Storage.Queues" Version="12.16.0" />
-    <PackageVersion Include="Azure.Storage.Common" Version="12.17.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.19.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.17.0" />
+    <PackageVersion Include="Azure.Storage.Common" Version="12.18.0" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.1.1" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.10.8" />
     <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.24.4" />
+    <PackageVersion Include="Google.Protobuf" Version="3.25.0" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="4.3.0" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="4.3.0" />
@@ -38,13 +38,13 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.2.1" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.12.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.1" />
-    <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.2" />
+    <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="6.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="6.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.CommandLine" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(SdkPackageVersion)" />
@@ -65,28 +65,28 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.50" />
+    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.65" />
     <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.294" />
-    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.50" />
-    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.50" />
+    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.65" />
+    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.65" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.33.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.9" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.10" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.1.167" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.7.2" />
@@ -96,7 +96,7 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.6.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.6.0" />
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
-    <PackageVersion Include="Polly" Version="8.0.0" />
+    <PackageVersion Include="Polly" Version="8.1.0" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.6" />
     <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
@@ -109,8 +109,8 @@
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Text.Json" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="xunit" Version="2.5.3" />
-    <PackageVersion Include="xunit.assert" Version="2.5.3" />
+    <PackageVersion Include="xunit" Version="2.6.1" />
+    <PackageVersion Include="xunit.assert" Version="2.6.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 </Project>

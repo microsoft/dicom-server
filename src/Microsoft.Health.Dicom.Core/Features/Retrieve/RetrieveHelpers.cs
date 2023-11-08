@@ -10,18 +10,19 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 internal static class RetrieveHelpers
 {
-    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, string partitionName, bool render, CancellationToken cancellationToken)
+    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, Partition partition, FileProperties fileProperties, bool render, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
 
-        FileProperties fileProperties = await blobDataStore.GetFilePropertiesAsync(version, partitionName, cancellationToken);
+        FileProperties filePropertiesWithContentLength = await blobDataStore.GetFilePropertiesAsync(version, partition, fileProperties, cancellationToken);
 
         // limit the file size that can be read in memory
-        if (fileProperties.ContentLength > maxDicomFileSize)
+        if (filePropertiesWithContentLength.ContentLength > maxDicomFileSize)
         {
             if (render)
             {
@@ -30,6 +31,6 @@ internal static class RetrieveHelpers
             throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceFileTooBig, maxDicomFileSize));
         }
 
-        return fileProperties;
+        return filePropertiesWithContentLength;
     }
 }

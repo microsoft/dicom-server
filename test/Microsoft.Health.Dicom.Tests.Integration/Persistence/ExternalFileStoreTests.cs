@@ -145,7 +145,10 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.Contains(ConditionNotMetMessage, getFileEx.Message);
 
         var copyFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.CopyFileAsync(version, _getNextWatermark(), Partition.Default, badFileProperties));
-        Assert.Contains(ExpectedCopyFailedSubstring(), copyFileEx.Message);
+        Assert.Contains(ExpectedFailedSubstring(), copyFileEx.Message);
+
+        var getFilePropsEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFilePropertiesAsync(version, Partition.Default, badFileProperties));
+        Assert.Contains(ConditionNotMetMessage, getFilePropsEx.Message);
     }
 
     [Fact]
@@ -201,7 +204,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
     }
 
-    private string ExpectedCopyFailedSubstring()
+    private string ExpectedFailedSubstring()
     {
         return _isDevEnv ? ConditionNotMetMessage : SourceConditionNotMetMessage;
     }

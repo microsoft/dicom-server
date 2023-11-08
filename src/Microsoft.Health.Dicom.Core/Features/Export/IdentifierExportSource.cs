@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -41,16 +40,15 @@ internal sealed class IdentifierExportSource : IExportSource
 
     public async IAsyncEnumerator<ReadResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        IEnumerable<ReadResult> results = Enumerable.Empty<ReadResult>();
         foreach (DicomIdentifier identifier in _identifiers)
         {
             // Attempt to read the data
-            IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
-            {
-                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(_partition, identifier.StudyInstanceUid, cancellationToken),
-                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(_partition, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                _ => await _instanceStore.GetInstanceIdentifierAsync(_partition, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
-            };
+            IReadOnlyList<InstanceMetadata> instances = await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(
+                _partition,
+                identifier.StudyInstanceUid,
+                identifier.SeriesInstanceUid,
+                identifier.SopInstanceUid,
+                cancellationToken);
 
             if (instances.Count == 0)
             {
@@ -68,8 +66,8 @@ internal sealed class IdentifierExportSource : IExportSource
             }
             else
             {
-                foreach (VersionedInstanceIdentifier read in instances)
-                    yield return ReadResult.ForIdentifier(read);
+                foreach (InstanceMetadata read in instances)
+                    yield return ReadResult.ForInstance(read);
             }
         }
     }

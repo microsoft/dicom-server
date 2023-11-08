@@ -20,7 +20,7 @@ using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-[Trait("Category", "dicomupdate")]
+[Trait("Category", "bvt")]
 [Collection("Update Collection")]
 public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {

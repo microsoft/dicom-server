@@ -56,7 +56,6 @@ jobs:
   - template: ../common/run-e2e-tests.yml
     parameters:
       externalStorageTests: false
-      skipUpdateTests: false
 
   variables:
     azureStorageAccountName: $[ stageDependencies.DeployTestEnvironment.Provision.outputs['deploy.azureStorageAccountName'] ]

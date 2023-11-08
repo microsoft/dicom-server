@@ -51,34 +51,38 @@ public interface IFileStore
     /// <summary>
     /// Asynchronously get file properties
     /// </summary>
-    /// <param name="version">The DICOM instance version.</param>
-    /// <param name="partitionName">Name of the partition</param>
+    /// <param name="version">The DICOM instance version when file properties not known.</param>
+    /// <param name="partition">Partition of the instance to get file properties on when file properties not known</param>
+    /// <param name="fileProperties">When file properties known, will use to get content length and match on etag</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get properties operation.</returns>
-    Task<FileProperties> GetFilePropertiesAsync(long version, string partitionName, CancellationToken cancellationToken = default);
+    Task<FileProperties> GetFilePropertiesAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously get a specific range of bytes from the blob
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
-    /// <param name="partitionName">Name of the partition</param>
+    /// <param name="partition">Partition within which the blob exists</param>
     /// <param name="range">Byte range in Httprange format with offset and length</param>
+    /// <param name="fileProperties">File properties of blob to use to get it</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Stream representing the bytes requested</returns>
     Task<Stream> GetFileFrameAsync(
         long version,
-        string partitionName,
+        Partition partition,
         FrameRange range,
+        FileProperties fileProperties,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a streaming file from the file store.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
-    /// <param name="partitionName">Name of the partition</param>
+    /// <param name="partition">Partition within which the blob exists</param>
+    /// <param name="fileProperties">File properties of blob to use to get it</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get operation.</returns>
-    Task<Stream> GetStreamingFileAsync(long version, string partitionName, CancellationToken cancellationToken = default);
+    Task<Stream> GetStreamingFileAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously stores a file to the file store in blocks.

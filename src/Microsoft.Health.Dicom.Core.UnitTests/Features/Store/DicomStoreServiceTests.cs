@@ -504,7 +504,7 @@ public class DicomStoreServiceTests
             .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
             .Do(_ => throw new DataStoreException("Simulated failure.", isExternal: true));
 
-        DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(async () => await _storeService.ProcessAsync(new[] { dicomInstanceEntry }, null, cancellationToken: DefaultCancellationToken));
+        DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(() => _storeService.ProcessAsync(new[] { dicomInstanceEntry }, null, cancellationToken: DefaultCancellationToken));
 
         Assert.True(exception.IsExternal);
 

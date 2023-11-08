@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ public class PopulateDataPartitionFilterAttributeTests
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
-        Assert.ThrowsAsync<DataPartitionsMissingPartitionException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
+        Assert.ThrowsAsync<DataPartitionsMissingPartitionException>(() => _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class PopulateDataPartitionFilterAttributeTests
         _featureConfiguration.Value.EnableDataPartitions = false;
         _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
 
-        Assert.ThrowsAsync<DataPartitionsFeatureDisabledException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
+        Assert.ThrowsAsync<DataPartitionsFeatureDisabledException>(() => _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
     }
 
     [Fact]

@@ -31,11 +31,11 @@ public partial class ExportDurableFunctionTests
         var operationId = Guid.NewGuid();
         var expectedData = new ReadResult[]
         {
-            ReadResult.ForIdentifier(new VersionedInstanceIdentifier("1", "2", "3", 100)),
-            ReadResult.ForIdentifier(new VersionedInstanceIdentifier("4", "5", "6", 101)),
+            ReadResult.ForInstance(new InstanceMetadata(new VersionedInstanceIdentifier("1", "2", "3", 100), new InstanceProperties())),
+            ReadResult.ForInstance(new InstanceMetadata(new VersionedInstanceIdentifier("4", "5", "6", 101), new InstanceProperties())),
             ReadResult.ForFailure(new ReadFailureEventArgs(DicomIdentifier.ForSeries("7", "8"), new IOException())),
-            ReadResult.ForIdentifier(new VersionedInstanceIdentifier("9", "1.0", "1.1", 102)),
-            ReadResult.ForIdentifier(new VersionedInstanceIdentifier("121.3", "14", "1.516", 103))
+            ReadResult.ForInstance(new InstanceMetadata(new VersionedInstanceIdentifier("9", "1.0", "1.1", 102), new InstanceProperties())),
+            ReadResult.ForInstance(new InstanceMetadata(new VersionedInstanceIdentifier("121.3", "14", "1.516", 103), new InstanceProperties()))
         };
         var expectedInput = new ExportBatchArguments
         {

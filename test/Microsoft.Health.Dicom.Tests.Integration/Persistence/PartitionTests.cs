@@ -60,4 +60,14 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
 
         Assert.Equal(Partition.DefaultKey, partition.Key);
     }
+
+    [Fact]
+    public async Task WhenNewPartitionIsCreatedInParallelWithSame_Then_ItThrowsException()
+    {
+        string partitionName = Guid.NewGuid().ToString("N");
+
+        await Assert.ThrowsAsync<DataPartitionAlreadyExistsException>(() => Task.WhenAll(
+                       _fixture.PartitionStore.AddPartitionAsync(partitionName),
+                       _fixture.PartitionStore.AddPartitionAsync(partitionName)));
+    }
 }

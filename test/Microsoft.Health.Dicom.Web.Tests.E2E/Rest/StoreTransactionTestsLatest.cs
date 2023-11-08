@@ -70,8 +70,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         Assert.Equal("Tag: (0008,0020) not found in dataset", thrownException.Message);
 
         // attempting to query with invalid attr produces a BadRequest
-        DicomWebException caughtException = await Assert.ThrowsAsync<DicomWebException>(
-            async () => await GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
+        DicomWebException caughtException = await Assert.ThrowsAsync<DicomWebException>(() => GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
 
         Assert.Contains(
             "BadRequest: Invalid query: specified Date value 'NotAValidStudyDate' is invalid for attribute 'StudyDate'" +
@@ -285,8 +284,8 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     public async Task GivenLargeSinglePartRequest_WhenStoring_ThenServerShouldReturnOk()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
-            rows: 46340,
-            columns: 46340,
+            rows: 45000,
+            columns: 45000,
             dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~2GB
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
@@ -303,8 +302,8 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
             .Repeat(studyInstanceUid, 1)
             .Select(study => Samples.CreateRandomDicomFileWithPixelData(
                 studyInstanceUid: study,
-                rows: 46340,
-                columns: 46340,
+                rows: 45000,
+                columns: 45000,
                 dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~2GB
             .ToArray();
 

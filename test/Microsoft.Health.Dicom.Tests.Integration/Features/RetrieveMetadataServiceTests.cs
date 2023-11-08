@@ -161,7 +161,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     [Fact]
     public async Task GivenFileIdentifier_WhenGetInstanceFramesRangeWithInvalidVersion_ShouldThrowExceptionAndAttemptTwice()
     {
-        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _metadataStore.GetInstanceFramesRangeAsync(1, CancellationToken.None));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _metadataStore.GetInstanceFramesRangeAsync(1, CancellationToken.None));
         _nameWithPrefix.Received(1).GetInstanceFramesRangeFileNameWithSpace(1);
         _nameWithPrefix.Received(1).GetInstanceFramesRangeFileName(1);
     }

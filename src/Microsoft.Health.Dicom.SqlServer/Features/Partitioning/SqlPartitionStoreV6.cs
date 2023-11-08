@@ -57,7 +57,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
             }
             catch (SqlException ex)
             {
-                if (ex.Number == SqlErrorCodes.Conflict)
+                if (ex.Number == SqlErrorCodes.Conflict || ex.Number == SqlErrorCodes.UniqueKeyConstraintViolation)
                 {
                     throw new DataPartitionAlreadyExistsException();
                 }

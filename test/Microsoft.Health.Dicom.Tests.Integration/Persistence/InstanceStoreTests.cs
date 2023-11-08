@@ -331,8 +331,8 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         // so we know which blob file to go copy from when using external store
         IReadOnlyList<FileProperty> fileProperties = await _indexDataStoreTestHelper.GetFilePropertiesAsync(updatedInstance.GetVersion(isOriginalVersionRequested: true));
         var expectedOriginalFileProperty = fileProperties.First();
-        Assert.Equal(updatedInstance.InstanceProperties.fileProperties.ETag, expectedOriginalFileProperty.ETag);
-        Assert.Equal(updatedInstance.InstanceProperties.fileProperties.Path, expectedOriginalFileProperty.FilePath);
+        Assert.Equal(updatedInstance.InstanceProperties.FileProperties.ETag, expectedOriginalFileProperty.ETag);
+        Assert.Equal(updatedInstance.InstanceProperties.FileProperties.Path, expectedOriginalFileProperty.FilePath);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
@@ -386,7 +386,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
             updatedInstance.VersionedInstanceIdentifier,
             new InstanceProperties
             {
-                fileProperties = new FileProperties
+                FileProperties = new FileProperties
                 {
                     Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
                     ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}",
