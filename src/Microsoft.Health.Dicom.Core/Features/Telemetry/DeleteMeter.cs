@@ -12,7 +12,7 @@ public sealed class DeleteMeter : IDisposable
 {
     private readonly Meter _meter;
 
-    internal DeleteMeter()
+    public DeleteMeter()
         : this($"{OpenTelemetryLabels.BaseMeterName}.Delete", "1.0")
     { }
 
