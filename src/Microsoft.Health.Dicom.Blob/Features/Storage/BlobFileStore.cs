@@ -95,6 +95,7 @@ public class BlobFileStore : IFileStore
                 };
             },
             operationName: nameof(StoreFileAsync),
+            operationType: OperationType.Input,
             extractLength: long? (newBlobFileProperties) => newBlobFileProperties.ContentLength);
     }
 
@@ -151,6 +152,7 @@ public class BlobFileStore : IFileStore
                 return fileProperties;
             },
             operationName: nameof(StoreFileInBlocksAsync),
+            operationType: OperationType.Input,
             extractLength: long? (newBlobFileProperties) => newBlobFileProperties.ContentLength);
     }
 
@@ -201,6 +203,7 @@ public class BlobFileStore : IFileStore
                 };
             },
             operationName: nameof(UpdateFileBlockAsync),
+            operationType: OperationType.Input,
             extractLength: long? (newBlobFileProperties) => newBlobFileProperties.ContentLength);
     }
 
@@ -250,7 +253,8 @@ public class BlobFileStore : IFileStore
 
                 return null;
             },
-            operationName: nameof(DeleteFileIfExistsAsync));
+            operationName: nameof(DeleteFileIfExistsAsync),
+            operationType: OperationType.Input);
     }
 
     /// <inheritdoc />
@@ -274,6 +278,7 @@ public class BlobFileStore : IFileStore
         return ExecuteAsync(
             func: () => blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
             operationName: nameof(GetFileAsync),
+            operationType: OperationType.Output,
             extractLength: long? (stream) => stream.Length);
     }
 
@@ -299,6 +304,7 @@ public class BlobFileStore : IFileStore
                 return result.Value;
             },
             operationName: nameof(GetStreamingFileAsync),
+            operationType: OperationType.Output,
             extractLength: long? (result) => result.Details.ContentLength);
 
         return result.Content;
@@ -328,7 +334,8 @@ public class BlobFileStore : IFileStore
                     ContentLength = blobProperties.ContentLength,
                 };
             },
-            operationName: nameof(GetFilePropertiesAsync));
+            operationName: nameof(GetFilePropertiesAsync),
+            operationType: OperationType.Output);
     }
 
     /// <inheritdoc />
@@ -359,6 +366,7 @@ public class BlobFileStore : IFileStore
                 return result.Value;
             },
             operationName: nameof(GetFileFrameAsync),
+            operationType: OperationType.Output,
             extractLength: long? (result) => result.Details.ContentLength);
 
         return result.Content;
@@ -394,6 +402,7 @@ public class BlobFileStore : IFileStore
                 return result.Value;
             },
             operationName: nameof(GetFileContentInRangeAsync),
+            operationType: OperationType.Output,
             extractLength: long? (result) => result.Details.ContentLength);
 
         return result.Content;
@@ -425,7 +434,8 @@ public class BlobFileStore : IFileStore
                 BlobBlock firstBlock = blockList.CommittedBlocks.First();
                 return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
             },
-            operationName: nameof(GetFirstBlockPropertyAsync));
+            operationName: nameof(GetFirstBlockPropertyAsync),
+            operationType: OperationType.Output);
     }
 
     /// <inheritdoc />
@@ -462,7 +472,8 @@ public class BlobFileStore : IFileStore
 
                 return false;
             },
-            operationName: nameof(CopyFileAsync));
+            operationName: nameof(CopyFileAsync),
+            operationType: OperationType.Input);
     }
 
     /// <inheritdoc />
@@ -481,7 +492,8 @@ public class BlobFileStore : IFileStore
                 AccessTier.Cold,
                 conditions: null, // SetAccessTierAsync does not support matching on etag
                 cancellationToken: cancellationToken),
-            operationName: nameof(SetBlobToColdAccessTierAsync));
+            operationName: nameof(SetBlobToColdAccessTierAsync),
+            operationType: OperationType.Input);
     }
 
     /// <summary>
@@ -527,12 +539,13 @@ public class BlobFileStore : IFileStore
     private async Task<T> ExecuteAsync<T>(
         Func<Task<T>> func,
         string operationName,
+        OperationType operationType,
         Func<T, long?> extractLength = null)
     {
         try
         {
             var resp = await func();
-            EmitTelemetry(nameof(operationName), OperationType.Input, extractLength?.Invoke(resp));
+            EmitTelemetry(nameof(operationName), operationType, extractLength?.Invoke(resp));
             return resp;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !_blobClient.IsExternal)
@@ -556,8 +569,7 @@ public class BlobFileStore : IFileStore
     {
         _blobFileStoreMeter.BlobFileStoreOperationCount.Add(
             1,
-            BlobFileStoreMeter.CreateBlobFileStoreOperationTelemetryDimension(operationName, operationType,
-                _blobClient.IsExternal));
+            BlobFileStoreMeter.CreateBlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
 
         if (streamLength == null)
         {
