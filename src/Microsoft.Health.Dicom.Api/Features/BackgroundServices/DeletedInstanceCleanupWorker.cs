@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,6 +13,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
+using Microsoft.Health.Dicom.Core.Models.Delete;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
@@ -20,16 +22,23 @@ public class DeletedInstanceCleanupWorker
 {
     private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
     private readonly IDeleteService _deleteService;
+    private readonly DeleteMeter _deleteMeter;
     private readonly TimeSpan _pollingInterval;
     private readonly int _batchSize;
 
-    public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
+    public DeletedInstanceCleanupWorker(
+        IDeleteService deleteService,
+        DeleteMeter deleteMeter,
+        IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration,
+        ILogger<DeletedInstanceCleanupWorker> logger)
     {
         EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+        EnsureArg.IsNotNull(deleteMeter, nameof(deleteMeter));
         EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _deleteService = deleteService;
+        _deleteMeter = deleteMeter;
         _pollingInterval = backgroundCleanupConfiguration.Value.PollingInterval;
         _batchSize = backgroundCleanupConfiguration.Value.BatchSize;
         _logger = logger;
@@ -42,8 +51,15 @@ public class DeletedInstanceCleanupWorker
         {
             try
             {
+                // Send metrics related to deletion progress
+                DeleteMetrics metrics = await _deleteService.GetMetricsAsync(stoppingToken);
+
+                _deleteMeter.OldestRequestedDeletion.Add(metrics.OldestDeletion.ToUnixTimeSeconds());
+                _deleteMeter.CountDeletionsMaxRetry.Add(metrics.TotalExhaustedRetries);
+
                 await Task.Delay(_pollingInterval, stoppingToken);
 
+                // Delete all instances pending deletion
                 bool success;
                 int retrievedInstanceCount;
                 do

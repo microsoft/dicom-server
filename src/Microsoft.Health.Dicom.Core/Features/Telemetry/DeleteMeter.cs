@@ -13,8 +13,12 @@ public sealed class DeleteMeter : IDisposable
     private readonly Meter _meter;
 
     public DeleteMeter()
+        : this($"{OpenTelemetryLabels.BaseMeterName}.Delete", "1.0")
+    { }
+
+    internal DeleteMeter(string name, string version)
     {
-        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Delete", "1.0");
+        _meter = new Meter(name, version);
         OldestRequestedDeletion = _meter.CreateCounter<long>(nameof(OldestRequestedDeletion), "seconds", "Oldest instance waiting to be deleted in seconds");
         CountDeletionsMaxRetry = _meter.CreateCounter<long>(nameof(CountDeletionsMaxRetry), description: "Number of exhausted instance deletion attempts");
     }

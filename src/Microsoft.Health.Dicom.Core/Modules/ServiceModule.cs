@@ -12,7 +12,6 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -159,10 +158,6 @@ public class ServiceModule : IStartupModule
         services.AddSingleton<IGuidFactory>(GuidFactory.Default);
 
         services.AddScoped<IDicomOperationsResourceStore, DicomOperationsResourceStore>();
-
-        services.AddSingleton<BackgroundServiceHealthCheckCache>();
-
-        services.AddHealthChecks().AddCheck<BackgroundServiceHealthCheck>(name: "BackgroundServiceHealthCheck");
 
         services.AddSingleton<PartitionCache>();
 

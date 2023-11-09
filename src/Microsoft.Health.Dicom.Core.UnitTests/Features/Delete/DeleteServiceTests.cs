@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Models.Delete;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -486,6 +487,25 @@ public class DeleteServiceTests
             .IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier: default, cleanupAfter: default, CancellationToken.None);
 
         _transactionScope.Received(1).Complete();
+    }
+
+    [Fact]
+    public async Task GivenAvailableDatabase_WhenFetchingMetrics_ThenSuccessfullyFetch()
+    {
+        const int ExhaustedRetries = 42;
+        DateTimeOffset oldestTimestamp = DateTimeOffset.UtcNow.AddMonths(-1);
+
+        using CancellationTokenSource source = new();
+
+        _indexDataStore.GetOldestDeletedAsync(source.Token).Returns(oldestTimestamp);
+        _indexDataStore
+            .RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deleteConfiguration.MaxRetries, source.Token)
+            .Returns(ExhaustedRetries);
+
+        DeleteMetrics actual = await _deleteService.GetMetricsAsync(source.Token);
+
+        Assert.Equal(oldestTimestamp, actual.OldestDeletion);
+        Assert.Equal(ExhaustedRetries, actual.TotalExhaustedRetries);
     }
 
     private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedInstanceIdentifier> responseList, int retrievedInstanceCount, FileProperties expectedFileProperties = null)
