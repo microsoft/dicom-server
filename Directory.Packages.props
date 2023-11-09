@@ -85,11 +85,11 @@
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.33.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.10" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.1.167" />
-    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.8.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="OpenTelemetry" Version="1.6.0" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.6.0" />
