@@ -63,14 +63,21 @@ POST ...v1/partitions/{PartitionName}/studies/$bulkUpdate
 
 #### Request Body
 
+Below `UpdateSpecification` is passed as the request body. The `UpdateSpecification` needs both `studyInstanceUids` and `changeDataset` to be specified. 
+
 ```json
 {
-    "studyInstanceUids": ["12.3.4.5"], 
-    "changeDataset": {
-        "00100010": {
-            "vr": "LO",
-            "Value": ["New patient name"]
-        }
+   "studyInstanceUids": ["1.113654.3.13.1026"],
+    "changeDataset": { 
+        "00100010": { 
+            "vr": "PN", 
+            "Value": 
+            [
+                { 
+                    "Alphabetic": "New Patient Name 1" 
+                }
+            ] 
+        } 
     }
 }
 ```
@@ -89,7 +96,7 @@ Content-Type: application/json
 
 | Name              | Type                                        | Description                                                  |
 | ----------------- | ------------------------------------------- | ------------------------------------------------------------ |
-| 202 (Accepted)    | [Operation Reference](#operation-reference) | Extended query tag(s) have been added, and a long-running operation has been started to re-index existing DICOM instances |
+| 202 (Accepted)    | [Operation Reference](#operation-reference) | A long-running operation has been started to update DICOM attributes |
 | 400 (Bad Request) |                                             | Request body has invalid data                                |
 
 ### Operation Status
@@ -107,6 +114,8 @@ GET .../operations/{operationId}
 
 #### Responses
 
+**Successful response**
+
 ```json
 {
     "operationId": "1323c079a1b64efcb8943ef7707b5438",
@@ -117,11 +126,33 @@ GET .../operations/{operationId}
     "percentComplete": 100,
     "results": {
         "studyUpdated": 1,
-        "instanceUpdated": 16,
-        // Errors will go here
+        "instanceUpdated": 16
     }
 }
 ```
+
+**Failure respose**
+```
+{
+    "operationId": "1323c079a1b64efcb8943ef7707b5438",
+    "type": "update",
+    "createdTime": "2023-05-08T05:01:30.1441374Z",
+    "lastUpdatedTime": "2023-05-08T05:01:42.9067335Z",
+    "status": "failed",
+    "percentComplete": 100,
+    "results": {
+        "studyUpdated": 0,
+        "studyFailed": 1,
+        "instanceUpdated": 0,
+        "errors": [
+            "Failed to update instances for study 1.113654.3.13.1026"
+        ]
+    }
+}
+```
+
+If there are any instance specific exception, it will be added to the `errors` list. It will include all the UIDs of the instance like
+`Instance UIDs - PartitionKey: 1, StudyInstanceUID: 1.113654.3.13.1026, SeriesInstanceUID: 1.113654.3.13.1035, SOPInstanceUID: 1.113654.3.13.1510`
 
 | Name            | Type                    | Description                                  |
 | --------------- | ----------------------- | -------------------------------------------- |
@@ -179,3 +210,5 @@ There is no change in other APIs. All the other APIs supports only latest versio
 > Only one update operation can be performed at a time.
 
 > There is no way to delete only the latest version or revert back to original version.
+
+> QIDO doesn't support querying extended query tag after it is updated. 

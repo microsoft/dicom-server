@@ -81,7 +81,4 @@ public static class UpdateRequestValidator
         }
         return failedSop;
     }
-
-    private static string GetCommaSeparatedTags(List<string> tags)
-        => string.Join(", ", tags.Select(x => $"'{x}'"));
 }

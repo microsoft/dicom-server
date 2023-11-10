@@ -65,6 +65,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
+    [Obsolete("This function is obsolete. Use UpdateInstanceBlobsV3Async instead.")]
     public async Task<IReadOnlyCollection<InstanceMetadata>> UpdateInstanceBlobsV2Async(
         [ActivityTrigger] UpdateInstanceBlobArgumentsV2 arguments,
         ILogger logger)
@@ -75,7 +76,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
+        DicomDataset datasetToUpdate = GetDeserializedDataset(arguments.ChangeDataset);
 
         int processed = 0;
 
@@ -126,6 +127,74 @@ public partial class UpdateDurableFunction
     }
 
     /// <summary>
+    /// Asynchronously batches the instance watermarks and calls the update instance.
+    /// </summary>
+    /// <param name="arguments">BatchUpdateArguments</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// The result of the task contains the updated instances with file properties representing newly created blobs and any error.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(UpdateInstanceBlobsV3Async))]
+    public async Task<UpdateInstanceResponse> UpdateInstanceBlobsV3Async(
+        [ActivityTrigger] UpdateInstanceBlobArgumentsV2 arguments,
+        ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
+        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        DicomDataset datasetToUpdate = GetDeserializedDataset(arguments.ChangeDataset);
+
+        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadataList.Count);
+
+        var updatedInstances = new ConcurrentBag<InstanceMetadata>();
+        var errors = new ConcurrentBag<string>();
+
+        await Parallel.ForEachAsync(
+            arguments.InstanceMetadataList,
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (instance, token) =>
+            {
+                try
+                {
+                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
+                    updatedInstances.Add(
+                        new InstanceMetadata(
+                            instance.VersionedInstanceIdentifier,
+                            new InstanceProperties
+                            {
+                                FileProperties = fileProperties,
+                                NewVersion = instance.InstanceProperties.NewVersion,
+                                OriginalVersion = instance.InstanceProperties.OriginalVersion
+                            }));
+                }
+                catch (DataStoreRequestFailedException ex)
+                {
+                    logger.LogInformation("Failed to update instance with watermark {Watermark}, IsExternal {IsExternal}", instance.VersionedInstanceIdentifier.Version, ex.IsExternal);
+                    errors.Add($"{ex.Message}. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
+                }
+                catch (DataStoreException ex)
+                {
+                    logger.LogInformation("Failed to update instance with watermark {Watermark}, IsExternal {IsExternal}", instance.VersionedInstanceIdentifier.Version, ex.IsExternal);
+                    errors.Add($"Failed to update instance. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
+                }
+            });
+
+        logger.LogInformation("Completed updating all instance blobs. Total instace count {TotalCount}. Total Failed {FailedCount}", arguments.InstanceMetadataList.Count, errors.Count);
+
+        return new UpdateInstanceResponse(updatedInstances.ToList(), errors.ToList());
+    }
+
+    /// <summary>
     /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
     /// </summary>
     /// <param name="arguments">CompleteInstanceArguments</param>
@@ -137,6 +206,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CompleteUpdateStudyV2Async))]
+    [Obsolete("This function is obsolete. Use CompleteUpdateStudyV3Async instead.")]
     public async Task CompleteUpdateStudyV2Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -152,7 +222,7 @@ public partial class UpdateDurableFunction
             await _indexStore.EndUpdateInstanceAsync(
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
-                GetDeserialzedDataset(arguments.ChangeDataset),
+                GetDeserializedDataset(arguments.ChangeDataset),
                 arguments.InstanceMetadataList,
                 CancellationToken.None);
 
@@ -166,43 +236,35 @@ public partial class UpdateDurableFunction
     }
 
     /// <summary>
-    /// Asynchronously delete all the old blobs if it has more than 2 version.
+    /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
     /// </summary>
-    /// <param name="arguments">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="arguments">CompleteInstanceArguments</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="DeleteOldVersionBlobV2Async"/> operation.
+    /// A task representing the <see cref="CompleteUpdateStudyV3Async"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    [FunctionName(nameof(DeleteOldVersionBlobV2Async))]
-    [Obsolete("Use DeleteOldVersionBlobV3Async instead")]
-    public async Task DeleteOldVersionBlobV2Async([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
+    [FunctionName(nameof(CompleteUpdateStudyV3Async))]
+    public async Task CompleteUpdateStudyV3Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
+        EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
+        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        IReadOnlyList<InstanceFileState> fileIdentifiers = arguments.InstanceWatermarks;
-        Partition partition = arguments.Partition;
-        int fileCount = fileIdentifiers.Where(f => f.OriginalVersion.HasValue).Count();
+        logger.LogInformation("Completing updating operation for study.");
 
-        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileCount);
+        await _indexStore.EndUpdateInstanceAsync(
+            arguments.PartitionKey,
+            arguments.StudyInstanceUid,
+            GetDeserializedDataset(arguments.ChangeDataset),
+            arguments.InstanceMetadataList,
+            CancellationToken.None);
 
-        await Parallel.ForEachAsync(
-            fileIdentifiers.Where(f => f.OriginalVersion.HasValue),
-            new ParallelOptions
-            {
-                CancellationToken = default,
-                MaxDegreeOfParallelism = _options.MaxParallelThreads,
-            },
-            async (fileIdentifier, token) =>
-            {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, partition, null, token);
-            });
-
-        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
+        logger.LogInformation("Updating study completed successfully.");
     }
 
     /// <summary>
@@ -286,88 +348,6 @@ public partial class UpdateDurableFunction
     }
 
     /// <summary>
-    /// Asynchronously delete the new blob when there is a failure while updating the study instances.
-    /// </summary>
-    /// <param name="arguments">arguments which have a list of watermarks to cleanup along with partition they belong to</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CleanupNewVersionBlobV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(CleanupNewVersionBlobV2Async))]
-    [Obsolete("Use CleanupNewVersionBlobV3Async instead")]
-    public async Task CleanupNewVersionBlobV2Async([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        IReadOnlyList<InstanceFileState> fileIdentifiers = arguments.InstanceWatermarks;
-        Partition partition = arguments.Partition;
-
-        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue).Count();
-        logger.LogInformation("Begin cleaning up new blobs. Total size {TotalCount}", fileCount);
-
-        await Parallel.ForEachAsync(
-            fileIdentifiers.Where(f => f.NewVersion.HasValue),
-            new ParallelOptions
-            {
-                CancellationToken = default,
-                MaxDegreeOfParallelism = _options.MaxParallelThreads,
-            },
-            async (fileIdentifier, token) =>
-            {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, partition, null, token);
-            });
-
-        logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
-    }
-
-    /// <summary>
-    /// Asynchronously move all the original version blobs to cold access tier.
-    /// </summary>
-    /// <param name="arguments">arguments which have a list of watermarks to move to cold access tier along with partition they belong to</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="SetOriginalBlobToColdAccessTierAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(SetOriginalBlobToColdAccessTierAsync))]
-    [Obsolete("Use SetOriginalBlobToColdAccessTierV2Async instead")]
-    public async Task SetOriginalBlobToColdAccessTierAsync([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        IReadOnlyList<InstanceFileState> fileIdentifiers = arguments.InstanceWatermarks;
-        Partition partition = arguments.Partition;
-
-        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue && !f.OriginalVersion.HasValue).Count();
-        logger.LogInformation("Begin moving original version blob from hot to cold access tier. Total size {TotalCount}", fileCount);
-
-        // Set to cold tier only for first time update, not for subsequent updates. This is to avoid moving the blob to cold tier multiple times.
-        // If the original version is set, then it means that the instance is updated already.
-        await Parallel.ForEachAsync(
-           fileIdentifiers.Where(f => f.NewVersion.HasValue && !f.OriginalVersion.HasValue),
-           new ParallelOptions
-           {
-               CancellationToken = default,
-               MaxDegreeOfParallelism = _options.MaxParallelThreads,
-           },
-           async (fileIdentifier, token) =>
-           {
-               await _fileStore.SetBlobToColdAccessTierAsync(fileIdentifier.Version, partition, null, token);
-           });
-
-        logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);
-    }
-
-    /// <summary>
     /// Asynchronously move all the original version blobs to cold access tier.
     /// </summary>
     /// <param name="arguments">arguments which have a list of watermarks to move to cold access tier along with partition they belong to</param>
@@ -408,5 +388,8 @@ public partial class UpdateDurableFunction
         logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);
     }
 
-    private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
+    private static string ToInstanceString(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        => $"PartitionKey: {versionedInstanceIdentifier.Partition.Name}, StudyInstanceUID: {versionedInstanceIdentifier.StudyInstanceUid}, SeriesInstanceUID: {versionedInstanceIdentifier.SeriesInstanceUid}, SOPInstanceUID: {versionedInstanceIdentifier.SopInstanceUid}";
+
+    private DicomDataset GetDeserializedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
 }

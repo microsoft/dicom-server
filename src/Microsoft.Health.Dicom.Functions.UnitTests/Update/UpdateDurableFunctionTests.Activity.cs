@@ -3,19 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
@@ -81,7 +82,7 @@ public partial class UpdateDurableFunctionTests
                 .Returns(DefaultFileProperties);
         }
 
-        await _updateDurableFunction.UpdateInstanceBlobsV2Async(
+        await _updateDurableFunction.UpdateInstanceBlobsV3Async(
             new UpdateInstanceBlobArgumentsV2(Partition.Default, expected, dataset),
             NullLogger.Instance);
 
@@ -93,6 +94,41 @@ public partial class UpdateDurableFunctionTests
                 Partition.Default,
                 Arg.Any<CancellationToken>());
         }
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadata_WhenUpdatingWithDataStoreException_ThenShouldReturnFailureCorrectly()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var expected = GetInstanceIdentifiersList(studyInstanceUid);
+
+        var dataset = "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}";
+
+        foreach (var instance in expected)
+        {
+            _updateInstanceService
+                .UpdateInstanceBlobAsync(
+                    instance,
+                    Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                    Partition.Default,
+                    Arg.Any<CancellationToken>())
+                .ThrowsAsync(new DataStoreException("Error"));
+        }
+
+        var response = await _updateDurableFunction.UpdateInstanceBlobsV3Async(
+            new UpdateInstanceBlobArgumentsV2(Partition.Default, expected, dataset),
+            NullLogger.Instance);
+
+        foreach (var instance in expected)
+        {
+            await _updateInstanceService
+                .Received(1)
+                .UpdateInstanceBlobAsync(Arg.Is(GetPredicate(instance)), Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                Partition.Default,
+                Arg.Any<CancellationToken>());
+        }
+
+        Assert.Equal(expected.Count, response.Errors.Count);
     }
 
     [Fact]
@@ -108,7 +144,7 @@ public partial class UpdateDurableFunctionTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        await _updateDurableFunction.CompleteUpdateStudyV2Async(
+        await _updateDurableFunction.CompleteUpdateStudyV3Async(
             new CompleteStudyArgumentsV2(
                 Partition.DefaultKey,
                 studyInstanceUid,
@@ -119,35 +155,6 @@ public partial class UpdateDurableFunctionTests
         await _indexStore
             .Received(1)
             .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), instanceMetadataList, CancellationToken.None);
-    }
-
-    [Fact]
-    [Obsolete("Obsolete")]
-    public async Task GivenInstanceUpdateFails_WhenDeleteFileV2_ThenShouldDeleteSuccessfully()
-    {
-        var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1 });
-        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
-            new InstanceFileState
-            {
-                Version = x.VersionedInstanceIdentifier.Version,
-                OriginalVersion = x.InstanceProperties.OriginalVersion,
-                NewVersion = x.InstanceProperties.NewVersion
-            }).Take(1).ToList();
-
-        _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
-
-        // Call the activity
-        await _updateDurableFunction.CleanupNewVersionBlobV2Async(
-            new CleanupBlobArguments(expected, Partition.Default),
-            NullLogger.Instance);
-
-        // Assert behavior
-        await _updateInstanceService
-            .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -192,35 +199,6 @@ public partial class UpdateDurableFunctionTests
         await _updateInstanceService
             .Received(1)
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    [Obsolete("Obsolete")]
-    public async Task GivenInstanceMetadataList_WhenDeleteFileV2_ThenShouldDeleteSuccessfully()
-    {
-        var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, partition: Partition.Default);
-        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
-            new InstanceFileState
-            {
-                Version = x.VersionedInstanceIdentifier.Version,
-                OriginalVersion = x.InstanceProperties.OriginalVersion,
-                NewVersion = x.InstanceProperties.NewVersion
-            }).Take(1).ToList();
-
-        _updateInstanceService
-            .DeleteInstanceBlobAsync(expected[0].Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
-
-        // Call the activity
-        await _updateDurableFunction.DeleteOldVersionBlobV2Async(
-            new CleanupBlobArguments(expected, identifiers[0].VersionedInstanceIdentifier.Partition),
-            NullLogger.Instance);
-
-        // Assert behavior
-        await _updateInstanceService
-            .Received(1)
-            .DeleteInstanceBlobAsync(expected[0].Version, identifiers[0].VersionedInstanceIdentifier.Partition, null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -274,35 +252,6 @@ public partial class UpdateDurableFunctionTests
         await _updateInstanceService
             .Received(1)
             .DeleteInstanceBlobAsync(identifiers[0].VersionedInstanceIdentifier.Version, identifiers[0].VersionedInstanceIdentifier.Partition, identifiers[0].InstanceProperties.FileProperties, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    [Obsolete("Should use SetOriginalBlobToColdAccessTierV2Async instead")]
-    public async Task GivenInstanceMetadataList_WhenChangeAccessTier_ThenShoulChangeSuccessfully()
-    {
-        var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2 });
-        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
-            new InstanceFileState
-            {
-                Version = x.VersionedInstanceIdentifier.Version,
-                OriginalVersion = x.InstanceProperties.OriginalVersion,
-                NewVersion = x.InstanceProperties.NewVersion
-            }).Take(1).ToList();
-
-        _fileStore
-            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
-
-        // Call the activity
-        await _updateDurableFunction.SetOriginalBlobToColdAccessTierAsync(
-            new CleanupBlobArguments(expected, Partition.Default),
-            NullLogger.Instance);
-
-        // Assert behavior
-        await _fileStore
-            .Received(1)
-            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
