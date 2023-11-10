@@ -281,7 +281,7 @@ public class UpdateInstanceServiceTests
         var firstBlock = new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length);
 
         _fileStore.CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(Task.CompletedTask);
-        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(DefaultFileProperties);
+        _fileStore.GetFilePropertiesAsync(newFileIdentifier, Partition.Default, null, cancellationToken).Returns(DefaultFileProperties);
         _fileStore.GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(streamAndStoredFile.Value);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
@@ -302,6 +302,7 @@ public class UpdateInstanceServiceTests
         streamAndStoredFile.Key.Dataset.Remove(DicomTag.PixelData);
 
         await _fileStore.Received(1).CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
+        await _fileStore.Received(1).GetFilePropertiesAsync(newFileIdentifier, Partition.Default, null, cancellationToken);
         await _fileStore.DidNotReceive().GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
         await _metadataStore.Received(1).StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken);
