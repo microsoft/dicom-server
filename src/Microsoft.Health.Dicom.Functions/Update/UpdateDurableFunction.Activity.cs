@@ -76,7 +76,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
+        DicomDataset datasetToUpdate = GetDeserializedDataset(arguments.ChangeDataset);
 
         int processed = 0;
 
@@ -148,7 +148,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
+        DicomDataset datasetToUpdate = GetDeserializedDataset(arguments.ChangeDataset);
 
         logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadataList.Count);
 
@@ -222,7 +222,7 @@ public partial class UpdateDurableFunction
             await _indexStore.EndUpdateInstanceAsync(
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
-                GetDeserialzedDataset(arguments.ChangeDataset),
+                GetDeserializedDataset(arguments.ChangeDataset),
                 arguments.InstanceMetadataList,
                 CancellationToken.None);
 
@@ -258,11 +258,11 @@ public partial class UpdateDurableFunction
         logger.LogInformation("Completing updating operation for study.");
 
         await _indexStore.EndUpdateInstanceAsync(
-                arguments.PartitionKey,
-                arguments.StudyInstanceUid,
-                GetDeserialzedDataset(arguments.ChangeDataset),
-                arguments.InstanceMetadataList,
-                CancellationToken.None);
+            arguments.PartitionKey,
+            arguments.StudyInstanceUid,
+            GetDeserializedDataset(arguments.ChangeDataset),
+            arguments.InstanceMetadataList,
+            CancellationToken.None);
 
         logger.LogInformation("Updating study completed successfully.");
     }
@@ -391,5 +391,5 @@ public partial class UpdateDurableFunction
     private static string ToInstanceString(VersionedInstanceIdentifier versionedInstanceIdentifier)
         => $"PartitionKey: {versionedInstanceIdentifier.Partition.Name}, StudyInstanceUID: {versionedInstanceIdentifier.StudyInstanceUid}, SeriesInstanceUID: {versionedInstanceIdentifier.SeriesInstanceUid}, SOPInstanceUID: {versionedInstanceIdentifier.SopInstanceUid}";
 
-    private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
+    private DicomDataset GetDeserializedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
 }

@@ -326,7 +326,12 @@ public partial class UpdateDurableFunction
         errors.Add($"Failed to update instances for study {studyInstanceUid}");
 
         if (instanceErrors != null)
-            errors.AddRange(instanceErrors);
+        {
+            // We don't want to populate all the errors in Azure Table Storage, DTFx may attempt to compress the entry as needed using GZip and storing in blob storage
+            // But I think we should also be wary of what the user experience is for this via the response, so restricting to 5 errors for now. We can update based on feedback.
+            // TODO: Inform the user that the remaining failures can be found in the logs.
+            errors.AddRange(instanceErrors.Take(5));
+        }
 
         input.Errors = errors;
         input.NumberOfStudyFailed++;
