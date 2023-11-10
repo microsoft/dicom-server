@@ -44,7 +44,7 @@ public sealed class BlobFileStoreMeter : IDisposable
     /// <param name="operationType">Represents whether operation is input (write) or output(read) </param>
     /// <param name="isExternal">Whether or not this metric is being emitted for an external store</param>
     /// <returns></returns>
-    public static KeyValuePair<string, object>[] CreateBlobFileStoreOperationTelemetryDimension(string operationName, OperationType operationType, bool isExternal) =>
+    public static KeyValuePair<string, object>[] CreateTelemetryDimension(string operationName, OperationType operationType, bool isExternal) =>
         new[]
         {
             new KeyValuePair<string, object>("Operation", operationName),
