@@ -179,12 +179,12 @@ public partial class UpdateDurableFunction
                 }
                 catch (DataStoreRequestFailedException ex)
                 {
-                    logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
+                    logger.LogInformation("Failed to update instance with watermark {Watermark}, IsExternal {IsExternal}", instance.VersionedInstanceIdentifier.Version, ex.IsExternal);
                     errors.Add($"{ex.Message}. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
                 }
-                catch (DataStoreException)
+                catch (DataStoreException ex)
                 {
-                    logger.LogInformation("Failed to update instance with watermark {Watermark}", instance.VersionedInstanceIdentifier.Version);
+                    logger.LogInformation("Failed to update instance with watermark {Watermark}, IsExternal {IsExternal}", instance.VersionedInstanceIdentifier.Version, ex.IsExternal);
                     errors.Add($"Failed to update instance. {ToInstanceString(instance.VersionedInstanceIdentifier)}");
                 }
             });
