@@ -38,7 +38,7 @@ public class DataStoreRequestFailedException : ConditionalExternalException
 
     private static string GetFormattedExternalStoreMessageWithoutErrorCode(RequestFailedException ex)
     {
-        if (ex.Message.Contains("No such host is known.", StringComparison.OrdinalIgnoreCase))
+        if (ex.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase))
         {
             return DicomCoreResource.ExternalDataStoreHostIsUnknown;
         }
