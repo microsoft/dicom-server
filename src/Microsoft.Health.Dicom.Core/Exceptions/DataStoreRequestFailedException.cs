@@ -43,7 +43,7 @@ public class DataStoreRequestFailedException : ConditionalExternalException
             return DicomCoreResource.ExternalDataStoreHostIsUnknown;
         }
 
-        // is we do not have an error code and internal message is not "host not known", we are not familiar with the issue
+        // if we do not have an error code and internal message is not "host not known", we are not familiar with the issue
         // we can't just give back the exception message as it may contain sensitive information
         return DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue;
     }
