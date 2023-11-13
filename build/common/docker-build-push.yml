@@ -98,7 +98,9 @@ steps:
         command: 'push'
         containerRegistry: '$(azureContainerRegistry)'
         repository: dicom-cast
-        tags: ${{ parameters.tag }}
+        tags: |
+          ${{ parameters.tag }}
+          latest
 
   - ${{ if eq(parameters.push, true) }}:
     - task: Docker@2
