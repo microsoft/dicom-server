@@ -558,6 +558,14 @@ public class BlobFileStore : IFileStore
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
             throw new DataStoreRequestFailedException(ex, _blobClient.IsExternal);
         }
+        catch (AggregateException ex) when (_blobClient.IsExternal && ex.InnerException is RequestFailedException)
+        {
+            var innerEx = ex.InnerException as RequestFailedException;
+            _logger.LogError(innerEx,
+                    message: "Access to external storage account failed with ErrorCode: {ErrorCode}",
+                    innerEx.ErrorCode);
+            throw new DataStoreRequestFailedException(innerEx, _blobClient.IsExternal);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Access to storage account failed");
