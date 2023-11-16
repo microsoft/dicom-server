@@ -127,7 +127,6 @@ public class RetrieveResourceService : IRetrieveResourceService
             // transcoding of single instance
             if (needsTranscoding)
             {
-                _logger.LogInformation("Transcoding Instance");
                 FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition, instance.InstanceProperties.FileProperties, false, cancellationToken);
                 LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);

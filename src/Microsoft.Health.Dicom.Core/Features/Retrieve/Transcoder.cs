@@ -79,6 +79,8 @@ public class Transcoder : ITranscoder
         // A better workaround is to create a dataset including only the required frame, and transcode it.
         try
         {
+            _logger.LogInformation("Transcoding frame from {InputTransferSyntax} to {OutputTransferSyntax}", dataset.InternalTransferSyntax?.UID?.UID, targetSyntax?.UID?.UID);
+
             DicomDataset datasetForFrame = CreateDatasetForFrame(dataset, frameIndex);
             var transcoder = new DicomTranscoder(dataset.InternalTransferSyntax, targetSyntax);
             DicomDataset result = transcoder.Transcode(datasetForFrame);
@@ -102,6 +104,8 @@ public class Transcoder : ITranscoder
 
     private async Task<Stream> TranscodeFileAsync(DicomFile dicomFile, DicomTransferSyntax requestedTransferSyntax)
     {
+        _logger.LogInformation("Transcoding instance from {InputTransferSyntax} to {OutputTransferSyntax}", dicomFile?.Dataset?.InternalTransferSyntax?.UID?.UID, requestedTransferSyntax?.UID?.UID);
+
         try
         {
             var transcoder = new DicomTranscoder(
