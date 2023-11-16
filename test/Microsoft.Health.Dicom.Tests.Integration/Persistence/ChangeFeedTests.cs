@@ -13,6 +13,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -146,7 +147,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>(), Array.Empty<QueryTag>());
 
         var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -188,7 +189,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, metadataListByWatermark.Values.ToList());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, metadataListByWatermark.Values.ToList(), Array.Empty<QueryTag>());
 
         var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 

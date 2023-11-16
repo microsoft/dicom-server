@@ -163,9 +163,10 @@ public interface IIndexDataStore
     /// <param name="studyInstanceUid"></param>
     /// <param name="dicomDataset">The DICOM dataset to index.</param>
     /// <param name="instanceMetadataList">A list of instance metadata to use to update file properties for newly stored blob file from "update"</param>
+    /// <param name="queryTags">Queryable dicom tags</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, CancellationToken cancellationToken = default);
+    Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously updates DICOM instance HasFrameMetadata to 1

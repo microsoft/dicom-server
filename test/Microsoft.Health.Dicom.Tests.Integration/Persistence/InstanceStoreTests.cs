@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -289,7 +290,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>(), Array.Empty<QueryTag>());
 
         var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -337,7 +338,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(updatedInstance) });
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(updatedInstance) }, Array.Empty<QueryTag>());
 
         var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
         Assert.Single(instanceMetadataList);
@@ -359,7 +360,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         IReadOnlyList<InstanceMetadata> secondUpdatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(new Partition(originalInstance.PartitionKey, Partition.UnknownName), studyInstanceUID1);
         Assert.Single(secondUpdatedInstanceMetadata);
         var secondUpdatedInstance = secondUpdatedInstanceMetadata[0];
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(secondUpdatedInstance) });
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(secondUpdatedInstance) }, Array.Empty<QueryTag>());
 
         var retrievedInstances = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
         Assert.Single(retrievedInstances);

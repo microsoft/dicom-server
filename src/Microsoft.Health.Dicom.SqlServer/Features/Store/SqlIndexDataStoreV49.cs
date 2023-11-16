@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal class SqlIndexDataStoreV49 : SqlIndexDataStoreV47
+internal class SqlIndexDataStoreV49 : SqlIndexDataStoreV48
 {
     public SqlIndexDataStoreV49(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)

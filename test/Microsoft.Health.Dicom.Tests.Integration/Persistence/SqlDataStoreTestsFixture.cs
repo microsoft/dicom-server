@@ -122,6 +122,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlIndexDataStoreV46(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV47(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV49(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV50(SqlConnectionWrapperFactory),
             }),
             NullLogger<SqlIndexDataStore>.Instance);
 
