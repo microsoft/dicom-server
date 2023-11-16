@@ -55,7 +55,6 @@ public static class DicomServerServiceCollectionExtensions
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
-        serverBuilder.Services.AddHostedService<StartInstanceDataCleanupBackgroundService>();
 
         serverBuilder.Services
             .AddCustomerKeyValidationBackgroundService(options => configuration
