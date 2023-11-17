@@ -26,16 +26,16 @@
 --     None
 --
 CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV50
-    @partitionKey                       INT,
-    @studyInstanceUid                   VARCHAR(64),
-    @patientId                          NVARCHAR(64) = NULL,
-    @patientName                        NVARCHAR(325) = NULL,
-    @patientBirthDate                   DATE = NULL,
-    @insertFileProperties               dbo.FilePropertyTableType READONLY,
-    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
-    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1             READONLY,
-    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1         READONLY,
-    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
+    @partitionKey INT,
+    @studyInstanceUid VARCHAR(64),
+    @patientId NVARCHAR(64) = NULL,
+    @patientName NVARCHAR(325) = NULL,
+    @patientBirthDate DATE = NULL,
+    @insertFileProperties dbo.FilePropertyTableType READONLY,
+    @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
+    @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY,
+    @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY,
+    @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
 BEGIN

@@ -45,12 +45,11 @@ internal class SqlIndexDataStoreV50 : SqlIndexDataStoreV49
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(instanceMetadataList, nameof(instanceMetadataList));
 
-        List<FilePropertyTableTypeRow> filePropertiesRows = instanceMetadataList.Select(instanceMetadata
+        var filePropertiesRows = instanceMetadataList.Select(instanceMetadata
             => new FilePropertyTableTypeRow(
                 instanceMetadata.InstanceProperties.NewVersion.Value,
                 instanceMetadata.InstanceProperties.FileProperties.Path,
-                instanceMetadata.InstanceProperties.FileProperties.ETag
-                ))
+                instanceMetadata.InstanceProperties.FileProperties.ETag))
             .ToList();
 
         ExtendedQueryTagDataRows rows = ExtendedQueryTagDataRowsBuilder.Build(dicomDataset, queryTags, Version);
@@ -60,33 +59,30 @@ internal class SqlIndexDataStoreV50 : SqlIndexDataStoreV49
             rows.LongRows,
             rows.DoubleRows,
             rows.DateTimeWithUtcRows,
-            rows.PersonNameRows
-        );
+            rows.PersonNameRows);
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+        VLatest.EndUpdateInstanceV50.PopulateCommand(
+            sqlCommandWrapper,
+            partitionKey,
+            studyInstanceUid,
+            dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),
+            dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientName),
+            dicomDataset.GetStringDateAsDate(DicomTag.PatientBirthDate),
+            parameters);
+
+        try
         {
-            VLatest.EndUpdateInstanceV50.PopulateCommand(
-                sqlCommandWrapper,
-                partitionKey,
-                studyInstanceUid,
-                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),
-                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientName),
-                dicomDataset.GetStringDateAsDate(DicomTag.PatientBirthDate),
-                parameters);
-
-            try
+            await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+        }
+        catch (SqlException ex)
+        {
+            throw ex.Number switch
             {
-                await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-            }
-            catch (SqlException ex)
-            {
-                throw ex.Number switch
-                {
-                    SqlErrorCodes.NotFound => new StudyNotFoundException(),
-                    _ => new DataStoreException(ex),
-                };
-            }
+                SqlErrorCodes.NotFound => new StudyNotFoundException(),
+                _ => new DataStoreException(ex),
+            };
         }
     }
 }

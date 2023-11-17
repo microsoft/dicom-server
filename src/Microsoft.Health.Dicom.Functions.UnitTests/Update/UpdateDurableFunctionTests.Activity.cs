@@ -139,7 +139,7 @@ public partial class UpdateDurableFunctionTests
         var studyInstanceUid = TestUidGenerator.Generate();
 
         var instanceMetadataList = new List<InstanceMetadata>();
-        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), instanceMetadataList, Array.Empty<QueryTag>().ToList(), CancellationToken.None).Returns(Task.CompletedTask);
+        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), instanceMetadataList, Array.Empty<QueryTag>(), CancellationToken.None).Returns(Task.CompletedTask);
 
         var ds = new DicomDataset
         {
@@ -156,7 +156,7 @@ public partial class UpdateDurableFunctionTests
 
         await _indexStore
             .Received(1)
-            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), instanceMetadataList, Arg.Any<List<QueryTag>>(), CancellationToken.None);
+            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), instanceMetadataList, Arg.Any<IEnumerable<QueryTag>>(), CancellationToken.None);
     }
 
     [Fact]
