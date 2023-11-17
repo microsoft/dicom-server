@@ -181,7 +181,8 @@ public partial class UpdateDurableFunction
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: CancellationToken.None);
 
-        var filteredQueryTags = queryTags.Where(x => x.IsExtendedQueryTag && UpdateTags.UpdateStudyFilterTags.Contains(x.Tag)).ToList();
+        // Filter extended query tag at study level
+        var filteredQueryTags = queryTags.Where(x => x.IsExtendedQueryTag && UpdateTags.UpdateStudyFilterTags.Contains(x.Tag) && x.Level == QueryTagLevel.Study).ToList();
 
         if (filteredQueryTags.Count > 0)
         {
