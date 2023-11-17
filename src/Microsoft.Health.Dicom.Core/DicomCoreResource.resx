@@ -212,6 +212,9 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The required tag '{0}' is missing.</value>
     <comment>{0} is the DICOM tag name. E.g., StudyInstanceUID.</comment>
   </data>
+  <data name="MissingValue" xml:space="preserve">
+    <value>The tag has no value.</value>
+  </data>
   <data name="NotAcceptableHeaders" xml:space="preserve">
     <value>The request headers are not acceptable</value>
   </data>

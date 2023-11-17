@@ -520,7 +520,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue. No such host is known.
+        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue. No such host is known..
         /// </summary>
         internal static string ExternalDataStoreHostIsUnknown {
             get {
@@ -538,7 +538,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue.
+        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue..
         /// </summary>
         internal static string ExternalDataStoreOperationFailedUnknownIssue {
             get {
@@ -998,6 +998,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingRequiredValue {
             get {
                 return ResourceManager.GetString("MissingRequiredValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tag has no value..
+        /// </summary>
+        internal static string MissingValue {
+            get {
+                return ResourceManager.GetString("MissingValue", resourceCulture);
             }
         }
         

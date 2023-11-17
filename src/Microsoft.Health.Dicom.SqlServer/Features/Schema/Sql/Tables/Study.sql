@@ -5,7 +5,7 @@
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL,             --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
-    PatientId                   NVARCHAR(64)                      NOT NULL,
+    PatientId                   NVARCHAR(64)                      NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     StudyDate                   DATE                              NULL,

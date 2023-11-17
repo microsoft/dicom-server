@@ -40,7 +40,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
         DicomTag.SOPInstanceUID,
-        DicomTag.PatientID,
         DicomTag.SOPClassUID,
     };
 
@@ -77,7 +76,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         try
         {
-            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid);
+            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid, EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version));
         }
         catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
         {
@@ -107,16 +106,33 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return validationResultBuilder.Build();
     }
 
-    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+    internal static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid, bool enableDropMetadata)
     {
         // Ensure required tags are present.
-        EnsureRequiredTagIsPresent(DicomTag.PatientID);
-        EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
+        EnsureRequiredTagIsPresentWithValue(DicomTag.SOPClassUID);
 
         // The format of the identifiers will be validated by fo-dicom.
-        string studyInstanceUid = EnsureRequiredTagIsPresent(DicomTag.StudyInstanceUID);
-        string seriesInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SeriesInstanceUID);
-        string sopInstanceUid = EnsureRequiredTagIsPresent(DicomTag.SOPInstanceUID);
+        string studyInstanceUid = EnsureRequiredTagIsPresentWithValue(DicomTag.StudyInstanceUID);
+        string seriesInstanceUid = EnsureRequiredTagIsPresentWithValue(DicomTag.SeriesInstanceUID);
+        string sopInstanceUid = EnsureRequiredTagIsPresentWithValue(DicomTag.SOPInstanceUID);
+
+        if (enableDropMetadata)
+        {
+            // patientId just needs to be present as a tag, but value can be empty
+            if (!dicomDataset.Contains(DicomTag.PatientID))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingRequiredTag,
+                        DicomTag.PatientID), DicomTag.PatientID);
+            }
+        }
+        else
+        {
+            EnsureRequiredTagIsPresentWithValue(DicomTag.PatientID);
+        }
 
         // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
         if (studyInstanceUid == seriesInstanceUid ||
@@ -143,7 +159,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 DicomTag.StudyInstanceUID);
         }
 
-        string EnsureRequiredTagIsPresent(DicomTag dicomTag)
+        string EnsureRequiredTagIsPresentWithValue(DicomTag dicomTag)
         {
             if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
             {
@@ -273,7 +289,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     /// the dataset instead of just excepting at first issue as fo-dicom does.
     /// Do not produce a warning when string invalid only due to null padding. 
     /// </remarks>
-    private void GenerateValidationWarnings(DicomDataset dicomDataset, StoreValidationResultBuilder validationResultBuilder,
+    private void GenerateValidationWarnings(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder,
         IReadOnlyCollection<QueryTag> queryTags)
     {
         var stack = new Stack<DicomDataset>();
@@ -306,7 +324,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                             de.Validate();
                         }
                     }
-                    catch (DicomValidationException ex)
+                    catch (Exception ex) when (ex is DicomValidationException or DatasetValidationException)
                     {
                         validationResultBuilder.Add(ex, item.Tag, isCoreTag: false);
                         if (item.Tag.IsPrivate)
@@ -326,6 +344,17 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private void ValidateStringItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
+        // special treatment to add a warning for PatientID when null or empty
+        if (de.Tag == DicomTag.PatientID && string.IsNullOrEmpty(value))
+        {
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.MissingValue,
+                    DicomTag.PatientID), DicomTag.PatientID);
+        }
+
         if (value != null && value.EndsWith('\0'))
         {
             ValidateWithoutNullPadding(value, de, queryTags);
