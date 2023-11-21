@@ -47,6 +47,7 @@ BEGIN
         DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
         DECLARE @resourceType TINYINT = 0
         DECLARE @studyKey BIGINT
+        DECLARE @maxWatermark BIGINT
 
         CREATE TABLE #UpdatedInstances
                (PartitionKey INT,
@@ -113,92 +114,27 @@ BEGIN
         INNER JOIN #UpdatedInstances U
         ON U.Watermark = I.Watermark
 
+        SELECT
+            @maxWatermark = max(Watermark)
+        FROM #UpdatedInstances
+
         -- Update extended query tags value if any
-        -- String Key tags
-        IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
-        BEGIN
-            UPDATE EQTS
-            SET EQTS.TagValue = S.TagValue
-            FROM dbo.ExtendedQueryTagString EQTS
-            INNER JOIN @stringExtendedQueryTags S
-            ON EQTS.ResourceType = @resourceType
-                AND EQTS.TagKey = S.TagKey
-                AND EQTS.PartitionKey = @partitionKey
-                AND EQTS.SopInstanceKey1 = @studyKey
-            INNER JOIN dbo.ExtendedQueryTag EQT
-            ON EQT.TagKey = S.TagKey
-                AND EQT.TagStatus = 1
-                AND EQT.TagLevel = S.TagLevel
-            
-        END
-
-        -- Long Key tags
-        IF EXISTS (SELECT 1 FROM @longExtendedQueryTags)
-        BEGIN
-            UPDATE EQTL
-            SET EQTL.TagValue = S.TagValue
-            FROM dbo.ExtendedQueryTagLong EQTL
-            INNER JOIN @longExtendedQueryTags S
-            ON EQTL.ResourceType = @resourceType
-                AND EQTL.TagKey = S.TagKey
-                AND EQTL.PartitionKey = @partitionKey
-                AND EQTL.SopInstanceKey1 = @studyKey
-            INNER JOIN dbo.ExtendedQueryTag EQT
-            ON EQT.TagKey = S.TagKey
-                AND EQT.TagStatus = 1
-                AND EQT.TagLevel = S.TagLevel
-        END
-
-        -- Double Key tags
-        IF EXISTS (SELECT 1 FROM @doubleExtendedQueryTags)
-        BEGIN
-            UPDATE EQTD
-            SET EQTD.TagValue = S.TagValue
-            FROM dbo.ExtendedQueryTagDouble EQTD
-            INNER JOIN @doubleExtendedQueryTags S
-            ON EQTD.ResourceType = @resourceType
-                AND EQTD.TagKey = S.TagKey
-                AND EQTD.PartitionKey = @partitionKey
-                AND EQTD.SopInstanceKey1 = @studyKey
-            INNER JOIN dbo.ExtendedQueryTag EQT
-            ON EQT.TagKey = S.TagKey
-                AND EQT.TagStatus = 1
-                AND EQT.TagLevel = S.TagLevel
-        END
-
-        -- Double Key tags
-        IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
-        BEGIN
-            UPDATE EQTDT
-            SET EQTDT.TagValueUtc = S.TagValueUtc
-            FROM dbo.ExtendedQueryTagDateTime EQTDT
-            INNER JOIN @dateTimeExtendedQueryTags S
-            ON EQTDT.ResourceType = @resourceType
-                AND EQTDT.TagKey = S.TagKey
-                AND EQTDT.PartitionKey = @partitionKey
-                AND EQTDT.SopInstanceKey1 = @studyKey
-            INNER JOIN dbo.ExtendedQueryTag EQT
-            ON EQT.TagKey = S.TagKey
-                AND EQT.TagStatus = 1
-                AND EQT.TagLevel = S.TagLevel
-        END
-
-        -- Person Key tags
-        IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
-        BEGIN
-            UPDATE EQTP
-            SET EQTP.TagValue = S.TagValue
-            FROM dbo.ExtendedQueryTagPersonName EQTP
-            INNER JOIN @personNameExtendedQueryTags S
-            ON EQTP.ResourceType = @resourceType
-                AND EQTP.TagKey = S.TagKey
-                AND EQTP.PartitionKey = @partitionKey
-                AND EQTP.SopInstanceKey1 = @studyKey
-            INNER JOIN dbo.ExtendedQueryTag EQT
-            ON EQT.TagKey = S.TagKey
-                AND EQT.TagStatus = 1
-                AND EQT.TagLevel = S.TagLevel
-        END
+        BEGIN TRY
+            EXEC dbo.IIndexInstanceCoreV9
+                @partitionKey,
+                @studyKey,
+                null, -- passing null to series key and instance
+                null,
+                @maxWatermark,
+                @stringExtendedQueryTags,
+                @longExtendedQueryTags,
+                @doubleExtendedQueryTags,
+                @dateTimeExtendedQueryTags,
+                @personNameExtendedQueryTags
+        END TRY
+        BEGIN CATCH
+            THROW
+        END CATCH
 
         -- Insert into change feed table for update action type
         INSERT INTO dbo.ChangeFeed

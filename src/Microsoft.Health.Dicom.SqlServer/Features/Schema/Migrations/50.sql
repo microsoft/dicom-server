@@ -1675,6 +1675,7 @@ BEGIN
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @resourceType AS TINYINT = 0;
     DECLARE @studyKey AS BIGINT;
+    DECLARE @maxWatermark AS BIGINT;
     CREATE TABLE #UpdatedInstances (
         PartitionKey      INT         ,
         StudyInstanceUid  VARCHAR (64),
@@ -1731,96 +1732,14 @@ BEGIN
            INNER JOIN
            #UpdatedInstances AS U
            ON U.Watermark = I.Watermark;
-    IF EXISTS (SELECT 1
-               FROM   @stringExtendedQueryTags)
-        BEGIN
-            UPDATE EQTS
-            SET    EQTS.TagValue = S.TagValue
-            FROM   dbo.ExtendedQueryTagString AS EQTS
-                   INNER JOIN
-                   @stringExtendedQueryTags AS S
-                   ON EQTS.ResourceType = @resourceType
-                      AND EQTS.TagKey = S.TagKey
-                      AND EQTS.PartitionKey = @partitionKey
-                      AND EQTS.SopInstanceKey1 = @studyKey
-                   INNER JOIN
-                   dbo.ExtendedQueryTag AS EQT
-                   ON EQT.TagKey = S.TagKey
-                      AND EQT.TagStatus = 1
-                      AND EQT.TagLevel = S.TagLevel;
-        END
-    IF EXISTS (SELECT 1
-               FROM   @longExtendedQueryTags)
-        BEGIN
-            UPDATE EQTL
-            SET    EQTL.TagValue = S.TagValue
-            FROM   dbo.ExtendedQueryTagLong AS EQTL
-                   INNER JOIN
-                   @longExtendedQueryTags AS S
-                   ON EQTL.ResourceType = @resourceType
-                      AND EQTL.TagKey = S.TagKey
-                      AND EQTL.PartitionKey = @partitionKey
-                      AND EQTL.SopInstanceKey1 = @studyKey
-                   INNER JOIN
-                   dbo.ExtendedQueryTag AS EQT
-                   ON EQT.TagKey = S.TagKey
-                      AND EQT.TagStatus = 1
-                      AND EQT.TagLevel = S.TagLevel;
-        END
-    IF EXISTS (SELECT 1
-               FROM   @doubleExtendedQueryTags)
-        BEGIN
-            UPDATE EQTD
-            SET    EQTD.TagValue = S.TagValue
-            FROM   dbo.ExtendedQueryTagDouble AS EQTD
-                   INNER JOIN
-                   @doubleExtendedQueryTags AS S
-                   ON EQTD.ResourceType = @resourceType
-                      AND EQTD.TagKey = S.TagKey
-                      AND EQTD.PartitionKey = @partitionKey
-                      AND EQTD.SopInstanceKey1 = @studyKey
-                   INNER JOIN
-                   dbo.ExtendedQueryTag AS EQT
-                   ON EQT.TagKey = S.TagKey
-                      AND EQT.TagStatus = 1
-                      AND EQT.TagLevel = S.TagLevel;
-        END
-    IF EXISTS (SELECT 1
-               FROM   @dateTimeExtendedQueryTags)
-        BEGIN
-            UPDATE EQTDT
-            SET    EQTDT.TagValueUtc = S.TagValueUtc
-            FROM   dbo.ExtendedQueryTagDateTime AS EQTDT
-                   INNER JOIN
-                   @dateTimeExtendedQueryTags AS S
-                   ON EQTDT.ResourceType = @resourceType
-                      AND EQTDT.TagKey = S.TagKey
-                      AND EQTDT.PartitionKey = @partitionKey
-                      AND EQTDT.SopInstanceKey1 = @studyKey
-                   INNER JOIN
-                   dbo.ExtendedQueryTag AS EQT
-                   ON EQT.TagKey = S.TagKey
-                      AND EQT.TagStatus = 1
-                      AND EQT.TagLevel = S.TagLevel;
-        END
-    IF EXISTS (SELECT 1
-               FROM   @personNameExtendedQueryTags)
-        BEGIN
-            UPDATE EQTP
-            SET    EQTP.TagValue = S.TagValue
-            FROM   dbo.ExtendedQueryTagPersonName AS EQTP
-                   INNER JOIN
-                   @personNameExtendedQueryTags AS S
-                   ON EQTP.ResourceType = @resourceType
-                      AND EQTP.TagKey = S.TagKey
-                      AND EQTP.PartitionKey = @partitionKey
-                      AND EQTP.SopInstanceKey1 = @studyKey
-                   INNER JOIN
-                   dbo.ExtendedQueryTag AS EQT
-                   ON EQT.TagKey = S.TagKey
-                      AND EQT.TagStatus = 1
-                      AND EQT.TagLevel = S.TagLevel;
-        END
+    SELECT @maxWatermark = max(Watermark)
+    FROM   #UpdatedInstances;
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, NULL, NULL, @maxWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
     INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 2,
            PartitionKey,

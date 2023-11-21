@@ -109,6 +109,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     public async Task WhenUpdatingDicomMetadataWithExtendedQueryTagForASingleStudy_ThenItShouldUpdateCorrectly()
     {
         DicomTag ageTag = DicomTag.PatientAge;
+        DicomTag patientSexTag = DicomTag.PatientSex;
         string tagValue = "053Y";
 
         // Try to delete these extended query tags.
@@ -132,18 +133,19 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.Equal(
             OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(
-                new AddExtendedQueryTagEntry { Path = ageTag.GetPath(), VR = ageTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
+                new AddExtendedQueryTagEntry { Path = ageTag.GetPath(), VR = ageTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
+                new AddExtendedQueryTagEntry { Path = patientSexTag.GetPath(), VR = patientSexTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid, "New^PatientName", "054Y");
+        await UpdateStudyAsync(studyInstanceUid, "New^PatientName", "054Y", "M");
 
         // Verify using QIDO
-        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y");
+        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y&{patientSexTag.GetPath()}=M");
         DicomDataset[] instances = await queryResponse.ToArrayAsync();
         Assert.Equal(3, instances.Length);
     }
 
-    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null)
+    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null)
     {
         var datasetToUpdate = new DicomDataset();
         datasetToUpdate.AddOrUpdate(DicomTag.PatientName, expectedPatientName);
@@ -151,6 +153,11 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         if (!string.IsNullOrEmpty(age))
         {
             datasetToUpdate.AddOrUpdate(DicomTag.PatientAge, age);
+        }
+
+        if (!string.IsNullOrEmpty(patientSex))
+        {
+            datasetToUpdate.AddOrUpdate(DicomTag.PatientSex, patientSex);
         }
 
         Assert.Equal(OperationStatus.Succeeded, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate));
