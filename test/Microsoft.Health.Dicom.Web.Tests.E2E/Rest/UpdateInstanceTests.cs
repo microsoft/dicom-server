@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Operations;
@@ -25,12 +27,14 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
+    private readonly DicomTagsManager _tagManager;
     private readonly DicomInstancesManager _instancesManager;
 
     public UpdateInstanceTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
+        _tagManager = new DicomTagsManager(_client);
         _instancesManager = new DicomInstancesManager(_client);
     }
 
@@ -101,10 +105,61 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, requestOriginalVersion: true);
     }
 
-    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName)
+    [Fact]
+    public async Task WhenUpdatingDicomMetadataWithExtendedQueryTagForASingleStudy_ThenItShouldUpdateCorrectly()
+    {
+        DicomTag ageTag = DicomTag.PatientAge;
+        DicomTag patientSexTag = DicomTag.PatientSex;
+        string tagValue = "053Y";
+
+        // Try to delete these extended query tags.
+        await _tagManager.DeleteExtendedQueryTagAsync(ageTag.GetPath());
+
+        string studyInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
+        dicomFile1.Dataset.Add(ageTag, tagValue);
+
+        DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid);
+        dicomFile2.Dataset.Add(ageTag, tagValue);
+
+        DicomFile dicomFile3 = Samples.CreateRandomDicomFile(studyInstanceUid);
+        dicomFile3.Dataset.Add(ageTag, tagValue);
+
+        // Upload files
+        Assert.True((await _instancesManager.StoreStudyAsync(new[] { dicomFile1, dicomFile2, dicomFile3 })).IsSuccessStatusCode);
+
+        // Add extended query tag
+        Assert.Equal(
+            OperationStatus.Succeeded,
+            await _tagManager.AddTagsAsync(
+                new AddExtendedQueryTagEntry { Path = ageTag.GetPath(), VR = ageTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
+                new AddExtendedQueryTagEntry { Path = patientSexTag.GetPath(), VR = patientSexTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
+
+        // Update study
+        await UpdateStudyAsync(studyInstanceUid, "New^PatientName", "054Y", "M");
+
+        // Verify using QIDO
+        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y&{patientSexTag.GetPath()}=M");
+        DicomDataset[] instances = await queryResponse.ToArrayAsync();
+        Assert.Equal(3, instances.Length);
+    }
+
+    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null)
     {
         var datasetToUpdate = new DicomDataset();
         datasetToUpdate.AddOrUpdate(DicomTag.PatientName, expectedPatientName);
+
+        if (!string.IsNullOrEmpty(age))
+        {
+            datasetToUpdate.AddOrUpdate(DicomTag.PatientAge, age);
+        }
+
+        if (!string.IsNullOrEmpty(patientSex))
+        {
+            datasetToUpdate.AddOrUpdate(DicomTag.PatientSex, patientSex);
+        }
+
         Assert.Equal(OperationStatus.Succeeded, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate));
     }
 

@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -26,6 +27,7 @@ public partial class UpdateDurableFunction
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
+    private readonly IQueryTagService _queryTagService;
     private readonly UpdateMeter _updateMeter;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly bool _externalStoreEnabled;
@@ -37,6 +39,7 @@ public partial class UpdateDurableFunction
         IMetadataStore metadataStore,
         IFileStore fileStore,
         IUpdateInstanceService updateInstanceService,
+        IQueryTagService queryTagService,
         UpdateMeter updateMeter,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
         IOptions<FeatureConfiguration> featureConfiguration)
@@ -47,6 +50,7 @@ public partial class UpdateDurableFunction
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
+        _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         _updateMeter = EnsureArg.IsNotNull(updateMeter, nameof(updateMeter));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));

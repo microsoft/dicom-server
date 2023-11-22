@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,7 @@ using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
@@ -137,14 +139,14 @@ public partial class UpdateDurableFunctionTests
         var studyInstanceUid = TestUidGenerator.Generate();
 
         var instanceMetadataList = new List<InstanceMetadata>();
-        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), instanceMetadataList, CancellationToken.None).Returns(Task.CompletedTask);
+        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), instanceMetadataList, Array.Empty<QueryTag>(), CancellationToken.None).Returns(Task.CompletedTask);
 
         var ds = new DicomDataset
         {
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        await _updateDurableFunction.CompleteUpdateStudyV3Async(
+        await _updateDurableFunction.CompleteUpdateStudyV4Async(
             new CompleteStudyArgumentsV2(
                 Partition.DefaultKey,
                 studyInstanceUid,
@@ -154,7 +156,7 @@ public partial class UpdateDurableFunctionTests
 
         await _indexStore
             .Received(1)
-            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), instanceMetadataList, CancellationToken.None);
+            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), instanceMetadataList, Arg.Any<IEnumerable<QueryTag>>(), CancellationToken.None);
     }
 
     [Fact]

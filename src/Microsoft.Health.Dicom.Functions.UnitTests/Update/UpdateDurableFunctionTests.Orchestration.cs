@@ -87,7 +87,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(new UpdateInstanceResponse(instanceMetadataList, new List<string>()));
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>())
             .Returns(Task.CompletedTask);
@@ -105,7 +105,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -127,7 +127,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>());
         await context
@@ -208,7 +208,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(new UpdateInstanceResponse(instanceMetadataList, new List<string>()));
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, instanceMetadataList)))
             .Returns(Task.CompletedTask);
@@ -226,7 +226,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunctionWithExternalStore.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunctionWithExternalStore.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -248,7 +248,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, instanceMetadataList)));
         context
@@ -329,7 +329,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(new UpdateInstanceResponse(instanceMetadataList, new List<string>()));
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, new List<InstanceMetadata>())))
             .Returns(Task.CompletedTask);
@@ -347,7 +347,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -369,7 +369,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, null, expectEmptyList: true)));
         context
@@ -426,7 +426,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(new UpdateInstanceResponse(instanceMetadataList, new List<string>()));
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>())
             .Returns(Task.CompletedTask);
@@ -444,7 +444,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -465,7 +465,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>());
         context
@@ -520,7 +520,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
 
         // Invoke the orchestration
-        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance));
+        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance));
 
         // Assert behavior
         context
@@ -541,7 +541,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>());
         context
@@ -629,7 +629,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         await context
@@ -718,7 +718,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         await context
@@ -792,7 +792,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(new UpdateInstanceResponse(instanceMetadataList, new List<string>()));
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>())
             .Returns(Task.CompletedTask);
@@ -804,7 +804,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV4Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -825,7 +825,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV3Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV4Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>());
         context

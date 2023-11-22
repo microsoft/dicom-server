@@ -17,8 +17,10 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
@@ -51,79 +53,6 @@ public partial class UpdateDurableFunction
         logger.LogInformation("Beginning to update all instance watermarks");
 
         return instanceMetadata;
-    }
-
-    /// <summary>
-    /// Asynchronously batches the instance watermarks and calls the update instance.
-    /// </summary>
-    /// <param name="arguments">BatchUpdateArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// The result of the task contains the updated instances with file properties representing newly created blobs.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
-    [Obsolete("This function is obsolete. Use UpdateInstanceBlobsV3Async instead.")]
-    public async Task<IReadOnlyCollection<InstanceMetadata>> UpdateInstanceBlobsV2Async(
-        [ActivityTrigger] UpdateInstanceBlobArgumentsV2 arguments,
-        ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
-        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
-        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        DicomDataset datasetToUpdate = GetDeserializedDataset(arguments.ChangeDataset);
-
-        int processed = 0;
-
-        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadataList.Count);
-
-        ConcurrentBag<InstanceMetadata> updatedInstances = new ConcurrentBag<InstanceMetadata>();
-        while (processed < arguments.InstanceMetadataList.Count)
-        {
-            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceMetadataList.Count - processed);
-            var batch = arguments.InstanceMetadataList.Skip(processed).Take(batchSize).ToList();
-
-            logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
-            await Parallel.ForEachAsync(
-                batch,
-                new ParallelOptions
-                {
-                    CancellationToken = default,
-                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
-                },
-                async (instance, token) =>
-                {
-                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
-                    updatedInstances.Add(
-                        new InstanceMetadata(
-                            instance.VersionedInstanceIdentifier,
-                            new InstanceProperties
-                            {
-                                FileProperties = fileProperties,
-                                NewVersion = instance.InstanceProperties.NewVersion,
-                                OriginalVersion = instance.InstanceProperties.OriginalVersion
-                            }));
-                });
-
-            logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
-                batch[0],
-                batch[^1],
-                batchSize);
-
-            processed += batchSize;
-        }
-
-        logger.LogInformation("Completed updating all instance blobs");
-        return updatedInstances;
     }
 
     /// <summary>
@@ -200,53 +129,13 @@ public partial class UpdateDurableFunction
     /// <param name="arguments">CompleteInstanceArguments</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="CompleteUpdateStudyV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(CompleteUpdateStudyV2Async))]
-    [Obsolete("This function is obsolete. Use CompleteUpdateStudyV3Async instead.")]
-    public async Task CompleteUpdateStudyV2Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
-        EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
-        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        logger.LogInformation("Completing updating operation for study.");
-
-        try
-        {
-            await _indexStore.EndUpdateInstanceAsync(
-                arguments.PartitionKey,
-                arguments.StudyInstanceUid,
-                GetDeserializedDataset(arguments.ChangeDataset),
-                arguments.InstanceMetadataList,
-                CancellationToken.None);
-
-            logger.LogInformation("Updating study completed successfully.");
-        }
-        catch (StudyNotFoundException)
-        {
-            // TODO: Study deleted, we need to cleanup all the newly updated blobs.
-            logger.LogWarning("Failed to update to study. Possibly deleted.");
-        }
-    }
-
-    /// <summary>
-    /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
-    /// </summary>
-    /// <param name="arguments">CompleteInstanceArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
     /// A task representing the <see cref="CompleteUpdateStudyV3Async"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CompleteUpdateStudyV3Async))]
+    [Obsolete("This function is obsolete. Use CompleteUpdateStudyV4Async instead.")]
     public async Task CompleteUpdateStudyV3Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -262,6 +151,50 @@ public partial class UpdateDurableFunction
             arguments.StudyInstanceUid,
             GetDeserializedDataset(arguments.ChangeDataset),
             arguments.InstanceMetadataList,
+            Array.Empty<QueryTag>(),
+            CancellationToken.None);
+
+        logger.LogInformation("Updating study completed successfully.");
+    }
+
+    /// <summary>
+    /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
+    /// </summary>
+    /// <param name="arguments">CompleteInstanceArguments</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="CompleteUpdateStudyV4Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(CompleteUpdateStudyV4Async))]
+    public async Task CompleteUpdateStudyV4Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
+        EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
+        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        logger.LogInformation("Completing updating operation for study.");
+
+        IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: CancellationToken.None);
+
+        // Filter extended query tag at study level
+        var filteredQueryTags = queryTags.Where(x => x.IsExtendedQueryTag && UpdateTags.UpdateStudyFilterTags.Contains(x.Tag) && x.Level == QueryTagLevel.Study).ToList();
+
+        if (filteredQueryTags.Count > 0)
+        {
+            logger.LogInformation("Updating study with extended query tags. Extended query tag count {Count}", filteredQueryTags.Count);
+        }
+
+        await _indexStore.EndUpdateInstanceAsync(
+            arguments.PartitionKey,
+            arguments.StudyInstanceUid,
+            GetDeserializedDataset(arguments.ChangeDataset),
+            arguments.InstanceMetadataList,
+            filteredQueryTags,
             CancellationToken.None);
 
         logger.LogInformation("Updating study completed successfully.");
