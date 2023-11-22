@@ -114,6 +114,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
         // Try to delete these extended query tags.
         await _tagManager.DeleteExtendedQueryTagAsync(ageTag.GetPath());
+        await _tagManager.DeleteExtendedQueryTagAsync(patientSexTag.GetPath());
 
         string studyInstanceUid = TestUidGenerator.Generate();
 
