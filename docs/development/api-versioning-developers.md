@@ -29,7 +29,7 @@ List of things we will consider to be a breaking change
 1. Changing status code
 1. Deleting property in response or altering response type at all (but okay to add properties to the response)
 1. Changing the type of a property
-1. Behavior of an API changes (changes in buisness logic, used to do foo, now does bar)
+1. Behavior of an API changes (changes in business logic, used to do foo, now does bar)
 
 More info on breaking changes from the [REST guidelines](https://github.com/Microsoft/api-guidelines/blob/master/Guidelines.md#123-definition-of-a-breaking-change)
 
