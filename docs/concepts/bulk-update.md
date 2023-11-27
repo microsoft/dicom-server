@@ -210,5 +210,3 @@ There is no change in other APIs. All the other APIs supports only latest versio
 > Only one update operation can be performed at a time.
 
 > There is no way to delete only the latest version or revert back to original version.
-
-> QIDO doesn't support querying extended query tag after it is updated. 
