@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -18,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Xunit;
@@ -93,6 +93,36 @@ public partial class RetrieveTransactionResourceTests
         Assert.Collection(
             results,
             item => Assert.Equal(item.ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data));
+    }
+
+    [Fact]
+    public async Task GivenAnyMediaType_WhenRetrieveFrameWithOriginalTransferSyntax_ThenOriginalContentReturned()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var seriesInstanceUid = TestUidGenerator.Generate();
+        var sopInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            encode: false);
+
+        await _instancesManager.StoreAsync(dicomFile);
+
+        // Check for series
+        using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            mediaType: "*/*",
+            frames: new[] { 1 });
+
+        Stream[] results = await response.ToArrayAsync();
+
+        Assert.Collection(
+            results,
+            item => Assert.Equal(item.ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data, BinaryComparer.Instance));
     }
 
     [Fact]
@@ -209,16 +239,6 @@ public partial class RetrieveTransactionResourceTests
         finally
         {
             await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        }
-    }
-
-    public static IEnumerable<object[]> GetUnsupportedAcceptHeadersForFrames
-    {
-        get
-        {
-            yield return new object[] { true, DicomWebConstants.ApplicationOctetStreamMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // use single part instead of multiple part
-            yield return new object[] { false, DicomWebConstants.ImagePngMediaType, DicomWebConstants.OriginalDicomTransferSyntax }; // unsupported media type image/png
-            yield return new object[] { false, DicomWebConstants.ApplicationOctetStreamMediaType, "1.2.840.10008.1.2.4.100" }; // unsupported media type MPEG2
         }
     }
 }
