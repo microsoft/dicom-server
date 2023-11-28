@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V50
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -379,7 +379,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly BigIntColumn StudyKey = new BigIntColumn("StudyKey");
             internal readonly VarCharColumn StudyInstanceUid = new VarCharColumn("StudyInstanceUid", 64);
-            internal readonly NullableNVarCharColumn PatientId = new NullableNVarCharColumn("PatientId", 64);
+            internal readonly NVarCharColumn PatientId = new NVarCharColumn("PatientId", 64);
             internal readonly NullableNVarCharColumn PatientName = new NullableNVarCharColumn("PatientName", 200, "SQL_Latin1_General_CP1_CI_AI");
             internal readonly NullableNVarCharColumn ReferringPhysicianName = new NullableNVarCharColumn("ReferringPhysicianName", 200, "SQL_Latin1_General_CP1_CI_AI");
             internal readonly NullableDateColumn StudyDate = new NullableDateColumn("StudyDate");
