@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Xunit;
@@ -121,7 +122,7 @@ public partial class RetrieveTransactionResourceTests
 
         Assert.Collection(
             results,
-            item => Assert.Equal(item.ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data));
+            item => Assert.Equal(item.ToByteArray(), DicomPixelData.Create(dicomFile.Dataset).GetFrame(0).Data, BinaryComparer.Instance));
     }
 
     [Fact]
