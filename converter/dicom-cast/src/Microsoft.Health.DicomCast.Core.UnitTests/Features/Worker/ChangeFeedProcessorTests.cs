@@ -431,7 +431,7 @@ public class ChangeFeedProcessorTests
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(expectedSequence);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds);
 
-        var instant = new DateTimeOffset(2020, 6, 1, 15, 30, 25, TimeSpan.FromHours(-8));
+        var instant = DateTimeOffset.UtcNow.AddHours(1);
         _timeProvider.SetUtcNow(instant);
 
         // Act

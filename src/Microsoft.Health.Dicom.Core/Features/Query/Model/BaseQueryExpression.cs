@@ -55,7 +55,7 @@ public class BaseQueryExpression
     /// <summary>
     /// Request query was empty
     /// </summary>
-    public bool HasFilters => FilterConditions.Count == 0;
+    public bool HasFilters => FilterConditions.Count > 0;
 
     /// <summary>
     /// evaluted result count for this request
