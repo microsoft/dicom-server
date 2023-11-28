@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.Health.Core" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
     <PackageReference Include="Microsoft.Health.Test.Utilities" />
