@@ -11,7 +11,8 @@ Bulk update is a feature that enables updates of DICOM attributes/metadata witho
 | Other Patient Names| (0010,1001) | Other names used to identify the patient. 
 | Patient's Birth Name| (0010,1005) | Patient's birth name. 
 | Patient's Mother's Birth Name| (0010,1060) | Birth name of patient's mother. 
-| Medical Record Locator | (0010,1090)| An identifier used to find the patient's existing medical record (e.g., film jacket). 
+| Medical Record Locator | (0010,1090) | An identifier used to find the patient's existing medical record (e.g., film jacket). 
+| Issuer of Patient ID | (0010,0021) | Identifier of the Assigning Authority (system, organization, agency, or department) that issued the Patient ID. 
 
 **Patient Demographic Module**
 | Attribute Name   | Tag           | Description           |
