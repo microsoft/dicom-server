@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -37,6 +38,7 @@ public partial class ExportDurableFunction
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
 
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
+        input.Partition ??= Partition.Default;
 
         // Are we done?
         if (input.Source == null)

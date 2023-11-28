@@ -265,6 +265,70 @@ public partial class ExportDurableFunctionTests
             .ContinueAsNew(default, default);
     }
 
+    [Fact]
+    public async Task GivenOrchestrationWithNullPartition_WhenExportingFiles_ThenExportUsingDefaultPartition()
+    {
+        string operationId = OperationId.Generate();
+        DateTime createdTime = DateTime.UtcNow;
+        var input = new ExportCheckpoint
+        {
+            Batching = new BatchingOptions
+            {
+                Size = 3,
+                MaxParallelCount = 2,
+            },
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
+            ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
+            Partition = null,
+            Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
+        };
+        var batches = new[]
+        {
+            new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
+        };
+        var results = new[]
+        {
+            new ExportProgress(2, 1),
+        };
+        var nextSource = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions());
+
+        // Arrange the input
+        IDurableOrchestrationContext context = CreateContext(operationId);
+
+        IExportSource source = Substitute.For<IExportSource>();
+        source
+            .TryDequeueBatch(1, out Arg.Any<ExportDataOptions<ExportSourceType>>())
+            .Returns(
+                x => { x[1] = batches[0]; return true; });
+        source.Description.Returns(nextSource);
+        _sourceProvider.CreateAsync(input.Source.Settings, Partition.Default).Returns(source);
+
+        context
+            .GetInput<ExportCheckpoint>()
+            .Returns(input);
+        context
+            .CallActivityWithRetryAsync<ExportProgress>(
+                nameof(ExportDurableFunction.ExportBatchAsync),
+                _options.RetryOptions,
+                Arg.Is<ExportBatchArguments>(x => ReferenceEquals(x.Source, batches[0]) && ReferenceEquals(x.Destination, input.Destination)))
+            .Returns(results[0]);
+        context
+            .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
+                nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
+                _options.RetryOptions,
+                Arg.Any<GetInstanceStatusOptions>())
+            .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
+
+        // Invoke the orchestration
+        await _function.ExportDicomFilesAsync(context, NullLogger.Instance);
+
+        // Assert behavior
+        context
+            .Received(1)
+            .GetInput<ExportCheckpoint>();
+        await _sourceProvider.Received(1).CreateAsync(input.Source.Settings, Partition.Default);
+    }
+
     private static IDurableOrchestrationContext CreateContext(string operationId)
     {
         IDurableOrchestrationContext context = Substitute.For<IDurableOrchestrationContext>();
