@@ -198,7 +198,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         return updatedFileProperties;
     }
 
-    internal static IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, long stageBlockSizeInBytes)
+    internal static Dictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, long stageBlockSizeInBytes)
     {
         var blockLengths = new Dictionary<string, long>();
         long fileSizeWithoutFirstBlock = streamLength - initialBlockLength;

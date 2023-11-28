@@ -195,9 +195,14 @@ dotnet_diagnostic.CA1031.severity = error      # Do not catch general exception 
 dotnet_diagnostic.CA1032.severity = suggestion # Implement standard exception constructors
 dotnet_diagnostic.CA1054.severity = error      # URI parameters should not be strings
 dotnet_diagnostic.CA1305.severity = error      # Specify IFormatProvider
+dotnet_diagnostic.CA1510.severity = none       # Use ArgumentNullException throw helper
+dotnet_diagnostic.CA1511.severity = none       # Use ArgumentException throw helper
+dotnet_diagnostic.CA1512.severity = none       # Use ArgumentOutOfRangeException throw helper
+dotnet_diagnostic.CA1513.severity = none       # Use ObjectDisposedException throw helper
 dotnet_diagnostic.CA1716.severity = error      # Identifiers should not match keywords
 dotnet_diagnostic.CA1822.severity = error      # Mark members as static
 dotnet_diagnostic.CA1848.severity = none       # Do not encourage LoggerMessage delegates in every instance
+dotnet_diagnostic.CA1863.severity = none       # Use 'CompositeFormat'
 dotnet_diagnostic.CA2007.severity = none       # Do not directly await a Task
 
 # C# Compiler Rules

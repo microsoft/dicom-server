@@ -90,19 +90,18 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
         return valueParseFunc != null;
     }
 
-    private static QueryFilterCondition ParseFuzzyMatchingTagValue(QueryTag queryTag, string value)
+    private static PersonNameFuzzyMatchCondition ParseFuzzyMatchingTagValue(QueryTag queryTag, string value)
     {
         // quotes is not supported in fuzzy matching because of limitation in underlaying implementation
         char unspportedChar = '"';
         if (value.Contains(unspportedChar, StringComparison.OrdinalIgnoreCase))
         {
             throw new QueryParseException(string.Format(
-                            CultureInfo.CurrentCulture,
-                            DicomCoreResource.InvalidTagValueWithFuzzyMatch,
-                            queryTag.GetName(),
-                            value,
-                            unspportedChar
-                            ));
+                CultureInfo.CurrentCulture,
+                DicomCoreResource.InvalidTagValueWithFuzzyMatch,
+                queryTag.GetName(),
+                value,
+                unspportedChar));
         }
 
         return new PersonNameFuzzyMatchCondition(queryTag, value);

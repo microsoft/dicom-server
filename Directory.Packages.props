@@ -25,7 +25,7 @@
     <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.21.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(SdkPackageVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.14" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
@@ -65,29 +65,29 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.82" />
+    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Api" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Blob" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Client" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Core" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.294" />
-    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.82" />
-    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.82" />
+    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Operations" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.1.0" />
+    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.1.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.33.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.11" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.1.167" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.8.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
@@ -109,8 +109,8 @@
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Text.Json" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="xunit" Version="2.6.1" />
-    <PackageVersion Include="xunit.assert" Version="2.6.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageVersion Include="xunit" Version="2.6.2" />
+    <PackageVersion Include="xunit.assert" Version="2.6.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.4" />
   </ItemGroup>
 </Project>

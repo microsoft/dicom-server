@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ internal static class HttpResponseExtensions
         EnsureArg.IsNotNull(response, nameof(response));
         EnsureArg.IsNotNull(locationUrl, nameof(locationUrl));
 
-        response.Headers.Add(HeaderNames.Location, locationUrl.IsAbsoluteUri ? locationUrl.AbsoluteUri : GetRelativeUri(locationUrl));
+        response.Headers.Append(HeaderNames.Location, locationUrl.IsAbsoluteUri ? locationUrl.AbsoluteUri : GetRelativeUri(locationUrl));
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ internal static class HttpResponseExtensions
             return false;
         }
 
-        response.Headers.Add(ErroneousAttributesHeader, string.Join(",", erroneousAttributes));
+        response.Headers.Append(ErroneousAttributesHeader, string.Join(",", erroneousAttributes));
         return true;
     }
 

@@ -24,13 +24,13 @@
 
   <!-- Currently the latest version is .NET 7 -->
   <PropertyGroup>
-    <LatestVersion>$(StsVersion)</LatestVersion>
+    <LatestVersion>net8.0</LatestVersion>
     <LibraryFrameworks>$(LtsVersion);$(StsVersion)</LibraryFrameworks>
   </PropertyGroup>
 
   <!-- SDK Packages -->
   <Choose>
-    <When Condition="'$(TargetFramework)' == '$(LtsVersion)'">
+    <When Condition="'$(TargetFramework)' == 'net6.0'">
       <PropertyGroup>
         <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
@@ -38,8 +38,8 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <DependencyInjectionVersion>7.0.0</DependencyInjectionVersion>
-        <SdkPackageVersion>7.0.0</SdkPackageVersion>
+        <DependencyInjectionVersion>8.0.0</DependencyInjectionVersion>
+        <SdkPackageVersion>8.0.0</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>

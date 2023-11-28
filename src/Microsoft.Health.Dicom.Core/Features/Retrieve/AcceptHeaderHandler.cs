@@ -138,12 +138,12 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
         };
     }
 
-    private static ISet<string> GetAcceptableTransferSyntaxSet(params DicomTransferSyntax[] transferSyntaxes)
+    private static HashSet<string> GetAcceptableTransferSyntaxSet(params DicomTransferSyntax[] transferSyntaxes)
     {
         return GetAcceptableTransferSyntaxSet(transferSyntaxes.Select(item => item.UID.UID).ToArray());
     }
 
-    private static ISet<string> GetAcceptableTransferSyntaxSet(params string[] transferSyntaxes)
+    private static HashSet<string> GetAcceptableTransferSyntaxSet(params string[] transferSyntaxes)
     {
         return new HashSet<string>(transferSyntaxes, StringComparer.InvariantCultureIgnoreCase);
     }

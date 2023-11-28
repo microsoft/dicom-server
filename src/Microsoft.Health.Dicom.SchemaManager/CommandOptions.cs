@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.SchemaManager;
 
 public static class CommandOptions
 {
-    public static Option ConnectionStringOption()
+    public static Option<string> ConnectionStringOption()
     {
         var connectionStringOption = new Option<string>(
             name: OptionAliases.ConnectionString,
@@ -24,7 +24,7 @@ public static class CommandOptions
         return connectionStringOption;
     }
 
-    public static Option ManagedIdentityClientIdOption()
+    public static Option<string> ManagedIdentityClientIdOption()
     {
         var managedIdentityClientIdOption = new Option<string>(
             name: OptionAliases.ManagedIdentityClientId,
@@ -38,7 +38,7 @@ public static class CommandOptions
         return managedIdentityClientIdOption;
     }
 
-    public static Option AuthenticationTypeOption()
+    public static Option<string> AuthenticationTypeOption()
     {
         var connectionStringOption = new Option<string>(
             name: OptionAliases.AuthenticationType,
@@ -52,7 +52,7 @@ public static class CommandOptions
         return connectionStringOption;
     }
 
-    public static Option EnableWorkloadIdentityOptions()
+    public static Option<string> EnableWorkloadIdentityOptions()
     {
         var enableWorkloadIdentityOptions = new Option<string>(
             name: OptionAliases.EnableWorkloadIdentity,
@@ -66,7 +66,7 @@ public static class CommandOptions
         return enableWorkloadIdentityOptions;
     }
 
-    public static Option VersionOption()
+    public static Option<int> VersionOption()
     {
         var versionOption = new Option<int>(
             name: OptionAliases.Version,
@@ -80,7 +80,7 @@ public static class CommandOptions
         return versionOption;
     }
 
-    public static Option NextOption()
+    public static Option<bool> NextOption()
     {
         var nextOption = new Option<bool>(
             name: OptionAliases.Next,
@@ -94,7 +94,7 @@ public static class CommandOptions
         return nextOption;
     }
 
-    public static Option LatestOption()
+    public static Option<bool> LatestOption()
     {
         var latestOption = new Option<bool>(
             name: OptionAliases.Latest,
@@ -108,7 +108,7 @@ public static class CommandOptions
         return latestOption;
     }
 
-    public static Option ForceOption()
+    public static Option<bool> ForceOption()
     {
         var forceOption = new Option<bool>(
             name: OptionAliases.Force,

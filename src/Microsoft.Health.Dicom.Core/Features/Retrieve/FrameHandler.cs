@@ -58,7 +58,7 @@ public class FrameHandler : IFrameHandler
         }
     }
 
-    private Stream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
+    private MemoryStream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
     {
         EnsureArg.IsNotNull(pixelData, nameof(pixelData));
 
