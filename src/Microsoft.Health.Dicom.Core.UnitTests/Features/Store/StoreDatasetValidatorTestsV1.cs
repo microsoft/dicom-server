@@ -121,6 +121,42 @@ public class StoreDatasetValidatorTestsV1
     }
 
     [Fact]
+    public async Task GivenFullValidation_WhenPatientIDEmpty_ExpectErrorProduced()
+    {
+        var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration
+        {
+            EnableFullDicomItemValidation = true,
+        });
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            patientId: "");
+
+        IElementMinimumValidator minimumValidator = Substitute.For<IElementMinimumValidator>();
+
+        var dicomDatasetValidator = new StoreDatasetValidator(
+            featureConfigurationEnableFullValidation,
+            minimumValidator,
+            _queryTagService,
+            _storeMeter,
+            _dicomRequestContextAccessor,
+            NullLogger<StoreDatasetValidator>.Instance);
+
+        var result = await dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Contains(
+            "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
+            result.InvalidTagErrors[DicomTag.PatientID].Error);
+        minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+
+        minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+    }
+
+    [Fact]
     public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldReturnInvalidEntries()
     {
         var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });

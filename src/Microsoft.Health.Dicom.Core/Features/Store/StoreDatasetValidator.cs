@@ -44,6 +44,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         DicomTag.SOPClassUID,
     };
 
+    private static readonly IReadOnlySet<DicomTag> RequiredV2CoreTags = new HashSet<DicomTag>()
+    {
+        DicomTag.StudyInstanceUID,
+        DicomTag.SeriesInstanceUID,
+        DicomTag.SOPInstanceUID,
+        DicomTag.SOPClassUID,
+    };
+
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
@@ -74,10 +82,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
         var validationResultBuilder = new StoreValidationResultBuilder();
+        bool isV2 = EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
 
         try
         {
-            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid);
+            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid, isV2);
         }
         catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
         {
@@ -89,7 +98,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
         }
-        else if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
+        else if (isV2)
         {
             await ValidateAllItemsWithLeniencyAsync(dicomDataset, validationResultBuilder);
         }
@@ -107,10 +116,12 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return validationResultBuilder.Build();
     }
 
-    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid, bool isV2)
     {
         // Ensure required tags are present.
-        EnsureRequiredTagIsPresent(DicomTag.PatientID);
+        if (!isV2)
+            EnsureRequiredTagIsPresent(DicomTag.PatientID);
+
         EnsureRequiredTagIsPresent(DicomTag.SOPClassUID);
 
         // The format of the identifiers will be validated by fo-dicom.
@@ -350,10 +361,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     /// Check if a tag is a required core tag
     /// </summary>
     /// <param name="tag">tag to check if it is required</param>
+    /// <param name="isV2">boolean value to check if request is V1/V2 API</param>
     /// <returns>whether or not tag is required</returns>
-    public static bool IsCoreTag(DicomTag tag)
+    public static bool IsCoreTag(DicomTag tag, bool isV2)
     {
-        return RequiredCoreTags.Contains(tag);
+        if (!isV2)
+            return RequiredCoreTags.Contains(tag);
+        return RequiredV2CoreTags.Contains(tag);
     }
 
     private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)

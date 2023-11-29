@@ -189,6 +189,22 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
+    [Theory]
+    [InlineData("")]
+    public async Task GivenV2Enabled_WhenPatientIDEmpty_ExpectTagValidatedAndNoErrorProduced(string value)
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            patientId: value);
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
     [Fact]
     public async Task GivenV2Enabled_WhenNonRequiredTagNull_ExpectTagValidatedAndNoErrorProduced()
     {
