@@ -43,7 +43,7 @@ public class AuthorizationTests : IClassFixture<HttpIntegrationTestFixture<Start
     }
 
     [Fact]
-    [Trait("Category", "bvt-reader")]
+    [Trait("Category", "bvt")]
     public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
     {
         using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _clientV2WithReader.QueryStudyAsync("StudyDate=20200101");
@@ -51,7 +51,7 @@ public class AuthorizationTests : IClassFixture<HttpIntegrationTestFixture<Start
     }
 
     [Fact]
-    [Trait("Category", "bvt-reader")]
+    [Trait("Category", "bvt")]
     public async Task GivenAValidQueryString_WhenRetrievingChangeFeedLatest_ThenReturnsSuccessfulStatusCode()
     {
         using DicomWebResponse<ChangeFeedEntry> response = await _clientV2WithReader.GetChangeFeedLatest();
