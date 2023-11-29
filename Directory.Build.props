@@ -11,21 +11,19 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
-    <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <StsVersion>net7.0</StsVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <TrimMode>partial</TrimMode>
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <!-- Currently the latest version is .NET 7 -->
+  <!-- Currently the latest version is .NET 8 -->
   <PropertyGroup>
     <LatestVersion>net8.0</LatestVersion>
-    <LibraryFrameworks>$(LtsVersion);$(StsVersion)</LibraryFrameworks>
+    <LibraryFrameworks>net8.0;net6.0</LibraryFrameworks>
   </PropertyGroup>
 
   <!-- SDK Packages -->
