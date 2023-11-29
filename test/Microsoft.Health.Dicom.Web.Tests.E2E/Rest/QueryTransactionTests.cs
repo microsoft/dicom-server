@@ -47,7 +47,6 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
     }
 
     [Fact]
-    [Trait("Category", "bvt-reader")]
     public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
     {
         using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync("StudyDate=20200101");

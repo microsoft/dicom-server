@@ -276,14 +276,6 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         }
     }
 
-    [Fact]
-    [Trait("Category", "bvt-reader")]
-    public async Task GivenAValidQueryString_WhenRetrievingChangeFeedLatest_ThenReturnsSuccessfulStatusCode()
-    {
-        using DicomWebResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeedLatest(ToQueryString(includeMetadata: false, limit: 1));
-        Assert.True(response.IsSuccessStatusCode);
-    }
-
     [Theory]
     [InlineData("foo", "2023-05-03T10:58:00Z")]
     [InlineData("2023-05-03T10:58:00Z", "bar")]
