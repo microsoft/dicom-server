@@ -80,11 +80,39 @@ public class DeleteServiceTests
 
         IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
         _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false });
-        _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _options, _telemetryClient);
+        _deleteService = new DeleteService(
+            _indexDataStore,
+            _metadataStore,
+            _fileDataStore,
+            deletedInstanceCleanupConfigurationOptions,
+            transactionHandler,
+            NullLogger<DeleteService>.Instance,
+            _dicomRequestContextAccessor,
+            _options,
+#if NET8_0_OR_GREATER
+            _telemetryClient,
+            _timeProvider);
+#else
+            _telemetryClient);
+#endif
 
         IOptions<FeatureConfiguration> _optionsExternalStoreEnabled = Substitute.For<IOptions<FeatureConfiguration>>();
         _optionsExternalStoreEnabled.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
-        _deleteServiceWithExternalStore = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _optionsExternalStoreEnabled, _telemetryClient);
+        _deleteServiceWithExternalStore = new DeleteService(
+            _indexDataStore,
+            _metadataStore,
+            _fileDataStore,
+            deletedInstanceCleanupConfigurationOptions,
+            transactionHandler,
+            NullLogger<DeleteService>.Instance,
+            _dicomRequestContextAccessor,
+            _optionsExternalStoreEnabled,
+#if NET8_0_OR_GREATER
+            _telemetryClient,
+            _timeProvider);
+#else
+            _telemetryClient);
+#endif
     }
 
     [Fact]

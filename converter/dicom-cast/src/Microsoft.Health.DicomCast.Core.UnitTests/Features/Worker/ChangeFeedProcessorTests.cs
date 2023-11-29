@@ -50,6 +50,7 @@ public class ChangeFeedProcessorTests
             _fhirTransactionPipeline,
             _syncStateService,
             _exceptionStore,
+            _timeProvider,
             _config,
             NullLogger<ChangeFeedProcessor>.Instance);
 
