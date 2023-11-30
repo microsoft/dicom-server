@@ -40,6 +40,15 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
         DicomTag.SOPInstanceUID,
+        DicomTag.PatientID,
+        DicomTag.SOPClassUID,
+    };
+
+    private static readonly IReadOnlySet<DicomTag> RequiredV2CoreTags = new HashSet<DicomTag>()
+    {
+        DicomTag.StudyInstanceUID,
+        DicomTag.SeriesInstanceUID,
+        DicomTag.SOPInstanceUID,
         DicomTag.SOPClassUID,
     };
 
@@ -379,7 +388,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     /// <returns>whether or not tag is required</returns>
     public static bool IsV2CoreTag(DicomTag tag)
     {
-        return RequiredCoreTags.Contains(tag);
+        return RequiredV2CoreTags.Contains(tag);
     }
 
     private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
