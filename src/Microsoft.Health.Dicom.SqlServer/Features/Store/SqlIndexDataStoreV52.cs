@@ -27,14 +27,14 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal class SqlIndexDataStoreV50 : SqlIndexDataStoreV37
+internal class SqlIndexDataStoreV52 : SqlIndexDataStoreV37
 {
-    public SqlIndexDataStoreV50(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV52(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V50;
+    public override SchemaVersion Version => SchemaVersion.V52;
 
     public override async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, bool allowExpiredTags, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
