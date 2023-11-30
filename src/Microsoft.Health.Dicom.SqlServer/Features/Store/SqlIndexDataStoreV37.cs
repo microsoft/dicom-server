@@ -443,6 +443,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         string studyInstanceUid,
         DicomDataset dicomDataset,
         IReadOnlyList<InstanceMetadata> instanceMetadataList,
+        IEnumerable<QueryTag> queryTags,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

@@ -46,5 +46,6 @@ internal static class UpdateTags
         DicomTag.PatientSpeciesDescription,
         DicomTag.PatientBreedDescription,
         DicomTag.BreedRegistrationNumber,
+        DicomTag.IssuerOfPatientID,
     };
 }

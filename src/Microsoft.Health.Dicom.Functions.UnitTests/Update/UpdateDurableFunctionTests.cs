@@ -9,6 +9,7 @@ using FellowOakDicom.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -56,6 +57,7 @@ public partial class UpdateDurableFunctionTests
             _metadataStore,
             _fileStore,
             _updateInstanceService,
+            Substitute.For<IQueryTagService>(),
             _updateMeter,
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration()));
@@ -66,6 +68,7 @@ public partial class UpdateDurableFunctionTests
             _metadataStore,
             _fileStore,
             _updateInstanceService,
+            Substitute.For<IQueryTagService>(),
             _updateMeter,
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration { EnableExternalStore = true, }));

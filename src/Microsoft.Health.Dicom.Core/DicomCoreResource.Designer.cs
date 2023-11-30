@@ -511,7 +511,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Received the following error code from blob storage account: {0}. Can not perform operation &apos;{1}&apos; because the blob &apos;{2}&apos; with eTag &apos;{3}&apos; has been modified or deleted by another process..
+        ///   Looks up a localized string similar to Received the following error code from blob storage account: {0}. Can not perform operation &apos;{1}&apos; because the blob &apos;{2}&apos; with eTag &apos;{3}&apos; has been modified or deleted by another process. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue..
         /// </summary>
         internal static string ExternalDataStoreBlobModified {
             get {
@@ -520,11 +520,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Received the following error code: {0}.
+        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue. No such host is known.
+        /// </summary>
+        internal static string ExternalDataStoreHostIsUnknown {
+            get {
+                return ResourceManager.GetString("ExternalDataStoreHostIsUnknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue. Received the following error code: {0}.
         /// </summary>
         internal static string ExternalDataStoreOperationFailed {
             get {
                 return ResourceManager.GetString("ExternalDataStoreOperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error occurred during an operation on the configured storage account. Use the https://go.microsoft.com/fwlink/?linkid=2251550 to troubleshoot the issue.
+        /// </summary>
+        internal static string ExternalDataStoreOperationFailedUnknownIssue {
+            get {
+                return ResourceManager.GetString("ExternalDataStoreOperationFailedUnknownIssue", resourceCulture);
             }
         }
         

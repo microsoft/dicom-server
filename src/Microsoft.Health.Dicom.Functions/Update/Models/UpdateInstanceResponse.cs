@@ -6,25 +6,18 @@
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
-/// <summary>
-/// Represents input to <see cref="UpdateDurableFunction.UpdateInstanceBlobsV3Async"/>
-/// </summary>
-public class UpdateInstanceBlobArgumentsV2
+public class UpdateInstanceResponse
 {
-    public Partition Partition { get; set; }
-
     public IReadOnlyList<InstanceMetadata> InstanceMetadataList { get; }
 
-    public string ChangeDataset { get; }
+    public IReadOnlyList<string> Errors { get; }
 
-    public UpdateInstanceBlobArgumentsV2(Partition partition, IReadOnlyList<InstanceMetadata> instanceMetadataList, string changeDataset)
+    public UpdateInstanceResponse(IReadOnlyList<InstanceMetadata> instanceMetadataList, IReadOnlyList<string> errors)
     {
-        Partition = EnsureArg.IsNotNull(partition, nameof(partition));
         InstanceMetadataList = EnsureArg.IsNotNull(instanceMetadataList, nameof(instanceMetadataList));
-        ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
+        Errors = errors;
     }
 }

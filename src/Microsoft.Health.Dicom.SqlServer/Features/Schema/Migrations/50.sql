@@ -284,11 +284,10 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_ResourceType_So
     ON dbo.ExtendedQueryTagString(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.FileProperty (
-    InstanceKey   BIGINT          NOT NULL,
-    Watermark     BIGINT          NOT NULL,
-    FilePath      NVARCHAR (4000) NOT NULL,
-    ETag          NVARCHAR (4000) NOT NULL,
-    ContentLength BIGINT          NOT NULL
+    InstanceKey BIGINT          NOT NULL,
+    Watermark   BIGINT          NOT NULL,
+    FilePath    NVARCHAR (4000) NOT NULL,
+    ETag        NVARCHAR (4000) NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -1666,6 +1665,106 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV50
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL, @insertFileProperties dbo.FilePropertyTableType READONLY, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @resourceType AS TINYINT = 0;
+    DECLARE @studyKey AS BIGINT;
+    DECLARE @maxWatermark AS BIGINT;
+    CREATE TABLE #UpdatedInstances (
+        PartitionKey      INT         ,
+        StudyInstanceUid  VARCHAR (64),
+        SeriesInstanceUid VARCHAR (64),
+        SopInstanceUid    VARCHAR (64),
+        Watermark         BIGINT      ,
+        OriginalWatermark BIGINT      ,
+        InstanceKey       BIGINT      
+    );
+    DELETE #UpdatedInstances;
+    UPDATE dbo.Instance
+    SET    LastStatusUpdatedDate = @currentDate,
+           OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
+           Watermark             = NewWatermark,
+           NewWatermark          = NULL
+    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, inserted.Watermark, inserted.OriginalWatermark, deleted.InstanceKey INTO #UpdatedInstances
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1
+           AND NewWatermark IS NOT NULL;
+    IF NOT EXISTS (SELECT *
+                   FROM   tempdb.sys.indexes
+                   WHERE  name = 'IXC_UpdatedInstances')
+        CREATE UNIQUE INDEX IXC_UpdatedInstances
+            ON #UpdatedInstances(Watermark);
+    IF NOT EXISTS (SELECT *
+                   FROM   tempdb.sys.indexes
+                   WHERE  name = 'IXC_UpdatedInstanceKeyWatermark')
+        CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstanceKeyWatermark
+            ON #UpdatedInstances(InstanceKey, OriginalWatermark);
+    UPDATE dbo.Study
+    SET    PatientId        = ISNULL(@patientId, PatientId),
+           PatientName      = ISNULL(@patientName, PatientName),
+           PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate),
+           @studyKey        = StudyKey
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Study does not exist', 1;
+    IF EXISTS (SELECT 1
+               FROM   @insertFileProperties)
+        DELETE FP
+        FROM   dbo.FileProperty AS FP
+               INNER JOIN
+               #UpdatedInstances AS U
+               ON U.InstanceKey = FP.InstanceKey
+        WHERE  U.OriginalWatermark != FP.Watermark;
+    INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
+    SELECT U.InstanceKey,
+           I.Watermark,
+           I.FilePath,
+           I.ETag
+    FROM   @insertFileProperties AS I
+           INNER JOIN
+           #UpdatedInstances AS U
+           ON U.Watermark = I.Watermark;
+    SELECT @maxWatermark = max(Watermark)
+    FROM   #UpdatedInstances;
+    BEGIN TRY
+        EXECUTE dbo.IIndexInstanceCoreV9 @partitionKey, @studyKey, NULL, NULL, @maxWatermark, @stringExtendedQueryTags, @longExtendedQueryTags, @doubleExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT 2,
+           PartitionKey,
+           StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark
+    FROM   #UpdatedInstances;
+    UPDATE C
+    SET    CurrentWatermark = U.Watermark,
+           FilePath         = I.FilePath
+    FROM   dbo.ChangeFeed AS C
+           INNER JOIN
+           #UpdatedInstances AS U
+           ON C.PartitionKey = U.PartitionKey
+              AND C.StudyInstanceUid = U.StudyInstanceUid
+              AND C.SeriesInstanceUid = U.SeriesInstanceUid
+              AND C.SopInstanceUid = U.SopInstanceUid
+           LEFT OUTER JOIN
+           @insertFileProperties AS I
+           ON I.Watermark = U.Watermark;
+    COMMIT TRANSACTION;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeed
 @limit INT, @offset BIGINT
 AS
@@ -2977,47 +3076,6 @@ BEGIN
         AND @watermark IS NOT NULL)
         INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
         VALUES                       (@instanceKey, @watermark, @path, @eTag);
-    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
-    VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark, @path);
-    UPDATE dbo.ChangeFeed
-    SET    CurrentWatermark = @watermark
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV50
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (4000)=NULL, @contentLength VARCHAR (4000)=NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
-                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
-        THROW 50409, 'Max extended query tag key does not match', 10;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @instanceKey AS BIGINT;
-    UPDATE dbo.Instance
-    SET    Status                = @status,
-           LastStatusUpdatedDate = @CurrentDate,
-           HasFrameMetadata      = @hasFrameMetadata,
-           @instanceKey          = InstanceKey
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid
-           AND Watermark = @watermark;
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance does not exist', 1;
-    IF (@path IS NOT NULL
-        AND @eTag IS NOT NULL
-        AND @watermark IS NOT NULL)
-        INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag, ContentLength)
-        VALUES                       (@instanceKey, @watermark, @path, @eTag, @contentLength);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark, @path);
     UPDATE dbo.ChangeFeed

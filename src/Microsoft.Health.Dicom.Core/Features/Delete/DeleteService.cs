@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Models.Delete;
 
 namespace Microsoft.Health.Dicom.Core.Features.Delete;
 
@@ -179,6 +180,20 @@ public class DeleteService : IDeleteService
         }
 
         return (success, retrievedInstanceCount);
+    }
+
+    public async Task<DeleteMetrics> GetMetricsAsync(CancellationToken cancellationToken = default)
+    {
+        Task<DateTimeOffset> oldestWaitingToBeDeleted = _indexDataStore.GetOldestDeletedAsync(cancellationToken);
+        Task<int> numReachedMaxedRetry = _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(
+            _deletedInstanceCleanupConfiguration.MaxRetries,
+            cancellationToken);
+
+        return new DeleteMetrics
+        {
+            OldestDeletion = await oldestWaitingToBeDeleted,
+            TotalExhaustedRetries = await numReachedMaxedRetry,
+        };
     }
 
     private void EmitTelemetry(IReadOnlyCollection<VersionedInstanceIdentifier> identifiers)

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ public static class KnownContentTypes
     public const string ImageJpeg2000Part2 = "image/jpx";
     public const string VideoMpeg2 = "video/mpeg2";
     public const string VideoMp4 = "video/mp4";
+    public const string AnyMediaType = "*/*";
     public const string TransferSyntax = "transfer-syntax";
     public const string Boundary = "boundary";
     public const string ContentType = "Content-Type";

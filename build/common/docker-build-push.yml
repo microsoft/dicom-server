@@ -36,7 +36,9 @@ steps:
       buildContext: '$(Build.Repository.LocalPath)'
       arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
       repository: dicom-cast
-      tags: ${{ parameters.tag }}
+      tags: |
+        ${{ parameters.tag }}
+        latest
 
   - task: Docker@2
     displayName: 'Build dicom-functions'
@@ -96,7 +98,9 @@ steps:
         command: 'push'
         containerRegistry: '$(azureContainerRegistry)'
         repository: dicom-cast
-        tags: ${{ parameters.tag }}
+        tags: |
+          ${{ parameters.tag }}
+          latest
 
   - ${{ if eq(parameters.push, true) }}:
     - task: Docker@2

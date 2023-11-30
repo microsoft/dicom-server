@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Globalization;
 using Azure;
 
@@ -17,10 +18,33 @@ public class DataStoreRequestFailedException : ConditionalExternalException
     public DataStoreRequestFailedException(RequestFailedException ex, bool isExternal = false)
         : base(
             (isExternal ?
-                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, ex?.ErrorCode)
+                getFormattedExternalStoreMessage(ex)
                 : DicomCoreResource.DataStoreOperationFailed),
             ex,
             isExternal)
     {
+    }
+
+    private static string getFormattedExternalStoreMessage(RequestFailedException ex)
+    {
+        return !string.IsNullOrEmpty(ex?.ErrorCode)
+                ? string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.ExternalDataStoreOperationFailed,
+                    ex?.ErrorCode)
+                : GetFormattedExternalStoreMessageWithoutErrorCode(ex)
+            ;
+    }
+
+    private static string GetFormattedExternalStoreMessageWithoutErrorCode(RequestFailedException ex)
+    {
+        if (ex.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase))
+        {
+            return DicomCoreResource.ExternalDataStoreHostIsUnknown;
+        }
+
+        // if we do not have an error code and internal message is not "host not known", we are not familiar with the issue
+        // we can't just give back the exception message as it may contain sensitive information
+        return DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue;
     }
 }
