@@ -220,8 +220,8 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
         _logger.LogInformation("Downloading the entire instance for frame parsing");
 
-        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, cancellationToken);
-        LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
+        long contentLength = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, cancellationToken);
+        LogFileSize(contentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
         Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, cancellationToken);

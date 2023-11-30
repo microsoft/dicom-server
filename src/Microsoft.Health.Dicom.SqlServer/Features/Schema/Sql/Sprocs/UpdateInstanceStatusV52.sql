@@ -35,7 +35,7 @@
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV50
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV52
     @partitionKey               INT,
     @studyInstanceUid           VARCHAR(64),
     @seriesInstanceUid          VARCHAR(64),
@@ -46,7 +46,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV50
     @hasFrameMetadata           BIT = 0,
     @path                       VARCHAR(4000) = NULL,
     @eTag                       VARCHAR(4000) = NULL,
-    @contentLength              VARCHAR(4000) = NULL
+    @contentLength              BIGINT = NULL
 AS
 BEGIN
     SET NOCOUNT ON
