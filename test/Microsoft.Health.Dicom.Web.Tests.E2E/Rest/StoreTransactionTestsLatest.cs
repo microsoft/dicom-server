@@ -268,7 +268,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     }
 
     [Fact]
-    public async Task GivenInstanceWithPatientIdNull_WhenStoreInstance_ThenExpectDicom100ErrorAndAcceptedStatus()
+    public async Task GivenStoringMultipleInstanceInStudy_WhenInitialInstanceHasNullPatientId_ThenExpectPatientIdCorrectlyUpdated()
     {
         // STOW using a null patient ID
         DicomFile dicomFile1 = new DicomFile(
