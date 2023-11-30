@@ -284,11 +284,12 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         Assert.Single(refSopSequence);
         DicomDataset firstInstance = refSopSequence.Items[0];
         DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        // Assert on the warning produced when storing the instance with null patientId
         Assert.Contains(
             "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
 
-        // Verify using QIDO
+        // Verify that patientId is stored as null using QIDO
         string studyInstanceUID = dicomFile1.Dataset.GetString(DicomTag.StudyInstanceUID);
         await VerifyPatientId(studyInstanceUID, null);
 
@@ -306,12 +307,13 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
 
         firstInstance = refSopSequence.Items[0];
         failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        // Assert that no warning or error produced when storing the instance with a non null patientId
         Assert.Empty(failedAttributesSequence);
 
-        // Verify the new Patient Id using QIDO
+        // Verify the new non-null Patient Id using QIDO
         await VerifyPatientId(studyInstanceUID, patientId);
 
-        // STOW using a null patient ID
+        // STOW using a null patient ID again to make sure that the patientId is not updated
         DicomFile dicomFile3 = new DicomFile(
             Samples.CreateRandomInstanceDataset(studyInstanceUid: studyInstanceUID, validateItems: false));
         dicomFile3.Dataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
@@ -324,11 +326,12 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         Assert.Single(refSopSequence);
         firstInstance = refSopSequence.Items[0];
         failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        // Assert on the warning produced when storing the instance again with null patientId
         Assert.Contains(
             "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
 
-        // Verify the previous Patient Id using QIDO
+        // Verify that the patientId is not updated using QIDO
         await VerifyPatientId(studyInstanceUID, patientId);
     }
 
