@@ -189,31 +189,17 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
-    [Fact]
-    public async Task GivenV2Enabled_WhenPatientIDTagPresentAndValueEmpty_ExpectTagValidatedAndWarningsProduced()
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task GivenV2Enabled_WhenPatientIDTagPresentAndValueEmpty_ExpectTagValidatedAndWarningsProduced(string value)
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
             validateItems: false,
-            patientId: "");
+            patientId: value);
 
-        var result = await _dicomDatasetValidator.ValidateAsync(
-            dicomDataset,
-            null,
-            new CancellationToken());
-
-        Assert.True(result.InvalidTagErrors.Any());
-        Assert.Single(result.InvalidTagErrors);
-        Assert.False(result.HasCoreTagError);
-        Assert.False(result.InvalidTagErrors[DicomTag.PatientID].IsRequiredCoreTag);
-        Assert.Equal("DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.", result.InvalidTagErrors[DicomTag.PatientID].Error);
-    }
-
-    [Fact]
-    public async Task GivenV2Enabled_WhenPatientIDTagPresentAndValueNull_ExpectTagValidatedAndWarningsProduced()
-    {
-        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
-            validateItems: false);
-        dicomDataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
+        if (value == null)
+            dicomDataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
 
         var result = await _dicomDatasetValidator.ValidateAsync(
             dicomDataset,
