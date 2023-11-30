@@ -73,7 +73,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SOPClassUID
 - PatientID
 
-> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID is validated based on its LO VR type and can have the value as null in the input.
+> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID continues to be a required tag and can have the value as null in the input. PatientID is validated based on its LO VR type.
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 

@@ -73,6 +73,8 @@ The following VR types are supported:
 
 > Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
 
+> We do not support searching using empty string for any attributes.
+
 #### Responses
 
 | Name              | Type                                        | Description                                                  |
