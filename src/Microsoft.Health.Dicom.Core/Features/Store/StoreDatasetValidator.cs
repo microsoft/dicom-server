@@ -82,11 +82,12 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
         var validationResultBuilder = new StoreValidationResultBuilder();
-        bool dropMetadata = EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
+        bool isV2OrAbove = EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
 
         try
         {
-            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid, dropMetadata);
+            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid);
+            ValidatePatientId(dicomDataset, isV2OrAbove);
         }
         catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
         {
@@ -98,7 +99,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
         }
-        else if (dropMetadata)
+        else if (isV2OrAbove)
         {
             await ValidateAllItemsWithLeniencyAsync(dicomDataset, validationResultBuilder);
         }
@@ -116,12 +117,12 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return validationResultBuilder.Build();
     }
 
-    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid, bool dropMetadata)
+    private static void ValidatePatientId(DicomDataset dicomDataset, bool isV2OrAbove)
     {
         // Ensure required tags are present.
-        if (!dropMetadata)
+        if (!isV2OrAbove)
         {
-            EnsureRequiredTagIsPresentWithValue(DicomTag.PatientID);
+            EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.PatientID);
         }
         else
         {
@@ -135,13 +136,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         DicomTag.PatientID), DicomTag.PatientID);
             }
         }
+    }
 
-        EnsureRequiredTagIsPresentWithValue(DicomTag.SOPClassUID);
+    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+    {
+        EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SOPClassUID);
 
         // The format of the identifiers will be validated by fo-dicom.
-        string studyInstanceUid = EnsureRequiredTagIsPresentWithValue(DicomTag.StudyInstanceUID);
-        string seriesInstanceUid = EnsureRequiredTagIsPresentWithValue(DicomTag.SeriesInstanceUID);
-        string sopInstanceUid = EnsureRequiredTagIsPresentWithValue(DicomTag.SOPInstanceUID);
+        string studyInstanceUid = EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.StudyInstanceUID);
+        string seriesInstanceUid = EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SeriesInstanceUID);
+        string sopInstanceUid = EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SOPInstanceUID);
 
         // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
         if (studyInstanceUid == seriesInstanceUid ||
@@ -167,21 +171,21 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 DicomCoreResource.MismatchStudyInstanceUid,
                 DicomTag.StudyInstanceUID);
         }
+    }
 
-        string EnsureRequiredTagIsPresentWithValue(DicomTag dicomTag)
+    private static string EnsureRequiredTagIsPresentWithValue(DicomDataset dicomDataset, DicomTag dicomTag)
+    {
+        if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
         {
-            if (dicomDataset.TryGetSingleValue(dicomTag, out string value))
-            {
-                return value;
-            }
-
-            throw new DatasetValidationException(
-                FailureReasonCodes.ValidationFailure,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.MissingRequiredTag,
-                    dicomTag.ToString()), dicomTag);
+            return value;
         }
+
+        throw new DatasetValidationException(
+            FailureReasonCodes.ValidationFailure,
+            string.Format(
+                CultureInfo.InvariantCulture,
+                DicomCoreResource.MissingRequiredTag,
+                dicomTag.ToString()), dicomTag);
     }
 
     private async Task ValidateIndexedItemsAsync(
