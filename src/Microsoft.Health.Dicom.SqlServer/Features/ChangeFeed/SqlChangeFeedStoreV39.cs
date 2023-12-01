@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Extensions;
@@ -53,34 +54,41 @@ internal class SqlChangeFeedStoreV39 : SqlChangeFeedStoreV36
                 throw new ArgumentOutOfRangeException(nameof(order));
         }
 
-        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-        while (await reader.ReadAsync(cancellationToken))
+        try
         {
-            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark, string filePath) = reader
-                .ReadRow(
-                    VLatest.ChangeFeed.Sequence,
-                    VLatest.ChangeFeed.Timestamp,
-                    VLatest.ChangeFeed.Action,
-                    VLatest.Partition.PartitionName,
-                    VLatest.ChangeFeed.StudyInstanceUid,
-                    VLatest.ChangeFeed.SeriesInstanceUid,
-                    VLatest.ChangeFeed.SopInstanceUid,
-                    VLatest.ChangeFeed.OriginalWatermark,
-                    VLatest.ChangeFeed.CurrentWatermark,
-                    VLatest.FileProperty.FilePath.AsNullable());
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark, string filePath) = reader
+                    .ReadRow(
+                        VLatest.ChangeFeed.Sequence,
+                        VLatest.ChangeFeed.Timestamp,
+                        VLatest.ChangeFeed.Action,
+                        VLatest.Partition.PartitionName,
+                        VLatest.ChangeFeed.StudyInstanceUid,
+                        VLatest.ChangeFeed.SeriesInstanceUid,
+                        VLatest.ChangeFeed.SopInstanceUid,
+                        VLatest.ChangeFeed.OriginalWatermark,
+                        VLatest.ChangeFeed.CurrentWatermark,
+                        VLatest.FileProperty.FilePath.AsNullable());
 
-            results.Add(new ChangeFeedEntry(
-                rSeq,
-                rTimestamp,
-                (ChangeFeedAction)rAction,
-                rStudyInstanceUid,
-                rSeriesInstanceUid,
-                rSopInstanceUid,
-                oWatermark,
-                cWatermark,
-                ConvertWatermarkToCurrentState(oWatermark, cWatermark),
-                rPartitionName,
-                filePath: filePath));
+                results.Add(new ChangeFeedEntry(
+                    rSeq,
+                    rTimestamp,
+                    (ChangeFeedAction)rAction,
+                    rStudyInstanceUid,
+                    rSeriesInstanceUid,
+                    rSopInstanceUid,
+                    oWatermark,
+                    cWatermark,
+                    ConvertWatermarkToCurrentState(oWatermark, cWatermark),
+                    rPartitionName,
+                    filePath: filePath));
+            }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return results;
@@ -105,34 +113,41 @@ internal class SqlChangeFeedStoreV39 : SqlChangeFeedStoreV36
                 throw new ArgumentOutOfRangeException(nameof(order));
         }
 
-        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-        if (await reader.ReadAsync(cancellationToken))
+        try
         {
-            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark, string filePath) = reader
-                .ReadRow(
-                    VLatest.ChangeFeed.Sequence,
-                    VLatest.ChangeFeed.Timestamp,
-                    VLatest.ChangeFeed.Action,
-                    VLatest.Partition.PartitionName,
-                    VLatest.ChangeFeed.StudyInstanceUid,
-                    VLatest.ChangeFeed.SeriesInstanceUid,
-                    VLatest.ChangeFeed.SopInstanceUid,
-                    VLatest.ChangeFeed.OriginalWatermark,
-                    VLatest.ChangeFeed.CurrentWatermark,
-                    VLatest.FileProperty.FilePath.AsNullable());
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            if (await reader.ReadAsync(cancellationToken))
+            {
+                (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark, string filePath) = reader
+                    .ReadRow(
+                        VLatest.ChangeFeed.Sequence,
+                        VLatest.ChangeFeed.Timestamp,
+                        VLatest.ChangeFeed.Action,
+                        VLatest.Partition.PartitionName,
+                        VLatest.ChangeFeed.StudyInstanceUid,
+                        VLatest.ChangeFeed.SeriesInstanceUid,
+                        VLatest.ChangeFeed.SopInstanceUid,
+                        VLatest.ChangeFeed.OriginalWatermark,
+                        VLatest.ChangeFeed.CurrentWatermark,
+                        VLatest.FileProperty.FilePath.AsNullable());
 
-            return new ChangeFeedEntry(
-                rSeq,
-                rTimestamp,
-                (ChangeFeedAction)rAction,
-                rStudyInstanceUid,
-                rSeriesInstanceUid,
-                rSopInstanceUid,
-                oWatermark,
-                cWatermark,
-                ConvertWatermarkToCurrentState(oWatermark, cWatermark),
-                rPartitionName,
-                filePath: filePath);
+                return new ChangeFeedEntry(
+                    rSeq,
+                    rTimestamp,
+                    (ChangeFeedAction)rAction,
+                    rStudyInstanceUid,
+                    rSeriesInstanceUid,
+                    rSopInstanceUid,
+                    oWatermark,
+                    cWatermark,
+                    ConvertWatermarkToCurrentState(oWatermark, cWatermark),
+                    rPartitionName,
+                    filePath: filePath);
+            }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return null;

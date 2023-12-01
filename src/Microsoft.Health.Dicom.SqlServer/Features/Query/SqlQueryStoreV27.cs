@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.SqlServer;
 using System.Text;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query;
 
@@ -54,20 +55,27 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV4
         sqlCommandWrapper.CommandText = stringBuilder.ToString();
         sqlCommandWrapper.LogSqlCommand(Logger);
 
-        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-        while (await reader.ReadAsync(cancellationToken))
+        try
         {
-            (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-               VLatest.Instance.StudyInstanceUid,
-               VLatest.Instance.SeriesInstanceUid,
-               VLatest.Instance.SopInstanceUid,
-               VLatest.Instance.Watermark);
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                   VLatest.Instance.StudyInstanceUid,
+                   VLatest.Instance.SeriesInstanceUid,
+                   VLatest.Instance.SopInstanceUid,
+                   VLatest.Instance.Watermark);
 
-            results.Add(new VersionedInstanceIdentifier(
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid,
-                    watermark));
+                results.Add(new VersionedInstanceIdentifier(
+                        studyInstanceUid,
+                        seriesInstanceUid,
+                        sopInstanceUid,
+                        watermark));
+            }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return new QueryResult(results);
@@ -80,57 +88,65 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV4
     {
         var results = new List<StudyResult>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
-            VLatest.GetStudyResult.PopulateCommand(
-                sqlCommandWrapper,
-                partitionKey,
-                versionRows);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    (string rStudyInstanceUid,
-                    string rPatientId,
-                    string rPatientName,
-                    string rReferringPhysicianName,
-                    DateTime? rStudyDate,
-                    string rStudyDescription,
-                    string rAccessionNumber,
-                    DateTime? rPatientBirthDate,
-                    string rModalitiesInStudy,
-                    int rNumberofStudyRelatedInstances
-                     ) = reader.ReadRow(
-                       VLatest.Study.StudyInstanceUid,
-                       VLatest.Study.PatientId,
-                       VLatest.Study.PatientName,
-                       VLatest.Study.ReferringPhysicianName,
-                       VLatest.Study.StudyDate,
-                       VLatest.Study.StudyDescription,
-                       VLatest.Study.AccessionNumber,
-                       VLatest.Study.PatientBirthDate,
-                       new NullableNVarCharColumn("ModalitiesInStudy", 4000),
-                       new IntColumn("NumberofStudyRelatedInstances"));
+                List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
+                VLatest.GetStudyResult.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    versionRows);
 
-                    results.Add(new StudyResult()
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
                     {
-                        StudyInstanceUid = rStudyInstanceUid,
-                        PatientId = rPatientId,
-                        PatientName = rPatientName,
-                        ReferringPhysicianName = rReferringPhysicianName,
-                        StudyDate = rStudyDate,
-                        StudyDescription = rStudyDescription,
-                        AccessionNumber = rAccessionNumber,
-                        PatientBirthDate = rPatientBirthDate,
-                        ModalitiesInStudy = rModalitiesInStudy?.Split(',', StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
-                        NumberofStudyRelatedInstances = rNumberofStudyRelatedInstances
-                    });
+                        (string rStudyInstanceUid,
+                        string rPatientId,
+                        string rPatientName,
+                        string rReferringPhysicianName,
+                        DateTime? rStudyDate,
+                        string rStudyDescription,
+                        string rAccessionNumber,
+                        DateTime? rPatientBirthDate,
+                        string rModalitiesInStudy,
+                        int rNumberofStudyRelatedInstances
+                         ) = reader.ReadRow(
+                           VLatest.Study.StudyInstanceUid,
+                           VLatest.Study.PatientId,
+                           VLatest.Study.PatientName,
+                           VLatest.Study.ReferringPhysicianName,
+                           VLatest.Study.StudyDate,
+                           VLatest.Study.StudyDescription,
+                           VLatest.Study.AccessionNumber,
+                           VLatest.Study.PatientBirthDate,
+                           new NullableNVarCharColumn("ModalitiesInStudy", 4000),
+                           new IntColumn("NumberofStudyRelatedInstances"));
+
+                        results.Add(new StudyResult()
+                        {
+                            StudyInstanceUid = rStudyInstanceUid,
+                            PatientId = rPatientId,
+                            PatientName = rPatientName,
+                            ReferringPhysicianName = rReferringPhysicianName,
+                            StudyDate = rStudyDate,
+                            StudyDescription = rStudyDescription,
+                            AccessionNumber = rAccessionNumber,
+                            PatientBirthDate = rPatientBirthDate,
+                            ModalitiesInStudy = rModalitiesInStudy?.Split(',', StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                            NumberofStudyRelatedInstances = rNumberofStudyRelatedInstances
+                        });
+                    }
                 }
             }
         }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
+        }
+
         return results;
     }
 
@@ -141,45 +157,53 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV4
     {
         var results = new List<SeriesResult>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
-            VLatest.GetSeriesResult.PopulateCommand(
-                sqlCommandWrapper,
-                partitionKey,
-                versionRows);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    (string rStudyInstanceUid,
-                     string rSeriesInstanceUid,
-                     string rModality,
-                     DateTime? rPerformedProcedureStepStartDate,
-                     string rManufacturerModelName,
-                     int rNumberofSeriesRelatedInstances
-                     ) = reader.ReadRow(
-                       VLatest.Instance.StudyInstanceUid,
-                       VLatest.Series.SeriesInstanceUid,
-                       VLatest.Series.Modality,
-                       VLatest.Series.PerformedProcedureStepStartDate,
-                       VLatest.Series.ManufacturerModelName,
-                       new IntColumn("NumberofSeriesRelatedInstances"));
+                List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
+                VLatest.GetSeriesResult.PopulateCommand(
+                    sqlCommandWrapper,
+                    partitionKey,
+                    versionRows);
 
-                    results.Add(new SeriesResult()
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
                     {
-                        StudyInstanceUid = rStudyInstanceUid,
-                        SeriesInstanceUid = rSeriesInstanceUid,
-                        Modality = rModality,
-                        PerformedProcedureStepStartDate = rPerformedProcedureStepStartDate,
-                        ManufacturerModelName = rManufacturerModelName,
-                        NumberOfSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
-                    });
+                        (string rStudyInstanceUid,
+                         string rSeriesInstanceUid,
+                         string rModality,
+                         DateTime? rPerformedProcedureStepStartDate,
+                         string rManufacturerModelName,
+                         int rNumberofSeriesRelatedInstances
+                         ) = reader.ReadRow(
+                           VLatest.Instance.StudyInstanceUid,
+                           VLatest.Series.SeriesInstanceUid,
+                           VLatest.Series.Modality,
+                           VLatest.Series.PerformedProcedureStepStartDate,
+                           VLatest.Series.ManufacturerModelName,
+                           new IntColumn("NumberofSeriesRelatedInstances"));
+
+                        results.Add(new SeriesResult()
+                        {
+                            StudyInstanceUid = rStudyInstanceUid,
+                            SeriesInstanceUid = rSeriesInstanceUid,
+                            Modality = rModality,
+                            PerformedProcedureStepStartDate = rPerformedProcedureStepStartDate,
+                            ManufacturerModelName = rManufacturerModelName,
+                            NumberOfSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
+                        });
+                    }
                 }
             }
         }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
+        }
+
         return results;
     }
 }
