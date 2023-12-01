@@ -355,7 +355,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private void ValidateStringItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
-        if (de.Tag == DicomTag.PatientID && string.IsNullOrEmpty(value))
+        if (de.Tag == DicomTag.PatientID && string.IsNullOrWhiteSpace(value))
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,

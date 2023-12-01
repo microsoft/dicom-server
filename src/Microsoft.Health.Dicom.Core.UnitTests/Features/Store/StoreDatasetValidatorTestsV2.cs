@@ -191,6 +191,7 @@ public class StoreDatasetValidatorTestsV2
 
     [Theory]
     [InlineData("")]
+    [InlineData("     ")]
     [InlineData(null)]
     public async Task GivenV2Enabled_WhenPatientIDTagPresentAndValueEmpty_ExpectTagValidatedAndWarningsProduced(string value)
     {
