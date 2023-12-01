@@ -60,6 +60,9 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new PayloadTooLargeException(1), HttpStatusCode.RequestEntityTooLarge };
         yield return new object[] { new DataStoreException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
         yield return new object[] { new DataStoreRequestFailedException(new RequestFailedException(String.Empty), isExternal: true), HttpStatusCode.FailedDependency };
+        yield return new object[] { new RequestFailedException(403, "The key vault key is not found to unwrap the encryption key.", "KeyVaultEncryptionKeyNotFound", new Exception()), HttpStatusCode.FailedDependency };
+        yield return new object[] { new DataStoreException(new RequestFailedException(403, "The key vault key is not found to unwrap the encryption key.", "KeyVaultEncryptionKeyNotFound", new Exception())), HttpStatusCode.FailedDependency };
+        yield return new object[] { new DataStoreRequestFailedException(new RequestFailedException(403, "The key vault key is not found to unwrap the encryption key.", "KeyVaultEncryptionKeyNotFound", new Exception())), HttpStatusCode.FailedDependency };
     }
 
     [Theory]

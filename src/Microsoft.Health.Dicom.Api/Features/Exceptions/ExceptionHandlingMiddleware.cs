@@ -9,10 +9,12 @@ using System.Net;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure;
 using EnsureThat;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Api.Features.Audit;
@@ -94,6 +96,10 @@ public class ExceptionHandlingMiddleware
             case ConditionalExternalException ex when ex.IsExternal == true:
                 statusCode = HttpStatusCode.FailedDependency;
                 break;
+            case ConditionalExternalException dse when IsCMKException(dse.InnerException):
+            case Exception e when IsCMKException(e):
+                statusCode = HttpStatusCode.FailedDependency;
+                break;
             case ResourceNotFoundException:
                 statusCode = HttpStatusCode.NotFound;
                 break;
@@ -158,6 +164,12 @@ public class ExceptionHandlingMiddleware
     private static bool IsTaskCanceledException(Exception ex)
     {
         return ex is TaskCanceledException || (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is TaskCanceledException));
+    }
+
+    private static bool IsCMKException(Exception ex)
+    {
+        return ex is SqlException sqlEx && sqlEx.Number is 40981 or 33183 or 33184 or 40925 ||
+            ex is RequestFailedException rfEx && rfEx.ErrorCode == "KeyVaultEncryptionKeyNotFound";
     }
 
     private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)
