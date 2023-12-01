@@ -27,6 +27,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions;
 
 public class ExceptionHandlingMiddleware
 {
+    // SQL Errors taken from https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors-31000-to-41399?view=sql-server-ver16
+    private const int SQLKeyVaultCriticalError = 40981;
+    private const int SQLKeyVaultEncounteredError = 33183;
+    private const int SQLKeyVaultErrorObtainingInfo = 33184;
+    private const int SQLCannotConnectToDBInCurrentState = 40925;
+
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
@@ -168,7 +174,7 @@ public class ExceptionHandlingMiddleware
 
     private static bool IsCMKException(Exception ex)
     {
-        return ex is SqlException sqlEx && sqlEx.Number is 40981 or 33183 or 33184 or 40925 ||
+        return ex is SqlException sqlEx && sqlEx.Number is SQLKeyVaultCriticalError or SQLKeyVaultEncounteredError or SQLKeyVaultErrorObtainingInfo or SQLCannotConnectToDBInCurrentState ||
             ex is RequestFailedException rfEx && rfEx.ErrorCode == "KeyVaultEncryptionKeyNotFound";
     }
 
