@@ -212,4 +212,4 @@ There is no change in other APIs. All the other APIs supports only latest versio
 
 > There is no way to delete only the latest version or revert back to original version.
 
-> We do not support updating PatientID field from a non-null to a null value.
+> We do not support updating any field from non-null to a null value.
