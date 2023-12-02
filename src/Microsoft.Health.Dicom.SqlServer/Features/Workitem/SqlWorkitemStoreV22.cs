@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -100,29 +100,35 @@ internal class SqlWorkitemStoreV22 : SqlWorkitemStoreV9
         EnsureArg.IsNotNull(query, nameof(query));
 
         var results = new List<WorkitemInstanceIdentifier>(query.EvaluatedLimit);
-
-        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
-
-        var stringBuilder = new IndentedStringBuilder(new StringBuilder());
-        var sqlQueryGenerator = new WorkitemSqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
-
-        sqlCommandWrapper.CommandText = stringBuilder.ToString();
-        sqlCommandWrapper.LogSqlCommand(Logger);
-
-        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-        while (await reader.ReadAsync(cancellationToken))
+        try
         {
-            (long workitemKey, string workitemInstanceUid, long watermark) = reader.ReadRow(
-               VLatest.Workitem.WorkitemKey,
-               VLatest.Workitem.WorkitemUid,
-               VLatest.Workitem.Watermark);
+            using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+            using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-            results.Add(new WorkitemInstanceIdentifier(
-                workitemInstanceUid,
-                workitemKey,
-                partitionKey,
-                watermark));
+            var stringBuilder = new IndentedStringBuilder(new StringBuilder());
+            var sqlQueryGenerator = new WorkitemSqlQueryGenerator(stringBuilder, query, new SqlQueryParameterManager(sqlCommandWrapper.Parameters), Version, partitionKey);
+
+            sqlCommandWrapper.CommandText = stringBuilder.ToString();
+            sqlCommandWrapper.LogSqlCommand(Logger);
+
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                (long workitemKey, string workitemInstanceUid, long watermark) = reader.ReadRow(
+                   VLatest.Workitem.WorkitemKey,
+                   VLatest.Workitem.WorkitemUid,
+                   VLatest.Workitem.Watermark);
+
+                results.Add(new WorkitemInstanceIdentifier(
+                    workitemInstanceUid,
+                    workitemKey,
+                    partitionKey,
+                    watermark));
+            }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return new WorkitemQueryResult(results);
@@ -133,42 +139,49 @@ internal class SqlWorkitemStoreV22 : SqlWorkitemStoreV9
         string workitemUid,
         CancellationToken cancellationToken = default)
     {
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
-
-            VLatest.GetWorkitemMetadata.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, procedureStepStateTagPath);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    (
-                        string wiUid,
-                        long wiKey,
-                        int pkey,
-                        byte status,
-                        string transactionUid,
-                        long watermark,
-                        string procedureStepState
-                    ) = reader.ReadRow(
-                            VLatest.Workitem.WorkitemUid,
-                            VLatest.Workitem.WorkitemKey,
-                            VLatest.Workitem.PartitionKey,
-                            VLatest.Workitem.Status,
-                            VLatest.Workitem.TransactionUid,
-                            VLatest.Workitem.Watermark,
-                            ProcedureStepStateColumn);
+                var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
 
-                    return new WorkitemMetadataStoreEntry(wiUid, wiKey, watermark, pkey)
+                VLatest.GetWorkitemMetadata.PopulateCommand(sqlCommandWrapper, partitionKey, workitemUid, procedureStepStateTagPath);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
                     {
-                        Status = (WorkitemStoreStatus)status,
-                        TransactionUid = transactionUid,
-                        ProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(procedureStepState)
-                    };
+                        (
+                            string wiUid,
+                            long wiKey,
+                            int pkey,
+                            byte status,
+                            string transactionUid,
+                            long watermark,
+                            string procedureStepState
+                        ) = reader.ReadRow(
+                                VLatest.Workitem.WorkitemUid,
+                                VLatest.Workitem.WorkitemKey,
+                                VLatest.Workitem.PartitionKey,
+                                VLatest.Workitem.Status,
+                                VLatest.Workitem.TransactionUid,
+                                VLatest.Workitem.Watermark,
+                                ProcedureStepStateColumn);
+
+                        return new WorkitemMetadataStoreEntry(wiUid, wiKey, watermark, pkey)
+                        {
+                            Status = (WorkitemStoreStatus)status,
+                            TransactionUid = transactionUid,
+                            ProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(procedureStepState)
+                        };
+                    }
                 }
             }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return null;
@@ -178,23 +191,30 @@ internal class SqlWorkitemStoreV22 : SqlWorkitemStoreV9
         long workitemKey,
         CancellationToken cancellationToken = default)
     {
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
-
-            VLatest.GetCurrentAndNextWorkitemWatermark
-                .PopulateCommand(sqlCommandWrapper, workitemKey);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
+                var procedureStepStateTagPath = DicomTag.ProcedureStepState.GetPath();
+
+                VLatest.GetCurrentAndNextWorkitemWatermark
+                    .PopulateCommand(sqlCommandWrapper, workitemKey);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
-                    return reader.ReadRow(
-                        VLatest.Workitem.Watermark,
-                        ProposedWatermarkColumn);
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        return reader.ReadRow(
+                            VLatest.Workitem.Watermark,
+                            ProposedWatermarkColumn);
+                    }
                 }
             }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return null;

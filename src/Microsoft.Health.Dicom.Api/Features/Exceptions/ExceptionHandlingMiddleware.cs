@@ -94,6 +94,7 @@ public class ExceptionHandlingMiddleware
             case AuditHeaderTooLargeException:
             case ConnectionResetException:
             case OperationCanceledException:
+            case DicomImageException ex when IsTaskCanceledException(ex.InnerException):
             case DataStoreException e when IsTaskCanceledException(e.InnerException):
             case BadHttpRequestException:
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):

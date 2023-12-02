@@ -71,56 +71,69 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
     {
         var results = new List<Partition>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            VLatest.GetPartitions.PopulateCommand(sqlCommandWrapper);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
+                VLatest.GetPartitions.PopulateCommand(sqlCommandWrapper);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
-                    (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
-                       VLatest.Partition.PartitionKey,
-                       VLatest.Partition.PartitionName,
-                       VLatest.Partition.CreatedDate);
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                           VLatest.Partition.PartitionKey,
+                           VLatest.Partition.PartitionName,
+                           VLatest.Partition.CreatedDate);
 
-                    results.Add(new Partition(
-                        rPartitionKey,
-                        rPartitionName,
-                        rCreatedDate));
+                        results.Add(new Partition(
+                            rPartitionKey,
+                            rPartitionName,
+                            rCreatedDate));
+                    }
                 }
-            }
 
-            return results;
+                return results;
+            }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
     }
 
     public override async Task<Partition> GetPartitionAsync(string partitionName, CancellationToken cancellationToken)
     {
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            VLatest.GetPartition.PopulateCommand(sqlCommandWrapper, partitionName);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                if (await reader.ReadAsync(cancellationToken))
+                VLatest.GetPartition.PopulateCommand(sqlCommandWrapper, partitionName);
+
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
-                    (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
-                       VLatest.Partition.PartitionKey,
-                       VLatest.Partition.PartitionName,
-                       VLatest.Partition.CreatedDate);
+                    if (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                           VLatest.Partition.PartitionKey,
+                           VLatest.Partition.PartitionName,
+                           VLatest.Partition.CreatedDate);
 
-                    return new Partition(
-                        rPartitionKey,
-                        rPartitionName,
-                        rCreatedDate);
+                        return new Partition(
+                            rPartitionKey,
+                            rPartitionName,
+                            rCreatedDate);
+                    }
                 }
+
             }
-
         }
-
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
+        }
         return null;
     }
 }

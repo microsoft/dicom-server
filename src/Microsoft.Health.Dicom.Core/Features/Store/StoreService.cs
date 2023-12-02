@@ -264,7 +264,7 @@ public class StoreService : IStoreService
         var identifier = dicomDataset.ToInstanceIdentifier(partition);
         foreach ((DicomTag tag, StoreErrorResult result) in storeValidatorResult.InvalidTagErrors)
         {
-            if (!StoreDatasetValidator.IsCoreTag(tag))
+            if (!StoreDatasetValidator.IsV2CoreTag(tag))
             {
                 // drop invalid metadata if not a core tag
                 dicomDataset.Remove(tag);
