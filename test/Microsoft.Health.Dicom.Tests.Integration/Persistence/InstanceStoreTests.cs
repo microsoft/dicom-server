@@ -391,6 +391,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
                 {
                     Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
                     ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}",
+                    ContentLength = 123,
                 },
                 OriginalVersion = updatedInstance.InstanceProperties.OriginalVersion,
                 NewVersion = updatedInstance.InstanceProperties.NewVersion,
@@ -419,6 +420,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
             {
                 Path = $"test/file_{watermark}.dcm",
                 ETag = $"etag_{watermark}",
+                ContentLength = 123
             };
         }
         return null;
