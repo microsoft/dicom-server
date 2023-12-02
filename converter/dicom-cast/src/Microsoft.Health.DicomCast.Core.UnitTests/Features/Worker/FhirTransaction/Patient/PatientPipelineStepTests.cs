@@ -54,9 +54,20 @@ public class PatientPipelineStepTests
     }
 
     [Fact]
-    public async Task GivenMissingPatientId_WhenPreparingTheRequest_ThenMissingRequiredDicomTagExceptionShouldBeThrown()
+    public async Task GivenMissingPatientIdTag_WhenPreparingTheRequest_ThenMissingRequiredDicomTagExceptionShouldBeThrown()
     {
         var context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: new DicomDataset()));
+
+        await Assert.ThrowsAsync<MissingRequiredDicomTagException>(() => _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken));
+    }
+
+    [Fact]
+    public async Task GivenPatientIdTagPresentWithMissingValue_WhenPreparingTheRequest_ThenMissingRequiredDicomTagExceptionShouldBeThrown()
+    {
+        DicomDataset dicomDataset = new DicomDataset();
+        dicomDataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
+
+        var context = new FhirTransactionContext(ChangeFeedGenerator.Generate(metadata: dicomDataset));
 
         await Assert.ThrowsAsync<MissingRequiredDicomTagException>(() => _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken));
     }

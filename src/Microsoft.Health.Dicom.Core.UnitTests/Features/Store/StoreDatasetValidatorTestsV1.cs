@@ -80,8 +80,6 @@ public class StoreDatasetValidatorTestsV1
             """does not validate VR LO: value contains invalid character""",
             result.InvalidTagErrors[DicomTag.PatientID].Error);
         minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
-
-        minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]
@@ -117,6 +115,71 @@ public class StoreDatasetValidatorTestsV1
         Assert.Single(result.InvalidTagErrors);
         Assert.Equal(
             """DICOM100: (0010,0020) - Dicom element 'PatientID' failed validation for VR 'LO': Value contains invalid character.""",
+            result.InvalidTagErrors[DicomTag.PatientID].Error);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task GivenPatientIdEmpty_WhenValidated_ExpectErrorProduced(string value)
+    {
+        var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration { });
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            patientId: value);
+
+        if (value == null)
+            dicomDataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
+
+        IElementMinimumValidator minimumValidator = Substitute.For<IElementMinimumValidator>();
+
+        var dicomDatasetValidator = new StoreDatasetValidator(
+            featureConfigurationEnableFullValidation,
+            minimumValidator,
+            _queryTagService,
+            _storeMeter,
+            _dicomRequestContextAccessor,
+            NullLogger<StoreDatasetValidator>.Instance);
+
+        var result = await dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Contains(
+            "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
+            result.InvalidTagErrors[DicomTag.PatientID].Error);
+    }
+
+    [Fact]
+    public async Task GivenPatientIdTagNotPresent_WhenValidated_ExpectErrorProduced()
+    {
+        var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration { });
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false);
+        dicomDataset.Remove(DicomTag.PatientID);
+
+        IElementMinimumValidator minimumValidator = Substitute.For<IElementMinimumValidator>();
+
+        var dicomDatasetValidator = new StoreDatasetValidator(
+            featureConfigurationEnableFullValidation,
+            minimumValidator,
+            _queryTagService,
+            _storeMeter,
+            _dicomRequestContextAccessor,
+            NullLogger<StoreDatasetValidator>.Instance);
+
+        var result = await dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Contains(
+            "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
             result.InvalidTagErrors[DicomTag.PatientID].Error);
     }
 

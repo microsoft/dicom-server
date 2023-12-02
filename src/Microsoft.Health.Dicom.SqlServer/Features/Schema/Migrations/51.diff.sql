@@ -1,4 +1,8 @@
-﻿/*************************************************************
+﻿SET XACT_ABORT ON
+      
+BEGIN TRANSACTION
+GO
+/*************************************************************
     Stored procedure for adding an instance.
 **************************************************************/
 --
@@ -248,3 +252,6 @@ BEGIN
 
     END CATCH
 END
+GO
+
+COMMIT TRANSACTION

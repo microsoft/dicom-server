@@ -97,7 +97,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                 dicomDataset.GetString(DicomTag.StudyInstanceUID),
                 dicomDataset.GetString(DicomTag.SeriesInstanceUID),
                 dicomDataset.GetString(DicomTag.SOPInstanceUID),
-                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID) ?? String.Empty,
                 dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientName),
                 dicomDataset.GetFirstValueOrDefault<string>(DicomTag.ReferringPhysicianName),
                 dicomDataset.GetStringDateAsDate(DicomTag.StudyDate),
