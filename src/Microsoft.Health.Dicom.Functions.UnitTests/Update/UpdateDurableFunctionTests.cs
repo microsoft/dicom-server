@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using FellowOakDicom.Serialization;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -20,6 +21,7 @@ using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
+using Metric = OpenTelemetry.Metrics.Metric;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 
@@ -59,6 +61,7 @@ public partial class UpdateDurableFunctionTests
             _updateInstanceService,
             Substitute.For<IQueryTagService>(),
             _updateMeter,
+            Substitute.For<TelemetryClient>(),
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration()));
         _updateDurableFunctionWithExternalStore = new UpdateDurableFunction(
@@ -70,6 +73,7 @@ public partial class UpdateDurableFunctionTests
             _updateInstanceService,
             Substitute.For<IQueryTagService>(),
             _updateMeter,
+            Substitute.For<TelemetryClient>(),
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration { EnableExternalStore = true, }));
         InitializeMetricExporter();

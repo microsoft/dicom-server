@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Registration;
@@ -327,8 +328,17 @@ public partial class UpdateDurableFunction
         {
             // We don't want to populate all the errors in Azure Table Storage, DTFx may attempt to compress the entry as needed using GZip and storing in blob storage
             // But I think we should also be wary of what the user experience is for this via the response, so restricting to 5 errors for now. We can update based on feedback.
-            // TODO: Inform the user that the remaining failures can be found in the logs.
             errors.AddRange(instanceErrors.Take(5));
+
+            if (instanceErrors.Count > 5)
+            {
+                errors.Add("There are more instances failed to update than listed above. Please check the diagnostics logs for the complete list.");
+            }
+
+            foreach (string error in instanceErrors)
+            {
+                _telemetryClient.ForwardLogTrace(error);
+            }
         }
 
         input.Errors = errors;
