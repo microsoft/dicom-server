@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -146,12 +147,16 @@ public partial class UpdateDurableFunction
                 replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
             }
 
+            string serializedInput = GetSerializedInput(input);
+
             if (input.Errors?.Count > 0)
             {
                 logger.LogWarning("Update operation completed with errors. {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
-                    input.NumberOfStudyCompleted - input.NumberOfStudyFailed,
-                    input.NumberOfStudyFailed,
-                    input.TotalNumberOfInstanceUpdated);
+                     input.NumberOfStudyCompleted - input.NumberOfStudyFailed,
+                     input.NumberOfStudyFailed,
+                     input.TotalNumberOfInstanceUpdated);
+
+                _telemetryClient.ForwardOperationLogTrace("Update operation completed with errors", context.InstanceId, serializedInput);
 
                 // Throwing the exception so that it can set the operation status to Failed
                 throw new OperationErrorException("Update operation completed with errors.");
@@ -159,8 +164,10 @@ public partial class UpdateDurableFunction
             else
             {
                 logger.LogInformation("Update operation completed successfully. {NumberOfStudyUpdated}, {TotalNumberOfInstanceUpdated}.",
-                    input.NumberOfStudyCompleted,
-                    input.TotalNumberOfInstanceUpdated);
+                     input.NumberOfStudyCompleted,
+                     input.TotalNumberOfInstanceUpdated);
+
+                _telemetryClient.ForwardOperationLogTrace("Update operation completed successfully", context.InstanceId, serializedInput);
             }
         }
     }
@@ -194,7 +201,7 @@ public partial class UpdateDurableFunction
 
             foreach (string error in instanceErrors)
             {
-                _telemetryClient.ForwardLogTrace(error);
+                _telemetryClient.ForwardOperationLogTrace(error, context.InstanceId, string.Empty);
             }
         }
 
@@ -223,4 +230,14 @@ public partial class UpdateDurableFunction
         }
         catch (Exception) { }
     }
+
+    private string GetSerializedInput(UpdateCheckpoint checkpoint) => JsonSerializer.Serialize(new
+    {
+        checkpoint.StudyInstanceUids,
+        partitionName = checkpoint.Partition.Name,
+        datasetToUpdate = checkpoint.ChangeDataset,
+        checkpoint.NumberOfStudyCompleted,
+        checkpoint.NumberOfStudyFailed,
+        checkpoint.TotalNumberOfInstanceUpdated,
+    }, _jsonSerializerOptions);
 }
