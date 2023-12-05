@@ -9,6 +9,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -77,7 +78,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 if (descriptor.IsAcceptable(header) && (selectedHeader == null || IsHigherPriorityTransferSyntax(header, selectedHeader)))
                 {
                     selectedHeader = new AcceptHeader(
-                        header.MediaType,
+                        GetMediaTypesString(header.MediaType, resourceType),
                         header.PayloadType,
                         descriptor.GetTransferSyntax(header),
                         header.Quality);
@@ -104,6 +105,22 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
         return (header.TransferSyntax.Value == DicomTransferSyntaxUids.Original && isQualityGreater);
     }
 
+    // If the media type is */* then we need to return the default media type for the resource type
+    private static StringSegment GetMediaTypesString(StringSegment mediaType, ResourceType resourceType)
+    {
+        if (mediaType != KnownContentTypes.AnyMediaType)
+        {
+            return mediaType;
+        }
+
+        if (resourceType == ResourceType.Frames)
+        {
+            return KnownContentTypes.ApplicationOctetStream;
+        }
+
+        return KnownContentTypes.ApplicationDicom;
+    }
+
     private static List<AcceptHeaderDescriptor> DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
     {
         return new List<AcceptHeaderDescriptor>
@@ -113,8 +130,19 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 mediaType: KnownContentTypes.ApplicationDicom,
                 isTransferSyntaxMandatory: false,
                 transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original,
-                    DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID))
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(
+                    DicomTransferSyntaxUids.Original,
+                    DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                    DicomTransferSyntax.JPEG2000Lossless.UID.UID)),
+            new AcceptHeaderDescriptor(
+                payloadType: payloadTypes,
+                mediaType: KnownContentTypes.AnyMediaType,
+                isTransferSyntaxMandatory: false,
+                transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(
+                    DicomTransferSyntaxUids.Original,
+                    DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                    DicomTransferSyntax.JPEG2000Lossless.UID.UID))
         };
     }
 
@@ -127,14 +155,23 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 mediaType: KnownContentTypes.ApplicationOctetStream,
                 isTransferSyntaxMandatory: false,
                 transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original,
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(
+                    DicomTransferSyntaxUids.Original,
                     DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)),
             new AcceptHeaderDescriptor(
                 payloadType: PayloadTypes.MultipartRelated,
                 mediaType: KnownContentTypes.ImageJpeg2000,
                 isTransferSyntaxMandatory: false,
                 transferSyntaxWhenMissing: DicomTransferSyntax.JPEG2000Lossless.UID.UID,
-                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEG2000Lossless))
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEG2000Lossless)),
+            new AcceptHeaderDescriptor(
+                payloadType: PayloadTypes.SinglePartOrMultipartRelated,
+                mediaType: KnownContentTypes.AnyMediaType,
+                isTransferSyntaxMandatory: false,
+                transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(
+                    DicomTransferSyntaxUids.Original,
+                    DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)),
         };
     }
 

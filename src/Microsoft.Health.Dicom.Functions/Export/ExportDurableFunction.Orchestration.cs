@@ -88,6 +88,7 @@ public partial class ExportDurableFunction
                 ErrorHref = input.ErrorHref,
                 Progress = input.Progress + iterationProgress,
                 Source = source.Description,
+                Partition = input.Partition
             });
     }
 }

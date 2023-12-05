@@ -94,32 +94,40 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
     {
         var results = new List<VersionedInstanceIdentifier>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            VLatest.GetInstancesByWatermarkRangeV6.PopulateCommand(
-                sqlCommandWrapper,
-                watermarkRange.Start,
-                watermarkRange.End,
-                (byte)indexStatus);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                       VLatest.Instance.StudyInstanceUid,
-                       VLatest.Instance.SeriesInstanceUid,
-                       VLatest.Instance.SopInstanceUid,
-                       VLatest.Instance.Watermark);
+                VLatest.GetInstancesByWatermarkRangeV6.PopulateCommand(
+                    sqlCommandWrapper,
+                    watermarkRange.Start,
+                    watermarkRange.End,
+                    (byte)indexStatus);
 
-                    results.Add(new VersionedInstanceIdentifier(
-                        rStudyInstanceUid,
-                        rSeriesInstanceUid,
-                        rSopInstanceUid,
-                        watermark));
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
+                           VLatest.Instance.StudyInstanceUid,
+                           VLatest.Instance.SeriesInstanceUid,
+                           VLatest.Instance.SopInstanceUid,
+                           VLatest.Instance.Watermark);
+
+                        results.Add(new VersionedInstanceIdentifier(
+                            rStudyInstanceUid,
+                            rSeriesInstanceUid,
+                            rSopInstanceUid,
+                            watermark));
+                    }
                 }
             }
+
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return results;
@@ -193,37 +201,44 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
     {
         var results = new List<VersionedInstanceIdentifier>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            VLatest.GetInstanceV6.PopulateCommand(
-                sqlCommandWrapper,
-                validStatus: (byte)IndexStatus.Created,
-                partition.Key,
-                studyInstanceUid,
-                seriesInstanceUid,
-                sopInstanceUid);
-
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
-                       VLatest.Instance.StudyInstanceUid,
-                       VLatest.Instance.SeriesInstanceUid,
-                       VLatest.Instance.SopInstanceUid,
-                       VLatest.Instance.Watermark);
+                VLatest.GetInstanceV6.PopulateCommand(
+                    sqlCommandWrapper,
+                    validStatus: (byte)IndexStatus.Created,
+                    partition.Key,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid);
 
-                    results.Add(new VersionedInstanceIdentifier(
-                            rStudyInstanceUid,
-                            rSeriesInstanceUid,
-                            rSopInstanceUid,
-                            watermark,
-                            partition));
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark) = reader.ReadRow(
+                           VLatest.Instance.StudyInstanceUid,
+                           VLatest.Instance.SeriesInstanceUid,
+                           VLatest.Instance.SopInstanceUid,
+                           VLatest.Instance.Watermark);
+
+                        results.Add(new VersionedInstanceIdentifier(
+                                rStudyInstanceUid,
+                                rSeriesInstanceUid,
+                                rSopInstanceUid,
+                                watermark,
+                                partition));
+                    }
                 }
             }
-        }
 
-        return results;
+            return results;
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
+        }
     }
 }

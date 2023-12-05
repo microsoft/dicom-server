@@ -7,21 +7,24 @@ using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
+using Partition = Microsoft.Health.Dicom.Core.Features.Partitioning.Partition;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class AuthorizationTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
     private readonly HttpIntegrationTestFixture<Startup> _fixture;
+    private readonly IDicomWebClient _clientV2WithReader;
 
     public AuthorizationTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         _fixture = fixture;
+        _clientV2WithReader = fixture.GetDicomWebClient(TestApplications.GlobalReaderServicePrincipal);
     }
 
     [Fact]
@@ -37,5 +40,21 @@ public class AuthorizationTests : IClassFixture<HttpIntegrationTestFixture<Start
                 () => client.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid));
             Assert.Equal(HttpStatusCode.Forbidden, exception.StatusCode);
         }
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenSearchRequest_WithValidParamsAndNoMatchingResult_ReturnNoContent()
+    {
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _clientV2WithReader.QueryStudyAsync("StudyDate=20200101");
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenAValidQueryString_WhenRetrievingChangeFeedLatest_ThenReturnsSuccessfulStatusCode()
+    {
+        using DicomWebResponse<ChangeFeedEntry> response = await _clientV2WithReader.GetChangeFeedLatest();
+        Assert.True(response.IsSuccessStatusCode);
     }
 }

@@ -41,17 +41,63 @@ internal class SqlExtendedQueryTagStoreV36 : SqlExtendedQueryTagStoreV2
 
         var results = new List<ExtendedQueryTagStoreJoinEntry>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            VLatest.GetExtendedQueryTagsV36.PopulateCommand(sqlCommandWrapper, limit, offset);
-
-            var executionTimeWatch = Stopwatch.StartNew();
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
+                VLatest.GetExtendedQueryTagsV36.PopulateCommand(sqlCommandWrapper, limit, offset);
+
+                var executionTimeWatch = Stopwatch.StartNew();
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
-                    (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR,
+                            VLatest.ExtendedQueryTag.TagPrivateCreator,
+                            VLatest.ExtendedQueryTag.TagLevel,
+                            VLatest.ExtendedQueryTag.TagStatus,
+                            VLatest.ExtendedQueryTag.QueryStatus,
+                            VLatest.ExtendedQueryTag.ErrorCount,
+                            VLatest.ExtendedQueryTagOperation.OperationId.AsNullable());
+
+                        results.Add(new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId));
+                    }
+
+                    executionTimeWatch.Stop();
+                    Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTags), executionTimeWatch);
+                }
+            }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
+        }
+
+        return results;
+    }
+
+    public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+            {
+                VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath);
+
+                var executionTimeWatch = Stopwatch.StartNew();
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    if (!await reader.ReadAsync(cancellationToken))
+                    {
+                        throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
+                    }
+
+                    (int tagKey, string path, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
                         VLatest.ExtendedQueryTag.TagKey,
                         VLatest.ExtendedQueryTag.TagPath,
                         VLatest.ExtendedQueryTag.TagVR,
@@ -62,49 +108,17 @@ internal class SqlExtendedQueryTagStoreV36 : SqlExtendedQueryTagStoreV2
                         VLatest.ExtendedQueryTag.ErrorCount,
                         VLatest.ExtendedQueryTagOperation.OperationId.AsNullable());
 
-                    results.Add(new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId));
+                    executionTimeWatch.Stop();
+                    Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTag), executionTimeWatch);
+
+                    return new ExtendedQueryTagStoreJoinEntry(tagKey, path, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId);
                 }
 
-                executionTimeWatch.Stop();
-                Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTags), executionTimeWatch);
             }
         }
-
-        return results;
-    }
-
-    public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
-    {
-        using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        catch (SqlException ex)
         {
-            VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath);
-
-            var executionTimeWatch = Stopwatch.StartNew();
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-            {
-                if (!await reader.ReadAsync(cancellationToken))
-                {
-                    throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
-                }
-
-                (int tagKey, string path, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
-                    VLatest.ExtendedQueryTag.TagKey,
-                    VLatest.ExtendedQueryTag.TagPath,
-                    VLatest.ExtendedQueryTag.TagVR,
-                    VLatest.ExtendedQueryTag.TagPrivateCreator,
-                    VLatest.ExtendedQueryTag.TagLevel,
-                    VLatest.ExtendedQueryTag.TagStatus,
-                    VLatest.ExtendedQueryTag.QueryStatus,
-                    VLatest.ExtendedQueryTag.ErrorCount,
-                    VLatest.ExtendedQueryTagOperation.OperationId.AsNullable());
-
-                executionTimeWatch.Stop();
-                Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTag), executionTimeWatch);
-
-                return new ExtendedQueryTagStoreJoinEntry(tagKey, path, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId);
-            }
-
+            throw new DataStoreException(ex);
         }
     }
 
@@ -114,34 +128,41 @@ internal class SqlExtendedQueryTagStoreV36 : SqlExtendedQueryTagStoreV2
 
         var results = new List<ExtendedQueryTagStoreJoinEntry>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> rows = queryTagKeys.Select(x => new ExtendedQueryTagKeyTableTypeV1Row(x));
-            VLatest.GetExtendedQueryTagsByKey.PopulateCommand(sqlCommandWrapper, rows);
-
-            var executionTimeWatch = Stopwatch.StartNew();
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
+                IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> rows = queryTagKeys.Select(x => new ExtendedQueryTagKeyTableTypeV1Row(x));
+                VLatest.GetExtendedQueryTagsByKey.PopulateCommand(sqlCommandWrapper, rows);
+
+                var executionTimeWatch = Stopwatch.StartNew();
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
-                    (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
-                        VLatest.ExtendedQueryTag.TagKey,
-                        VLatest.ExtendedQueryTag.TagPath,
-                        VLatest.ExtendedQueryTag.TagVR,
-                        VLatest.ExtendedQueryTag.TagPrivateCreator,
-                        VLatest.ExtendedQueryTag.TagLevel,
-                        VLatest.ExtendedQueryTag.TagStatus,
-                        VLatest.ExtendedQueryTag.QueryStatus,
-                        VLatest.ExtendedQueryTag.ErrorCount,
-                        VLatest.ExtendedQueryTagOperation.OperationId.AsNullable());
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR,
+                            VLatest.ExtendedQueryTag.TagPrivateCreator,
+                            VLatest.ExtendedQueryTag.TagLevel,
+                            VLatest.ExtendedQueryTag.TagStatus,
+                            VLatest.ExtendedQueryTag.QueryStatus,
+                            VLatest.ExtendedQueryTag.ErrorCount,
+                            VLatest.ExtendedQueryTagOperation.OperationId.AsNullable());
 
-                    results.Add(new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId));
+                        results.Add(new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId));
+                    }
+
+                    executionTimeWatch.Stop();
+                    Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTagsByKey), executionTimeWatch);
                 }
-
-                executionTimeWatch.Stop();
-                Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTagsByKey), executionTimeWatch);
             }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return results;
@@ -151,28 +172,35 @@ internal class SqlExtendedQueryTagStoreV36 : SqlExtendedQueryTagStoreV2
     {
         var results = new List<ExtendedQueryTagStoreEntry>();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        try
         {
-            VLatest.GetExtendedQueryTagsByOperation.PopulateCommand(sqlCommandWrapper, operationId);
-
-            using (SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+            using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                while (await reader.ReadAsync(cancellationToken))
-                {
-                    (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount) = reader.ReadRow(
-                        VLatest.ExtendedQueryTag.TagKey,
-                        VLatest.ExtendedQueryTag.TagPath,
-                        VLatest.ExtendedQueryTag.TagVR,
-                        VLatest.ExtendedQueryTag.TagPrivateCreator,
-                        VLatest.ExtendedQueryTag.TagLevel,
-                        VLatest.ExtendedQueryTag.TagStatus,
-                        VLatest.ExtendedQueryTag.QueryStatus,
-                        VLatest.ExtendedQueryTag.ErrorCount);
+                VLatest.GetExtendedQueryTagsByOperation.PopulateCommand(sqlCommandWrapper, operationId);
 
-                    results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount));
+                using (SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount) = reader.ReadRow(
+                            VLatest.ExtendedQueryTag.TagKey,
+                            VLatest.ExtendedQueryTag.TagPath,
+                            VLatest.ExtendedQueryTag.TagVR,
+                            VLatest.ExtendedQueryTag.TagPrivateCreator,
+                            VLatest.ExtendedQueryTag.TagLevel,
+                            VLatest.ExtendedQueryTag.TagStatus,
+                            VLatest.ExtendedQueryTag.QueryStatus,
+                            VLatest.ExtendedQueryTag.ErrorCount);
+
+                        results.Add(new ExtendedQueryTagStoreEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount));
+                    }
                 }
             }
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
 
         return results;

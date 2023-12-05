@@ -73,7 +73,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SOPClassUID
 - PatientID
 
-> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID is validated based on its LO VR type.
+> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID continues to be a required tag and can have the value as null in the input. PatientID is validated based on its LO VR type.
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
@@ -293,6 +293,7 @@ The following `Accept` header(s) are supported for retrieving instances within a
 - `multipart/related; type="application/dicom";` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
 - `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1`
 - `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.4.90`
+- `*/*` (when transfer-syntax is not specified, `1.2.840.10008.1.2.1` is used as default and mediaType defaults to `application/dicom`)
 
 ### Retrieve an Instance
 
@@ -306,6 +307,7 @@ The following `Accept` header(s) are supported for retrieving a specific instanc
 - `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1`
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90`
 - `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.4.90`
+- `*/*` (when transfer-syntax is not specified, `1.2.840.10008.1.2.1` is used as default and mediaType defaults to `application/dicom`)
 
 ### Retrieve Frames
 
@@ -316,6 +318,7 @@ The following `Accept` headers are supported for retrieving frames:
 - `multipart/related; type="image/jp2";` (when transfer-syntax is not specified, `1.2.840.10008.1.2.4.90` is used as default)
 - `multipart/related; type="image/jp2";transfer-syntax=1.2.840.10008.1.2.4.90`
 - `application/octet-stream; transfer-syntax=*` for single frame retrieval
+- `*/*` (when transfer-syntax is not specified, `1.2.840.10008.1.2.1` is used as default and mediaType defaults to `application/octet-stream`)
 
 ### Retrieve Transfer Syntax
 
@@ -450,6 +453,8 @@ We support searching on below attributes and search type.
 | PerformedProcedureStepStartDate |  | X | X | X | X |  |
 | ManufacturerModelName | | X | X | X | X |  |
 | SOPInstanceUID |  |  | X |  | X | X |
+
+> Note: We do not support searching using empty string for any attributes. 
 
 #### Search Matching
 
@@ -873,6 +878,8 @@ We support searching on these attributes:
 | ScheduledStationGeographicLocationCodeSequence.CodeValue |
 | ProcedureStepState |
 | StudyInstanceUID |
+
+> Note: We do not support searching using empty string for any attributes. 
 
 #### Search Matching
 

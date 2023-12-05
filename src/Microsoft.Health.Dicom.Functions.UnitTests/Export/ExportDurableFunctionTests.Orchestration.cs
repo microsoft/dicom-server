@@ -204,7 +204,15 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<ExportCheckpoint>(x => x.Source == null && x.Progress == new ExportProgress(1236, 56)),
+                Arg.Is<ExportCheckpoint>(x =>
+                    x.Batching == checkpoint.Batching &&
+                    x.CreatedTime == checkpoint.CreatedTime &&
+                    x.Destination == checkpoint.Destination &&
+                    x.ErrorHref == checkpoint.ErrorHref &&
+                    x.Progress == new ExportProgress(1236, 56) &&
+                    x.Source == null &&
+                    x.Partition == checkpoint.Partition
+                    ),
                 false);
     }
 

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -281,8 +282,10 @@ public class ChangeFeedProcessorTests
         await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
     }
 
-    [Fact]
-    public async Task WhenThrowDicomTagException_ExceptionNotThrown()
+    [Theory]
+    [InlineData(nameof(DicomTagException))]
+    [InlineData(nameof(MissingRequiredDicomTagException))]
+    public async Task WhenThrowDicomTagException_ExceptionNotThrown(string exception)
     {
         ChangeFeedEntry[] changeFeeds1 = new[]
         {
@@ -295,7 +298,36 @@ public class ChangeFeedProcessorTests
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
-        _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new DicomTagException("exception"); });
+        _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { ThrowDicomTagException(exception); });
+
+        // Act
+        await ExecuteProcessAsync();
+
+        // Assert
+        await _changeFeedRetrieveService.Received(2).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(2).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
+    }
+
+    [Fact]
+    public async Task WhenMissingRequiredDicomTagException_ExceptionNotThrown()
+    {
+        ChangeFeedEntry[] changeFeeds1 = new[]
+        {
+            ChangeFeedGenerator.Generate(1),
+        };
+
+        // Arrange
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(1L);
+
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+        _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new MissingRequiredDicomTagException(nameof(DicomTag.PatientID)); });
 
         // Act
         await ExecuteProcessAsync();
@@ -459,5 +491,17 @@ public class ChangeFeedProcessorTests
         }
 
         await _changeFeedProcessor.ProcessAsync(pollIntervalDuringCatchup.Value, DefaultCancellationToken);
+    }
+
+    private static void ThrowDicomTagException(string exception)
+    {
+        if (exception.Equals(nameof(DicomTagException)))
+        {
+            throw new DicomTagException("exception");
+        }
+        else if (exception.Equals(nameof(MissingRequiredDicomTagException)))
+        {
+            throw new MissingRequiredDicomTagException(nameof(DicomTag.PatientID));
+        }
     }
 }

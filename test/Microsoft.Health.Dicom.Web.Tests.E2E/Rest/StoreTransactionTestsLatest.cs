@@ -268,6 +268,74 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     }
 
     [Fact]
+    public async Task GivenStoringMultipleInstanceInStudy_WhenInitialInstanceHasNullPatientId_ThenExpectPatientIdCorrectlyUpdated()
+    {
+        // STOW using a null patient ID
+        DicomFile dicomFile1 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(validateItems: false));
+        dicomFile1.Dataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
+
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile1);
+
+        // assert on response
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        DicomDataset responseDataset = await response.GetValueAsync();
+        DicomSequence refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+        DicomDataset firstInstance = refSopSequence.Items[0];
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        // Assert on the warning produced when storing the instance with null patientId
+        Assert.Contains(
+            "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
+
+        // Verify that patientId is stored as null using QIDO
+        string studyInstanceUID = dicomFile1.Dataset.GetString(DicomTag.StudyInstanceUID);
+        await VerifyPatientId(studyInstanceUID, null);
+
+        // STOW using a non null patient ID
+        string patientId = "123";
+        DicomFile dicomFile2 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(studyInstanceUid: studyInstanceUID, patientId: patientId, validateItems: false));
+        response = await _instancesManager.StoreAsync(dicomFile2);
+
+        // assert on response
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        responseDataset = await response.GetValueAsync();
+        refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        firstInstance = refSopSequence.Items[0];
+        failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        // Assert that no warning or error produced when storing the instance with a non null patientId
+        Assert.Empty(failedAttributesSequence);
+
+        // Verify the new non-null Patient Id using QIDO
+        await VerifyPatientId(studyInstanceUID, patientId);
+
+        // STOW using a null patient ID again to make sure that the patientId is not updated
+        DicomFile dicomFile3 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(studyInstanceUid: studyInstanceUID, validateItems: false));
+        dicomFile3.Dataset.AddOrUpdate(DicomTag.PatientID, new string[] { null });
+        response = await _instancesManager.StoreAsync(dicomFile3);
+
+        // assert on response
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        responseDataset = await response.GetValueAsync();
+        refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+        firstInstance = refSopSequence.Items[0];
+        failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        // Assert on the warning produced when storing the instance again with null patientId
+        Assert.Contains(
+            "DICOM100: (0010,0020) - The required tag '(0010,0020)' is missing.",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
+
+        // Verify that the patientId is not updated using QIDO
+        await VerifyPatientId(studyInstanceUID, patientId);
+    }
+
+    [Fact]
     public async Task GivenDatasetWithInvalidVrValue_WhenStoring_TheServerShouldReturnAccepted()
     {
         var studyInstanceUID = TestUidGenerator.Generate();
@@ -309,5 +377,18 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files);
         Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
+    }
+
+    private async Task VerifyPatientId(string studyInstanceUid, string expectedPatiendId)
+    {
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync($"StudyInstanceUID={studyInstanceUid}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/dicom+json", response.ContentHeaders.ContentType.MediaType);
+
+        DicomDataset[] datasets = await response.ToArrayAsync();
+        string actualPatientID = datasets.Select(x => x.GetSingleValueOrDefault<string>(DicomTag.PatientID, null)).SingleOrDefault();
+
+        Assert.Equal(expectedPatiendId, actualPatientID);
     }
 }

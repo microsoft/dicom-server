@@ -65,6 +65,44 @@ public class AcceptHeaderHandlerTests
         };
     }
 
+    public static IEnumerable<object[]> AnyMediaTypeHeadersList()
+    {
+        yield return new object[]
+        {
+            new List<AcceptHeader>
+            {
+                new(
+                    "*/*",
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing)
+            },
+            ResourceType.Study,
+            KnownContentTypes.ApplicationDicom
+        };
+        yield return new object[]
+        {
+            new List<AcceptHeader>
+            {
+                new(
+                    "*/*",
+                    ValidStudyAcceptHeaderDescriptor.PayloadType)
+            },
+            ResourceType.Series,
+            KnownContentTypes.ApplicationDicom
+        };
+        yield return new object[]
+        {
+            new List<AcceptHeader>
+            {
+                new(
+                    "*/*",
+                    ValidStudyAcceptHeaderDescriptor.PayloadType)
+            },
+            ResourceType.Frames,
+            KnownContentTypes.ApplicationOctetStream
+        };
+    }
+
     public AcceptHeaderHandlerTests()
     {
         _handler = new AcceptHeaderHandler(NullLogger<AcceptHeaderHandler>.Instance);
@@ -187,5 +225,28 @@ public class AcceptHeaderHandlerTests
         );
 
         Assert.Equivalent(requestedAcceptHeader2, matchedAcceptHeader, strict: true);
+    }
+
+
+
+    [Theory]
+    [MemberData(nameof(AnyMediaTypeHeadersList))]
+    public void
+        GivenASingleRequestedAcceptHeaderWithAnyMediaType_WhenRequestedMatchesHeadersWeAccept_ThenShouldReturnAcceptedHeaderWithTransferSyntaxAndDescriptorThatMatched(
+            List<AcceptHeader> requestedAcceptHeaders,
+            ResourceType requestedResourceType,
+            string mediaType)
+    {
+        AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
+            requestedResourceType,
+            requestedAcceptHeaders
+        );
+
+        var expectedTransferSyntax = string.IsNullOrEmpty(requestedAcceptHeaders.First().TransferSyntax.Value) ?
+            ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing :
+            requestedAcceptHeaders.First().TransferSyntax.Value;
+
+        Assert.Equal(mediaType, matchedAcceptHeader.MediaType);
+        Assert.Equal(expectedTransferSyntax, matchedAcceptHeader.TransferSyntax);
     }
 }
