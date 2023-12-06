@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
@@ -103,7 +104,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
             var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partition, cancellationToken);
 
             string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
-            _telemetryClient.ForwardOperationLogTrace("Dicom update operation started successfully.", operationId.ToString(), input);
+            _telemetryClient.ForwardOperationLogTrace("Dicom update operation started successfully.", operationId.ToString(), input, AuditEventSubType.UpdateStudyOperation);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)

@@ -243,7 +243,7 @@ public class BlobFileStore : IFileStore
                         fileProperties.Path,
                         fileProperties.ETag);
 
-                    _telemetryClient.ForwardLogTrace(message, partition, fileProperties);
+                    _telemetryClient.ForwardLogTrace(message, partition, fileProperties, ApplicationInsights.DataContracts.SeverityLevel.Warning);
 
                     _logger.LogInformation(
                         "Can not delete blob in external store as it has changed or been deleted. File from watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected. Will not retry",

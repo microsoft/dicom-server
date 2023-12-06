@@ -13,6 +13,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -156,7 +157,12 @@ public partial class UpdateDurableFunction
                      input.NumberOfStudyFailed,
                      input.TotalNumberOfInstanceUpdated);
 
-                _telemetryClient.ForwardOperationLogTrace("Update operation completed with errors", context.InstanceId, serializedInput);
+                _telemetryClient.ForwardOperationLogTrace(
+                    "Update operation completed with errors",
+                    context.InstanceId,
+                    serializedInput,
+                    AuditEventSubType.UpdateStudyOperation,
+                    ApplicationInsights.DataContracts.SeverityLevel.Error);
 
                 // Throwing the exception so that it can set the operation status to Failed
                 throw new OperationErrorException("Update operation completed with errors.");
@@ -167,7 +173,7 @@ public partial class UpdateDurableFunction
                      input.NumberOfStudyCompleted,
                      input.TotalNumberOfInstanceUpdated);
 
-                _telemetryClient.ForwardOperationLogTrace("Update operation completed successfully", context.InstanceId, serializedInput);
+                _telemetryClient.ForwardOperationLogTrace("Update operation completed successfully", context.InstanceId, serializedInput, AuditEventSubType.UpdateStudyOperation);
             }
         }
     }
@@ -201,7 +207,7 @@ public partial class UpdateDurableFunction
 
             foreach (string error in instanceErrors)
             {
-                _telemetryClient.ForwardOperationLogTrace(error, context.InstanceId, string.Empty);
+                _telemetryClient.ForwardOperationLogTrace(error, context.InstanceId, string.Empty, AuditEventSubType.UpdateStudyOperation, ApplicationInsights.DataContracts.SeverityLevel.Error);
             }
         }
 
