@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" />
     <PackageReference Include="Microsoft.Health.Operations" />

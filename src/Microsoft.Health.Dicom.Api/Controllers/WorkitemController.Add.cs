@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -70,8 +69,8 @@ public partial class WorkitemController
 
         if (response.Status == WorkitemResponseStatus.Success)
         {
-            Response.Headers.Append(HeaderNames.ContentLocation, response.Uri.ToString());
-            Response.Headers.Append(HeaderNames.Location, response.Uri.ToString());
+            Response.Headers.Add(HeaderNames.ContentLocation, response.Uri.ToString());
+            Response.Headers.Add(HeaderNames.Location, response.Uri.ToString());
         }
 
         return StatusCode((int)response.Status.AddResponseToHttpStatusCode(), response.Message);
