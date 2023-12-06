@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -55,10 +56,23 @@ public class BaseQueryExpression
     /// <summary>
     /// Request query was empty
     /// </summary>
-    public bool HasFilters => FilterConditions.Count > 0;
+    public bool HasFilters
+    {
+        get
+        {
+            return FilterConditions.Any();
+        }
+    }
 
     /// <summary>
     /// evaluted result count for this request
     /// </summary>
-    public int EvaluatedLimit => Limit > 0 && Limit <= QueryLimit.MaxQueryResultCount ? Limit : QueryLimit.DefaultQueryResultCount;
+    public int EvaluatedLimit
+    {
+        get
+        {
+            return Limit > 0 && Limit <= QueryLimit.MaxQueryResultCount ?
+                Limit : QueryLimit.DefaultQueryResultCount;
+        }
+    }
 }

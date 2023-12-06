@@ -249,12 +249,18 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
-    private ResourceResult CreateResult(RetrieveResourceResponse response)
-        => new ResourceResult(response, _retrieveConfiguration);
+    private IActionResult CreateResult(RetrieveResourceResponse response)
+    {
+        return new ResourceResult(response, _retrieveConfiguration);
+    }
 
-    private static MetadataResult CreateResult(RetrieveMetadataResponse response)
-        => new MetadataResult(response);
+    private static IActionResult CreateResult(RetrieveMetadataResponse response)
+    {
+        return new MetadataResult(response);
+    }
 
-    private static RenderedResult CreateResult(RetrieveRenderedResponse response)
-        => new RenderedResult(response);
+    private static IActionResult CreateResult(RetrieveRenderedResponse response)
+    {
+        return new RenderedResult(response);
+    }
 }
