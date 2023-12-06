@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -35,22 +36,17 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly ILogger _logger;
 
-    private static readonly IReadOnlySet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
-    {
+    private static readonly ImmutableHashSet<DicomTag> RequiredCoreTags = ImmutableHashSet.Create(
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
         DicomTag.SOPInstanceUID,
         DicomTag.PatientID,
-        DicomTag.SOPClassUID,
-    };
+        DicomTag.SOPClassUID);
 
-    private static readonly IReadOnlySet<DicomTag> RequiredV2CoreTags = new HashSet<DicomTag>()
-    {
+    private static readonly ImmutableHashSet<DicomTag> RequiredV2CoreTags = ImmutableHashSet.Create(
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
-        DicomTag.SOPInstanceUID,
-        DicomTag.SOPClassUID,
-    };
+        DicomTag.SOPInstanceUID);
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,

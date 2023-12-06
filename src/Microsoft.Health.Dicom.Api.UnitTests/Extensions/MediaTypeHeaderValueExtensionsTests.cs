@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Extensions;
@@ -141,7 +142,7 @@ public class MediaTypeHeaderValueExtensionsTests
 
         if (quality.HasValue)
         {
-            result.Parameters.Add(CreateNameValueHeaderValue(AcceptHeaderParameterNames.Quality, quality.ToString(), quoteValue: false));
+            result.Parameters.Add(CreateNameValueHeaderValue(AcceptHeaderParameterNames.Quality, quality.GetValueOrDefault().ToString(CultureInfo.InvariantCulture), quoteValue: false));
         }
 
         return result;

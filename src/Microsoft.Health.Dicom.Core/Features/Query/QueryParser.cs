@@ -34,7 +34,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
         // Update the list of query tags
         queryTags = GetQualifiedQueryTags(queryTags, parameters.QueryResourceType);
 
-        List<string> erroneousTags = new List<string>();
+        List<string> erroneousTags = [];
 
         var filterConditions = new Dictionary<DicomTag, QueryFilterCondition>();
         foreach (KeyValuePair<string, string> filter in parameters.Filters)
@@ -106,7 +106,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
         }
     }
 
-    private static IReadOnlyCollection<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)
+    private static List<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)
     {
         return queryTags.Where(tag =>
         {

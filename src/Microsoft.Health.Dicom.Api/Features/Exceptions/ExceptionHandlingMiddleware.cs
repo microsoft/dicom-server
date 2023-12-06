@@ -64,7 +64,7 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private IActionResult MapExceptionToResult(Exception exception)
+    private ContentResult MapExceptionToResult(Exception exception)
     {
         HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
         string message = exception.Message;
@@ -161,7 +161,7 @@ public class ExceptionHandlingMiddleware
         return ex is TaskCanceledException || (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is TaskCanceledException));
     }
 
-    private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)
+    private static ContentResult GetContentResult(HttpStatusCode statusCode, string message)
     {
         return new ContentResult
         {
