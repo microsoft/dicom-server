@@ -284,10 +284,11 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_ResourceType_So
     ON dbo.ExtendedQueryTagString(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.FileProperty (
-    InstanceKey BIGINT          NOT NULL,
-    Watermark   BIGINT          NOT NULL,
-    FilePath    NVARCHAR (4000) NOT NULL,
-    ETag        NVARCHAR (4000) NOT NULL
+    InstanceKey   BIGINT          NOT NULL,
+    Watermark     BIGINT          NOT NULL,
+    FilePath      NVARCHAR (4000) NOT NULL,
+    ETag          NVARCHAR (4000) NOT NULL,
+    ContentLength BIGINT          NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -3076,6 +3077,47 @@ BEGIN
         AND @watermark IS NOT NULL)
         INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
         VALUES                       (@instanceKey, @watermark, @path, @eTag);
+    INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
+    VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark, @path);
+    UPDATE dbo.ChangeFeed
+    SET    CurrentWatermark = @watermark
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid;
+    COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV52
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (4000)=NULL, @contentLength BIGINT=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0)
+                     FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag key does not match', 10;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @instanceKey AS BIGINT;
+    UPDATE dbo.Instance
+    SET    Status                = @status,
+           LastStatusUpdatedDate = @CurrentDate,
+           HasFrameMetadata      = @hasFrameMetadata,
+           @instanceKey          = InstanceKey
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = @seriesInstanceUid
+           AND SopInstanceUid = @sopInstanceUid
+           AND Watermark = @watermark;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance does not exist', 1;
+    IF (@path IS NOT NULL
+        AND @eTag IS NOT NULL
+        AND @watermark IS NOT NULL)
+        INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag, ContentLength)
+        VALUES                       (@instanceKey, @watermark, @path, @eTag, @contentLength);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark, @path);
     UPDATE dbo.ChangeFeed
