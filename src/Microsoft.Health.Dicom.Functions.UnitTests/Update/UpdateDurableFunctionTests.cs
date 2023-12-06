@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Text.Json;
 using FellowOakDicom.Serialization;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -52,6 +54,10 @@ public partial class UpdateDurableFunctionTests
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _updateMeter = new UpdateMeter();
         _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
+        var telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
         _updateDurableFunction = new UpdateDurableFunction(
             _indexStore,
             _instanceStore,
@@ -61,7 +67,7 @@ public partial class UpdateDurableFunctionTests
             _updateInstanceService,
             Substitute.For<IQueryTagService>(),
             _updateMeter,
-            Substitute.For<TelemetryClient>(),
+            telemetryClient,
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration()));
         _updateDurableFunctionWithExternalStore = new UpdateDurableFunction(
@@ -73,7 +79,7 @@ public partial class UpdateDurableFunctionTests
             _updateInstanceService,
             Substitute.For<IQueryTagService>(),
             _updateMeter,
-            Substitute.For<TelemetryClient>(),
+            telemetryClient,
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration { EnableExternalStore = true, }));
         InitializeMetricExporter();
