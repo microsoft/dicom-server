@@ -22,9 +22,9 @@
     <PackageVersion Include="IdentityServer4.Storage" Version="4.1.2" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
     <PackageVersion Include="MediatR" Version="12.1.1" />
-    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.21.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.21.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
@@ -59,7 +59,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.21.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
