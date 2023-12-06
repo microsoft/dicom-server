@@ -108,8 +108,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // this call throws NotFound when zero instance found
-            IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                message.ResourceType, partition, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
+            IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(_blobDataStore, message.ResourceType, partition, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, message.IsOriginalVersionRequested, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
             long version = instance.GetVersion(message.IsOriginalVersionRequested);
 
@@ -182,9 +181,11 @@ public class RetrieveResourceService : IRetrieveResourceService
         // only caching frames which are required to provide all 3 UIDs and more immutable
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, partition);
         string key = GenerateInstanceCacheKey(instanceIdentifier);
+        bool isOriginalVersionRequested = false;
         InstanceMetadata instance = await _instanceMetadataCache.GetAsync(
             key,
             instanceIdentifier,
+            isOriginalVersionRequested,
             GetInstanceMetadata,
             cancellationToken);
 
@@ -375,15 +376,17 @@ public class RetrieveResourceService : IRetrieveResourceService
         return $"{instanceIdentifier.Partition.Key}/{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}";
     }
 
-    private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
+    private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, bool isOriginalVersionRequested, CancellationToken cancellationToken)
     {
         var partition = new Partition(instanceIdentifier.Partition.Key, instanceIdentifier.Partition.Name);
         IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
+                _blobDataStore,
                 ResourceType.Instance,
                 partition,
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,
+                isOriginalVersionRequested,
                 cancellationToken);
 
         if (!retrieveInstances.Any())

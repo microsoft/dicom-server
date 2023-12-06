@@ -26,6 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 public class RetrieveMetadataService : IRetrieveMetadataService
 {
     private readonly IInstanceStore _instanceStore;
+    private readonly IFileStore _blobFileStore;
     private readonly IMetadataStore _metadataStore;
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _contextAccessor;
@@ -35,6 +36,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     public RetrieveMetadataService(
         IInstanceStore instanceStore,
         IMetadataStore metadataStore,
+        IFileStore blobFileStore,
         IETagGenerator eTagGenerator,
         IDicomRequestContextAccessor contextAccessor,
         RetrieveMeter retrieveMeter,
@@ -42,6 +44,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        _blobFileStore = EnsureArg.IsNotNull(blobFileStore, nameof(blobFileStore));
         _eTagGenerator = EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         _retrieveMeter = EnsureArg.IsNotNull(retrieveMeter, nameof(retrieveMeter));
@@ -51,11 +54,13 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, bool isOriginalVersionRequested = false, CancellationToken cancellationToken = default)
     {
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
+            _blobFileStore,
             ResourceType.Study,
             GetPartition(),
             studyInstanceUid,
             seriesInstanceUid: null,
             sopInstanceUid: null,
+            isOriginalVersionRequested,
             cancellationToken);
 
         string eTag = _eTagGenerator.GetETag(ResourceType.Study, retrieveInstances);
@@ -66,11 +71,13 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     public async Task<RetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch = null, bool isOriginalVersionRequested = false, CancellationToken cancellationToken = default)
     {
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
+                _blobFileStore,
                 ResourceType.Series,
                 GetPartition(),
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid: null,
+                isOriginalVersionRequested,
                 cancellationToken);
 
         string eTag = _eTagGenerator.GetETag(ResourceType.Series, retrieveInstances);
@@ -81,11 +88,13 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     public async Task<RetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch = null, bool isOriginalVersionRequested = false, CancellationToken cancellationToken = default)
     {
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
+            _blobFileStore,
             ResourceType.Instance,
             GetPartition(),
             studyInstanceUid,
             seriesInstanceUid,
             sopInstanceUid,
+            isOriginalVersionRequested,
             cancellationToken);
 
         string eTag = _eTagGenerator.GetETag(ResourceType.Instance, retrieveInstances);

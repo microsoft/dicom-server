@@ -15,6 +15,7 @@ public interface IInstanceMetadataCache
     public Task<InstanceMetadata> GetAsync(
         object key,
         InstanceIdentifier input,
-        Func<InstanceIdentifier, CancellationToken, Task<InstanceMetadata>> asyncFactory,
+        bool isOriginalVersionRequested,
+        Func<InstanceIdentifier, bool, CancellationToken, Task<InstanceMetadata>> asyncFactory,
         CancellationToken cancellationToken = default);
 }

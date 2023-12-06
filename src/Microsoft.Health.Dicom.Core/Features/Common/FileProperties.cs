@@ -7,7 +7,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common;
 
 public class FileProperties
 {
-    public long ContentLength { get; init; }
+    public long ContentLength { get; set; }
 
     public string ETag { get; init; }
 
