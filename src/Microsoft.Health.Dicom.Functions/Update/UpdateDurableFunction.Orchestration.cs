@@ -147,7 +147,7 @@ public partial class UpdateDurableFunction
                 replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
             }
 
-            string serializedInput = GetSerializedInput(input);
+            string serializedInput = GetSerializedCheckpointResult(input);
 
             if (input.Errors?.Count > 0)
             {
@@ -231,13 +231,16 @@ public partial class UpdateDurableFunction
         catch (Exception) { }
     }
 
-    private string GetSerializedInput(UpdateCheckpoint checkpoint) => JsonSerializer.Serialize(new
+    private string GetSerializedCheckpointResult(UpdateCheckpoint checkpoint)
     {
-        checkpoint.StudyInstanceUids,
-        partitionName = checkpoint.Partition.Name,
-        datasetToUpdate = checkpoint.ChangeDataset,
-        checkpoint.NumberOfStudyCompleted,
-        checkpoint.NumberOfStudyFailed,
-        checkpoint.TotalNumberOfInstanceUpdated,
-    }, _jsonSerializerOptions);
+        return JsonSerializer.Serialize(new
+        {
+            checkpoint.StudyInstanceUids,
+            partitionName = checkpoint.Partition.Name,
+            datasetToUpdate = checkpoint.ChangeDataset,
+            checkpoint.NumberOfStudyCompleted,
+            checkpoint.NumberOfStudyFailed,
+            checkpoint.TotalNumberOfInstanceUpdated,
+        }, _jsonSerializerOptions);
+    }
 }
