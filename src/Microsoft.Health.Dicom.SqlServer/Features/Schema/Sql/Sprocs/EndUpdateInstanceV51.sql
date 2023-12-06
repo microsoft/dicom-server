@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     EndUpdateInstanceV50
+--     EndUpdateInstanceV51
 --
 -- DESCRIPTION
 --     Bulk update all instances in a study, creates new entry in changefeed and fileProperty for each new file added.
