@@ -120,14 +120,15 @@ public class LogForwarderExtensionsTests
         var operationId = Guid.NewGuid().ToString();
         var input = "input";
         var message = "a message";
-        telemetryClient.ForwardOperationLogTrace(message, operationId, input);
+        telemetryClient.ForwardOperationLogTrace(message, operationId, input, "update");
 
         Assert.Single(channel.Items);
 #pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Equal(3, channel.Items[0].Context.Properties.Count);
+        Assert.Equal(4, channel.Items[0].Context.Properties.Count);
         Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
         Assert.Equal(operationId, channel.Items[0].Context.Properties["dicomAdditionalInformation_operationId"]);
         Assert.Equal(input, channel.Items[0].Context.Properties["dicomAdditionalInformation_input"]);
+        Assert.Equal("update", channel.Items[0].Context.Properties["operationName"]);
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
@@ -141,22 +142,24 @@ public class LogForwarderExtensionsTests
         var expectedSecondItemInput = "b".PadRight(32 * 1024); // split occurs at 32 kb
         var fullInput = expectedFirstItemInput + expectedSecondItemInput;
         var message = "a message";
-        telemetryClient.ForwardOperationLogTrace(message, operationId, fullInput);
+        telemetryClient.ForwardOperationLogTrace(message, operationId, fullInput, "update");
 
         Assert.Equal(2, channel.Items.Count);
 
 #pragma warning disable CS0618 // Type or member is obsolete
         var firstItem = channel.Items[0];
-        Assert.Equal(3, firstItem.Context.Properties.Count);
+        Assert.Equal(4, firstItem.Context.Properties.Count);
         Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
         Assert.Equal(operationId, firstItem.Context.Properties["dicomAdditionalInformation_operationId"]);
         Assert.Equal(expectedFirstItemInput, firstItem.Context.Properties["dicomAdditionalInformation_input"]);
+        Assert.Equal("update", firstItem.Context.Properties["operationName"]);
 
         var secondItem = channel.Items[1];
-        Assert.Equal(3, secondItem.Context.Properties.Count);
+        Assert.Equal(4, secondItem.Context.Properties.Count);
         Assert.Equal(Boolean.TrueString, secondItem.Context.Properties["forwardLog"]);
         Assert.Equal(operationId, secondItem.Context.Properties["dicomAdditionalInformation_operationId"]);
         Assert.Equal(expectedSecondItemInput, secondItem.Context.Properties["dicomAdditionalInformation_input"]);
+        Assert.Equal("update", firstItem.Context.Properties["operationName"]);
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 

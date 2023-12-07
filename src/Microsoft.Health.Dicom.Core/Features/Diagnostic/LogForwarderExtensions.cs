@@ -129,7 +129,7 @@ internal static class LogForwarderExtensions
         string message,
         string operationId,
         string input,
-        string operationName = null,
+        string operationName,
         SeverityLevel severityLevel = SeverityLevel.Information)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
