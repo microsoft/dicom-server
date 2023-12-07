@@ -9,14 +9,18 @@ using System.Net;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure;
 using EnsureThat;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Encryption.Customer.Extensions;
+using Microsoft.Health.SqlServer.Features.Storage;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 using ComponentModelValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 using System.Linq;
@@ -93,6 +97,8 @@ public class ExceptionHandlingMiddleware
                 statusCode = HttpStatusCode.BadRequest;
                 break;
             case ConditionalExternalException ex when ex.IsExternal == true:
+            case ConditionalExternalException cee when IsCMKException(cee.InnerException):
+            case Exception e when IsCMKException(e):
                 statusCode = HttpStatusCode.FailedDependency;
                 break;
             case ResourceNotFoundException:
@@ -159,6 +165,13 @@ public class ExceptionHandlingMiddleware
     private static bool IsTaskCanceledException(Exception ex)
     {
         return ex is TaskCanceledException || (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is TaskCanceledException));
+    }
+
+    private static bool IsCMKException(Exception ex)
+    {
+        return ex is SqlException sqlEx && sqlEx.IsCMKError() ||
+            ex is RequestFailedException rfEx && rfEx.IsCMKError() ||
+            (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is SqlException sqlEx && sqlEx.IsCMKError() || x is RequestFailedException rfEx && rfEx.IsCMKError()));
     }
 
     private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)
