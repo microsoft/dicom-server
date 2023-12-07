@@ -103,7 +103,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
             var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partition, cancellationToken);
 
             string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
-            _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);
+            _telemetryClient.ForwardOperationLogTrace("Dicom update operation started successfully.", operationId.ToString(), input);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)

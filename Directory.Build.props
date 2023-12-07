@@ -36,6 +36,12 @@
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
       </PropertyGroup>
     </When>
+    <When Condition="'$(TargetFramework)' == 'netstandard2.0'">
+      <PropertyGroup>
+        <DependencyInjectionVersion>8.0.0</DependencyInjectionVersion>
+        <SdkPackageVersion>8.0.0</SdkPackageVersion>
+      </PropertyGroup>
+    </When>
     <Otherwise>
       <PropertyGroup>
         <DependencyInjectionVersion>7.0.0</DependencyInjectionVersion>
