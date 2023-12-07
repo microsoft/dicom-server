@@ -129,40 +129,6 @@ public partial class UpdateDurableFunction
     /// <param name="arguments">CompleteInstanceArguments</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="CompleteUpdateStudyV3Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(CompleteUpdateStudyV3Async))]
-    [Obsolete("This function is obsolete. Use CompleteUpdateStudyV4Async instead.")]
-    public async Task CompleteUpdateStudyV3Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
-        EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
-        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        logger.LogInformation("Completing updating operation for study.");
-
-        await _indexStore.EndUpdateInstanceAsync(
-            arguments.PartitionKey,
-            arguments.StudyInstanceUid,
-            GetDeserializedDataset(arguments.ChangeDataset),
-            arguments.InstanceMetadataList,
-            Array.Empty<QueryTag>(),
-            CancellationToken.None);
-
-        logger.LogInformation("Updating study completed successfully.");
-    }
-
-    /// <summary>
-    /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
-    /// </summary>
-    /// <param name="arguments">CompleteInstanceArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
     /// A task representing the <see cref="CompleteUpdateStudyV4Async"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
