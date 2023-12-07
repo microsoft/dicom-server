@@ -97,9 +97,7 @@ public class ExceptionHandlingMiddleware
                 statusCode = HttpStatusCode.BadRequest;
                 break;
             case ConditionalExternalException ex when ex.IsExternal == true:
-                statusCode = HttpStatusCode.FailedDependency;
-                break;
-            case ConditionalExternalException dse when IsCMKException(dse.InnerException):
+            case ConditionalExternalException cee when IsCMKException(cee.InnerException):
             case Exception e when IsCMKException(e):
                 statusCode = HttpStatusCode.FailedDependency;
                 break;
@@ -171,9 +169,9 @@ public class ExceptionHandlingMiddleware
 
     private static bool IsCMKException(Exception ex)
     {
-        return ex is SqlException sqlEx && sqlEx.IsCmkError() ||
-            ex is RequestFailedException rfEx && rfEx.IsCmkError() ||
-            (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is SqlException sqlEx && sqlEx.IsCmkError() || x is RequestFailedException rfEx && rfEx.IsCmkError()));
+        return ex is SqlException sqlEx && sqlEx.IsCMKError() ||
+            ex is RequestFailedException rfEx && rfEx.IsCMKError() ||
+            (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is SqlException sqlEx && sqlEx.IsCMKError() || x is RequestFailedException rfEx && rfEx.IsCMKError()));
     }
 
     private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)

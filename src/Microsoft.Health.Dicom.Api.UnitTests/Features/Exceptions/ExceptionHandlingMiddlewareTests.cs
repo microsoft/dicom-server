@@ -13,7 +13,6 @@ using Azure;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Api.Features.Audit;
@@ -28,7 +27,6 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Exceptions;
 public class ExceptionHandlingMiddlewareTests
 {
     private readonly DefaultHttpContext _context;
-    private readonly SqlException _sqlException = Substitute.For<SqlException>();
 
     public ExceptionHandlingMiddlewareTests()
     {
