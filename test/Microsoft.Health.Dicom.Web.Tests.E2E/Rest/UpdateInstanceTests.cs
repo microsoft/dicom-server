@@ -138,15 +138,15 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
                 new AddExtendedQueryTagEntry { Path = patientSexTag.GetPath(), VR = patientSexTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid, "New^PatientName", "054Y", "M");
+        await UpdateStudyAsync(studyInstanceUid, "New^PatientName", "054Y", "M", expectedPhysicianName: "NewPhysicianName");
 
         // Verify using QIDO
-        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y&{patientSexTag.GetPath()}=M");
+        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y&{patientSexTag.GetPath()}=M&{DicomTag.ReferringPhysicianName.GetPath()}=NewPhysicianName");
         DicomDataset[] instances = await queryResponse.ToArrayAsync();
         Assert.Equal(3, instances.Length);
     }
 
-    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null)
+    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null, string expectedPhysicianName = null)
     {
         var datasetToUpdate = new DicomDataset();
         datasetToUpdate.AddOrUpdate(DicomTag.PatientName, expectedPatientName);
@@ -159,6 +159,11 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         if (!string.IsNullOrEmpty(patientSex))
         {
             datasetToUpdate.AddOrUpdate(DicomTag.PatientSex, patientSex);
+        }
+
+        if (!string.IsNullOrEmpty(expectedPhysicianName))
+        {
+            datasetToUpdate.AddOrUpdate(DicomTag.ReferringPhysicianName, expectedPhysicianName);
         }
 
         Assert.Equal(OperationStatus.Succeeded, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate));
