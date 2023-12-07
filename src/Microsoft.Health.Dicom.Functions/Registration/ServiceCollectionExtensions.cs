@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Modules;
@@ -66,7 +67,8 @@ public static class ServiceCollectionExtensions
             .AddFunctionsOptions<UpdateOptions>(configuration, UpdateOptions.SectionName)
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings())
-            .AddSingleton<UpdateMeter>());
+            .AddSingleton<UpdateMeter>()
+            .AddSingleton<IAuditLogger, AuditLogger>());
     }
 
     /// <summary>
