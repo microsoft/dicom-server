@@ -19,6 +19,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Encryption.Customer.Extensions;
+using Microsoft.Health.SqlServer.Features.Storage;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 using ComponentModelValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 using System.Linq;
@@ -27,12 +29,6 @@ namespace Microsoft.Health.Dicom.Api.Features.Exceptions;
 
 public class ExceptionHandlingMiddleware
 {
-    // SQL Errors taken from https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors-31000-to-41399?view=sql-server-ver16
-    private const int SQLKeyVaultCriticalError = 40981;
-    private const int SQLKeyVaultEncounteredError = 33183;
-    private const int SQLKeyVaultErrorObtainingInfo = 33184;
-    private const int SQLCannotConnectToDBInCurrentState = 40925;
-
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
@@ -175,8 +171,9 @@ public class ExceptionHandlingMiddleware
 
     private static bool IsCMKException(Exception ex)
     {
-        return ex is SqlException sqlEx && sqlEx.Number is SQLKeyVaultCriticalError or SQLKeyVaultEncounteredError or SQLKeyVaultErrorObtainingInfo or SQLCannotConnectToDBInCurrentState ||
-            ex is RequestFailedException rfEx && rfEx.ErrorCode == "KeyVaultEncryptionKeyNotFound";
+        return ex is SqlException sqlEx && sqlEx.IsCmkError() ||
+            ex is RequestFailedException rfEx && rfEx.IsCmkError() ||
+            (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is SqlException sqlEx && sqlEx.IsCmkError() || x is RequestFailedException rfEx && rfEx.IsCmkError()));
     }
 
     private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)
