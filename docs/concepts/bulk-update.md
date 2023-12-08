@@ -1,5 +1,5 @@
 # Bulk update overview
-Bulk update is a feature that enables updates of DICOM attributes/metadata without needing to delete and re-add. The currently supported attributes include those in the [Patient Identification Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-2) and the [Patient Demographic Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-3) that are not sequences, also listed below.
+Bulk update is a feature that enables updates of DICOM attributes/metadata without needing to delete and re-add. The currently supported attributes include those in the [Patient Identification Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-2), [Patient Demographic Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-3) and the [General Study Module](https://dicom.nema.org/medical/dicom/2020b/output/chtml/part03/sect_C.7.2.html#table_C.7-3) that are not sequences, also listed below.
 
 **Patient Identification Module**
 | Attribute Name   | Tag           | Description           |
@@ -41,6 +41,13 @@ Bulk update is a feature that enables updates of DICOM attributes/metadata witho
 | Patient Species Description | (0010,2201) | The species of the patient.  |
 | Patient Breed Description | (0010,2292) | The breed of the patient.See Section C.7.1.1.1.1.  |
 | Breed Registration Number | (0010,2295) | Identification number of a veterinary patient within the registry.  |
+
+**General study module**
+| Attribute Name   | Tag           | Description           |
+| ---------------- | --------------| --------------------- |
+| Referring Physician's Name | (0008,0090)   | Name of the Patient's referring physician   |
+| Accession Number | (0008,0050)   | A RIS generated number that identifies the order for the Study. |
+| Study Description | (0008,1030) | Institution-generated description or classification of the Study (component) performed. 
 
 After a study is updated, there are two versions of the instances that can be retrieved: the original, unmodified instances and the latest version with updated attributes.  Intermediate versions are not persisted.  
 

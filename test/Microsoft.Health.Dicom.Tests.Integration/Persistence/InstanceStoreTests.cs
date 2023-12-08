@@ -272,6 +272,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
         DicomDataset dataset4 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
         dataset4.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
+        dataset4.AddOrUpdate(DicomTag.ReferringPhysicianName, "FirstName_LastName");
 
         var instance1 = await CreateInstanceIndexAsync(dataset1, createFileProperties: true);
         var instance2 = await CreateInstanceIndexAsync(dataset2, createFileProperties: true);
@@ -289,6 +290,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
+        dicomDataset.AddOrUpdate(DicomTag.ReferringPhysicianName, "FirstName_NewLastName");
 
         await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>(), Array.Empty<QueryTag>());
 
@@ -309,6 +311,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 
         Assert.True(result.Any());
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
+        Assert.Equal("FirstName_NewLastName", result.First().ReferringPhysicianName);
     }
 
     [Fact]
