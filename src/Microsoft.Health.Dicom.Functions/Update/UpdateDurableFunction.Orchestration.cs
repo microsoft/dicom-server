@@ -6,13 +6,17 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -49,6 +53,16 @@ public partial class UpdateDurableFunction
         IReadOnlyList<InstanceMetadata> instanceMetadataList;
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
         input.Partition ??= new Partition(input.PartitionKey, Partition.UnknownName);
+
+        _auditLogger.LogAudit(
+            AuditAction.Executing,
+            AuditEventSubType.UpdateStudyOperation,
+            null,
+            null,
+            Activity.Current?.RootId,
+            null,
+            null,
+            null);
 
         if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
         {
@@ -156,7 +170,22 @@ public partial class UpdateDurableFunction
                      input.NumberOfStudyFailed,
                      input.TotalNumberOfInstanceUpdated);
 
-                _telemetryClient.ForwardOperationLogTrace("Update operation completed with errors", context.InstanceId, serializedInput);
+                _telemetryClient.ForwardOperationLogTrace(
+                    "Update operation completed with errors",
+                    context.InstanceId,
+                    serializedInput,
+                    AuditEventSubType.UpdateStudyOperation,
+                    ApplicationInsights.DataContracts.SeverityLevel.Error);
+
+                _auditLogger.LogAudit(
+                    AuditAction.Executed,
+                    AuditEventSubType.UpdateStudyOperation,
+                    null,
+                    HttpStatusCode.BadRequest,
+                    Activity.Current?.RootId,
+                    null,
+                    null,
+                    null);
 
                 // Throwing the exception so that it can set the operation status to Failed
                 throw new OperationErrorException("Update operation completed with errors.");
@@ -167,7 +196,17 @@ public partial class UpdateDurableFunction
                      input.NumberOfStudyCompleted,
                      input.TotalNumberOfInstanceUpdated);
 
-                _telemetryClient.ForwardOperationLogTrace("Update operation completed successfully", context.InstanceId, serializedInput);
+                _telemetryClient.ForwardOperationLogTrace("Update operation completed successfully", context.InstanceId, serializedInput, AuditEventSubType.UpdateStudyOperation);
+
+                _auditLogger.LogAudit(
+                    AuditAction.Executed,
+                    AuditEventSubType.UpdateStudyOperation,
+                    null,
+                    HttpStatusCode.OK,
+                    Activity.Current?.RootId,
+                    null,
+                    null,
+                    null);
             }
         }
     }
@@ -201,7 +240,7 @@ public partial class UpdateDurableFunction
 
             foreach (string error in instanceErrors)
             {
-                _telemetryClient.ForwardOperationLogTrace(error, context.InstanceId, string.Empty);
+                _telemetryClient.ForwardOperationLogTrace(error, context.InstanceId, string.Empty, AuditEventSubType.UpdateStudyOperation, ApplicationInsights.DataContracts.SeverityLevel.Error);
             }
         }
 

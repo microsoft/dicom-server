@@ -21,6 +21,7 @@ internal static class LogForwarderExtensions
     private const int MaxShoeboxPropertySize = 32 * 1024;
     private const string ForwardLogFlag = "forwardLog";
     private const string Prefix = "dicomAdditionalInformation_";
+    private const string OperationName = "operationName";
     private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
     private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
     private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
@@ -36,16 +37,18 @@ internal static class LogForwarderExtensions
     /// <param name="telemetryClient">client to use to emit the trace</param>
     /// <param name="message">message to set on the trace log</param>
     /// <param name="instanceIdentifier">identifier to use to set UIDs on log and telemetry properties</param>
+    /// <param name="severityLevel">Severity level of the message</param>
     public static void ForwardLogTrace(
         this TelemetryClient telemetryClient,
         string message,
-        InstanceIdentifier instanceIdentifier)
+        InstanceIdentifier instanceIdentifier,
+        SeverityLevel severityLevel = SeverityLevel.Information)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
-        var telemetry = new TraceTelemetry(message);
+        var telemetry = new TraceTelemetry(message, severityLevel);
         telemetry.Properties.Add(StudyInstanceUID, instanceIdentifier.StudyInstanceUid);
         telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
         telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
@@ -64,14 +67,16 @@ internal static class LogForwarderExtensions
     /// <remarks>NOTE - do not use this if reporting on any specific instance. Only use as high level remarks. Attempt to use identifiers wherever possible</remarks>
     /// <param name="telemetryClient">client to use to emit the trace</param>
     /// <param name="message">message to set on the trace log</param>
+    /// <param name="severityLevel">Severity level of the message</param>
     public static void ForwardLogTrace(
         this TelemetryClient telemetryClient,
-        string message)
+        string message,
+        SeverityLevel severityLevel = SeverityLevel.Information)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
 
-        var telemetry = new TraceTelemetry(message);
+        var telemetry = new TraceTelemetry(message, severityLevel);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
 
         telemetryClient.TrackTrace(telemetry);
@@ -84,18 +89,20 @@ internal static class LogForwarderExtensions
     /// <param name="message">message to set on the trace log</param>
     /// <param name="partition">Partition within which file is residing</param>
     /// <param name="fileProperties">File properties of file this message is regarding</param>
+    /// <param name="severityLevel">Severity level of the message</param>
     public static void ForwardLogTrace(
         this TelemetryClient telemetryClient,
         string message,
         Partition partition,
-        FileProperties fileProperties)
+        FileProperties fileProperties,
+        SeverityLevel severityLevel = SeverityLevel.Information)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNull(partition, nameof(partition));
         EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
 
-        var telemetry = new TraceTelemetry(message);
+        var telemetry = new TraceTelemetry(message, severityLevel);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
         telemetry.Properties.Add(FilePropertiesPath, fileProperties.Path);
         telemetry.Properties.Add(FilePropertiesETag, fileProperties.ETag);
@@ -109,26 +116,32 @@ internal static class LogForwarderExtensions
 
     /// <summary>
     /// Emits a trace log with forwarding flag set for operations and adds the required properties to telemetry.
+    /// For Audit shoebox the operation name are automatically populated from HttpContext. For internal operation, the operation name needs to be passed in.
     /// </summary>
     /// <param name="telemetryClient">client to use to emit the trace</param>
     /// <param name="message">message to set on the trace log</param>
     /// <param name="operationId">operation id</param>
     /// <param name="input">Input payload to pass to the forward logger</param>
+    /// <param name="operationName">Operation name of the trace event</param>
+    /// <param name="severityLevel">Severity level of the message</param>
     public static void ForwardOperationLogTrace(
         this TelemetryClient telemetryClient,
         string message,
         string operationId,
-        string input)
+        string input,
+        string operationName,
+        SeverityLevel severityLevel = SeverityLevel.Information)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNull(operationId, nameof(operationId));
 
         // Shoebox property size has a limitation of 32 KB which is why the diagnostic log is split into multiple messages
-        int startIndex = 0, offset = 0, inputSize = input.Length;
+        int startIndex = 0, inputSize = input.Length;
         while (startIndex < inputSize)
         {
-            offset = Math.Min(MaxShoeboxPropertySize, input.Length - startIndex);
-            ForwardOperationLogTraceWithSizeLimit(telemetryClient, message, operationId, input.Substring(startIndex, offset));
+            int offset = Math.Min(MaxShoeboxPropertySize, input.Length - startIndex);
+            ForwardOperationLogTraceWithSizeLimit(telemetryClient, message, operationId, input.Substring(startIndex, offset), operationName, severityLevel);
             startIndex += offset;
         }
     }
@@ -137,12 +150,15 @@ internal static class LogForwarderExtensions
         TelemetryClient telemetryClient,
         string message,
         string operationId,
-        string input)
+        string input,
+        string operationName,
+        SeverityLevel severityLevel)
     {
-        var telemetry = new TraceTelemetry(message);
+        var telemetry = new TraceTelemetry(message, severityLevel);
         telemetry.Properties.Add(InputPayload, input);
         telemetry.Properties.Add(OperationId, operationId);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
+        telemetry.Properties.Add(OperationName, operationName);
 
         telemetryClient.TrackTrace(telemetry);
     }

@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -31,6 +32,7 @@ public partial class UpdateDurableFunction
     private readonly IQueryTagService _queryTagService;
     private readonly UpdateMeter _updateMeter;
     private readonly TelemetryClient _telemetryClient;
+    private readonly IAuditLogger _auditLogger;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly bool _externalStoreEnabled;
 
@@ -44,6 +46,7 @@ public partial class UpdateDurableFunction
         IQueryTagService queryTagService,
         UpdateMeter updateMeter,
         TelemetryClient telemetryClient,
+        IAuditLogger auditLogger,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
         IOptions<FeatureConfiguration> featureConfiguration)
     {
@@ -57,6 +60,7 @@ public partial class UpdateDurableFunction
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         _updateMeter = EnsureArg.IsNotNull(updateMeter, nameof(updateMeter));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _auditLogger = EnsureArg.IsNotNull(auditLogger, nameof(auditLogger));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
         _externalStoreEnabled = featureConfiguration.Value.EnableExternalStore;
     }

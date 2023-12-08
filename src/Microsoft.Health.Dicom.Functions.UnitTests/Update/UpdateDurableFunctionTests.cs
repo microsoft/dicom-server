@@ -11,6 +11,7 @@ using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -68,6 +69,7 @@ public partial class UpdateDurableFunctionTests
             Substitute.For<IQueryTagService>(),
             _updateMeter,
             telemetryClient,
+            Substitute.For<IAuditLogger>(),
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration()));
         _updateDurableFunctionWithExternalStore = new UpdateDurableFunction(
@@ -80,6 +82,7 @@ public partial class UpdateDurableFunctionTests
             Substitute.For<IQueryTagService>(),
             _updateMeter,
             telemetryClient,
+            Substitute.For<IAuditLogger>(),
             Options.Create(_jsonSerializerOptions),
             Options.Create(new FeatureConfiguration { EnableExternalStore = true, }));
         InitializeMetricExporter();
