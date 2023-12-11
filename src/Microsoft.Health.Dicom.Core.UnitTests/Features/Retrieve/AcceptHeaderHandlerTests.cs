@@ -243,7 +243,7 @@ public class AcceptHeaderHandlerTests
         );
 
         var expectedTransferSyntax = string.IsNullOrEmpty(requestedAcceptHeaders.First().TransferSyntax.Value) ?
-            ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing :
+            "*" :
             requestedAcceptHeaders.First().TransferSyntax.Value;
 
         Assert.Equal(mediaType, matchedAcceptHeader.MediaType);

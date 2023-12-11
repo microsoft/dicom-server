@@ -138,7 +138,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 payloadType: payloadTypes,
                 mediaType: KnownContentTypes.AnyMediaType,
                 isTransferSyntaxMandatory: false,
-                transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                transferSyntaxWhenMissing: DicomTransferSyntaxUids.Original,
                 acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(
                     DicomTransferSyntaxUids.Original,
                     DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
@@ -168,7 +168,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 payloadType: PayloadTypes.SinglePartOrMultipartRelated,
                 mediaType: KnownContentTypes.AnyMediaType,
                 isTransferSyntaxMandatory: false,
-                transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                transferSyntaxWhenMissing: DicomTransferSyntaxUids.Original,
                 acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(
                     DicomTransferSyntaxUids.Original,
                     DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)),
