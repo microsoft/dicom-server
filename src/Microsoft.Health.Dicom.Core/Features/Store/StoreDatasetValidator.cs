@@ -147,21 +147,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         string seriesInstanceUid = EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SeriesInstanceUID);
         string sopInstanceUid = EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SOPInstanceUID);
 
-        // Ensure the StudyInstanceUid != SeriesInstanceUid != sopInstanceUid
-        if (studyInstanceUid == seriesInstanceUid ||
-            studyInstanceUid == sopInstanceUid ||
-            seriesInstanceUid == sopInstanceUid)
-        {
-            var tag = studyInstanceUid == seriesInstanceUid ? DicomTag.SeriesInstanceUID :
-                studyInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID :
-                seriesInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID : null;
-
-            throw new DatasetValidationException(
-                FailureReasonCodes.ValidationFailure,
-                DicomCoreResource.DuplicatedUidsNotAllowed,
-                tag);
-        }
-
         // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match, ignoring whitespace.
         if (requiredStudyInstanceUid != null &&
             !studyInstanceUid.TrimEnd().Equals(requiredStudyInstanceUid.TrimEnd(), StringComparison.OrdinalIgnoreCase))

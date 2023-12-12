@@ -122,16 +122,16 @@ public class RetrieveMetadataHandlerTests
     public async Task GivenRepeatedIdentifiers_WhenRetrievingInstanceMetadata_ThenDicomBadRequestExceptionIsThrownAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
         string ifNoneMatch = null;
-        const string expectedErrorMessage = "The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.";
         var request = new RetrieveMetadataRequest(
             studyInstanceUid: studyInstanceUid,
             seriesInstanceUid: seriesInstanceUid,
             sopInstanceUid: sopInstanceUid,
             ifNoneMatch: ifNoneMatch);
 
-        var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveMetadataHandler.Handle(request, CancellationToken.None));
+        RetrieveMetadataResponse response = SetupRetrieveMetadataResponse();
+        _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Returns(response);
 
-        Assert.Equal(expectedErrorMessage, ex.Message);
+        await ValidateRetrieveMetadataResponse(response, request);
     }
 
     [Fact]

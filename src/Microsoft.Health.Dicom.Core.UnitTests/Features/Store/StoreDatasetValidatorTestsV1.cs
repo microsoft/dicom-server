@@ -346,7 +346,12 @@ public class StoreDatasetValidatorTestsV1
         string value = _dicomDataset.GetSingleValue<string>(firstDicomTag);
         _dicomDataset.AddOrUpdate(secondDicomTag, value);
 
-        await ExecuteAndValidateInvalidTagEntries(secondDicomTag);
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
     }
 
     [Fact]

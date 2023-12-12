@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -145,17 +145,17 @@ public class RetrieveResourceHandlerTests
     public async Task GivenRepeatedIdentifiers_WhenRetrievingFrames_ThenDicomBadRequestExceptionIsThrownAsync(
         string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
-        const string expectedErrorMessage = "The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.";
+        RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Substitute.For<IAsyncEnumerable<RetrieveResourceInstance>>(), KnownContentTypes.ApplicationOctetStream);
         var request = new RetrieveResourceRequest(
             studyInstanceUid: studyInstanceUid,
             seriesInstanceUid: seriesInstanceUid,
             sopInstanceUid: sopInstanceUid,
             frames: new int[] { 1 },
             acceptHeaders: new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
+        _retrieveResourceService.GetInstanceResourceAsync(request, CancellationToken.None).Returns(expectedResponse);
 
-        var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveResourceHandler.Handle(request, CancellationToken.None));
-
-        Assert.Equal(expectedErrorMessage, ex.Message);
+        RetrieveResourceResponse response = await _retrieveResourceHandler.Handle(request, CancellationToken.None);
+        Assert.Same(expectedResponse, response);
     }
 
     [Fact]
