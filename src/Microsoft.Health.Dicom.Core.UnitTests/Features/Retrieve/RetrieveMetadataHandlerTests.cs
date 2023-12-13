@@ -119,7 +119,7 @@ public class RetrieveMetadataHandlerTests
     [InlineData("1", "1", "2")]
     [InlineData("1", "2", "1")]
     [InlineData("1", "2", "2")]
-    public async Task GivenRepeatedIdentifiers_WhenRetrievingInstanceMetadata_ThenDicomBadRequestExceptionIsThrownAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    public async Task GivenRepeatedIdentifiers_WhenRetrievingInstanceMetadata_ThenResponseMetadataIsReturnedSuccessfully(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
         string ifNoneMatch = null;
         var request = new RetrieveMetadataRequest(

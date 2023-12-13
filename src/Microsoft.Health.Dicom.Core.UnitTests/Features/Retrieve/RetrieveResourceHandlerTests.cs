@@ -142,7 +142,7 @@ public class RetrieveResourceHandlerTests
     [InlineData("1", "1", "2")]
     [InlineData("1", "2", "1")]
     [InlineData("1", "2", "2")]
-    public async Task GivenRepeatedIdentifiers_WhenRetrievingFrames_ThenDicomBadRequestExceptionIsThrownAsync(
+    public async Task GivenRepeatedIdentifiers_WhenRetrievingFrames_ThenNoExceptionIsThrown(
         string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
         RetrieveResourceResponse expectedResponse = new RetrieveResourceResponse(Substitute.For<IAsyncEnumerable<RetrieveResourceInstance>>(), KnownContentTypes.ApplicationOctetStream);
