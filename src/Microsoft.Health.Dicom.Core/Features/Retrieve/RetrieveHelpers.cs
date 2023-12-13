@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -15,7 +16,15 @@ using Microsoft.Health.Dicom.Core.Features.Partitioning;
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 internal static class RetrieveHelpers
 {
-    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, Partition partition, FileProperties fileProperties, bool render, CancellationToken cancellationToken)
+    public static async Task<FileProperties> CheckFileSize(
+        IFileStore blobDataStore,
+        long maxDicomFileSize,
+        long version,
+        Partition partition,
+        FileProperties fileProperties,
+        bool render,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
 
@@ -24,6 +33,8 @@ internal static class RetrieveHelpers
         // limit the file size that can be read in memory
         if (filePropertiesWithContentLength.ContentLength > maxDicomFileSize)
         {
+            logger.LogInformation("Requested DICOM instance size is above the supported limit. Actual size {ActualLength} bytes. IsRender {IsRender}", filePropertiesWithContentLength.ContentLength, render);
+
             if (render)
             {
                 throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RenderFileTooLarge, maxDicomFileSize));
