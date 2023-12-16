@@ -144,6 +144,11 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y&{patientSexTag.GetPath()}=M&{DicomTag.ReferringPhysicianName.GetPath()}=NewPhysicianName");
         DicomDataset[] instances = await queryResponse.ToArrayAsync();
         Assert.Equal(3, instances.Length);
+
+        // Verify using QIDO not original values
+        queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=053Y");
+        instances = await queryResponse.ToArrayAsync();
+        Assert.Empty(instances);
     }
 
     private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null, string expectedPhysicianName = null)
