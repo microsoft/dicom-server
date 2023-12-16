@@ -2649,12 +2649,10 @@ BEGIN
                                                                               AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
-                                                                              AND (T.SopInstanceKey2 = @seriesKey
-                                                                                   OR (T.SopInstanceKey2 IS NULL
-                                                                                       AND @seriesKey IS NULL))
-                                                                              AND (T.SopInstanceKey3 = @instanceKey
-                                                                                   OR (T.SopInstanceKey3 IS NULL
-                                                                                       AND @instanceKey IS NULL))
+                                                                              AND (T.SopInstanceKey2 IS NULL
+                                                                                   OR T.SopInstanceKey2 = @seriesKey)
+                                                                              AND (T.SopInstanceKey3 IS NULL
+                                                                                   OR T.SopInstanceKey3 = @instanceKey)
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = ISNULL(S.TagValue, T.TagValue)
@@ -2676,12 +2674,10 @@ BEGIN
                                                                               AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
-                                                                              AND (T.SopInstanceKey2 = @seriesKey
-                                                                                   OR (T.SopInstanceKey2 IS NULL
-                                                                                       AND @seriesKey IS NULL))
-                                                                              AND (T.SopInstanceKey3 = @instanceKey
-                                                                                   OR (T.SopInstanceKey3 IS NULL
-                                                                                       AND @instanceKey IS NULL))
+                                                                              AND (T.SopInstanceKey2 IS NULL
+                                                                                   OR T.SopInstanceKey2 = @seriesKey)
+                                                                              AND (T.SopInstanceKey3 IS NULL
+                                                                                   OR T.SopInstanceKey3 = @instanceKey)
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = ISNULL(S.TagValue, T.TagValue)
@@ -2703,12 +2699,10 @@ BEGIN
                                                                               AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
-                                                                              AND (T.SopInstanceKey2 = @seriesKey
-                                                                                   OR (T.SopInstanceKey2 IS NULL
-                                                                                       AND @seriesKey IS NULL))
-                                                                              AND (T.SopInstanceKey3 = @instanceKey
-                                                                                   OR (T.SopInstanceKey3 IS NULL
-                                                                                       AND @instanceKey IS NULL))
+                                                                              AND (T.SopInstanceKey2 IS NULL
+                                                                                   OR T.SopInstanceKey2 = @seriesKey)
+                                                                              AND (T.SopInstanceKey3 IS NULL
+                                                                                   OR T.SopInstanceKey3 = @instanceKey)
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = ISNULL(S.TagValue, T.TagValue)
@@ -2731,12 +2725,10 @@ BEGIN
                                                                               AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
-                                                                              AND (T.SopInstanceKey2 = @seriesKey
-                                                                                   OR (T.SopInstanceKey2 IS NULL
-                                                                                       AND @seriesKey IS NULL))
-                                                                              AND (T.SopInstanceKey3 = @instanceKey
-                                                                                   OR (T.SopInstanceKey3 IS NULL
-                                                                                       AND @instanceKey IS NULL))
+                                                                              AND (T.SopInstanceKey2 IS NULL
+                                                                                   OR T.SopInstanceKey2 = @seriesKey)
+                                                                              AND (T.SopInstanceKey3 IS NULL
+                                                                                   OR T.SopInstanceKey3 = @instanceKey)
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = ISNULL(S.TagValue, T.TagValue)
@@ -2758,12 +2750,10 @@ BEGIN
                                                                               AND T.TagKey = S.TagKey
                                                                               AND T.PartitionKey = @partitionKey
                                                                               AND T.SopInstanceKey1 = @studyKey
-                                                                              AND (T.SopInstanceKey2 = @seriesKey
-                                                                                   OR (T.SopInstanceKey2 IS NULL
-                                                                                       AND @seriesKey IS NULL))
-                                                                              AND (T.SopInstanceKey3 = @instanceKey
-                                                                                   OR (T.SopInstanceKey3 IS NULL
-                                                                                       AND @instanceKey IS NULL))
+                                                                              AND (T.SopInstanceKey2 IS NULL
+                                                                                   OR T.SopInstanceKey2 = @seriesKey)
+                                                                              AND (T.SopInstanceKey3 IS NULL
+                                                                                   OR T.SopInstanceKey3 = @instanceKey)
             WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
             SET T.Watermark = @watermark,
                 T.TagValue  = ISNULL(S.TagValue, T.TagValue)
