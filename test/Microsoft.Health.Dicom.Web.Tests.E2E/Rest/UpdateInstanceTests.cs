@@ -146,6 +146,16 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.Equal(3, instances.Length);
     }
 
+    [Fact]
+    public async Task WhenUpdatingDicomMetadataWithFeatureDisabled_ThenBadRequestReturned()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        var datasetToUpdate = new DicomDataset();
+        datasetToUpdate.AddOrUpdate(DicomTag.PatientName, "Foo");
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate));
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+    }
+
     private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null)
     {
         var datasetToUpdate = new DicomDataset();
