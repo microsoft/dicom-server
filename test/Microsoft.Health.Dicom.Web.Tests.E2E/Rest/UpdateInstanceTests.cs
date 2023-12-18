@@ -38,7 +38,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         _instancesManager = new DicomInstancesManager(_client);
     }
 
-    [Fact]
+    [Fact(Skip = "Blocking update operation")]
     public async Task WhenUpdatingDicomMetadataForASingleStudy_ThenItShouldUpdateCorrectly()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
@@ -57,7 +57,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyMetadata(studyInstanceUid, Enumerable.Repeat("New^PatientName", 3).ToArray());
     }
 
-    [Fact]
+    [Fact(Skip = "Blocking update operation")]
     public async Task WhenUpdatingDicomMetadataForStudyWithMultipleInstances_ThenItShouldUpdateCorrectly()
     {
         string studyInstanceUid1 = TestUidGenerator.Generate();
@@ -89,7 +89,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
     }
 
-    [Fact]
+    [Fact(Skip = "Blocking update operation")]
     public async Task GivenInstanceUpdated_WhenDeleting_ThenItShouldDeleteBothOriginalAndNew()
     {
         string studyInstanceUid1 = TestUidGenerator.Generate();
@@ -105,7 +105,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, requestOriginalVersion: true);
     }
 
-    [Fact]
+    [Fact(Skip = "Blocking update operation")]
     public async Task WhenUpdatingDicomMetadataWithExtendedQueryTagForASingleStudy_ThenItShouldUpdateCorrectly()
     {
         DicomTag ageTag = DicomTag.PatientAge;

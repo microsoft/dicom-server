@@ -39,6 +39,7 @@ public class StoreController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ILogger<StoreController> _logger;
     private readonly bool _asyncOperationDisabled;
+    private readonly bool _enableBulkUpdate;
 
     public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
     {
@@ -49,6 +50,7 @@ public class StoreController : ControllerBase
         _mediator = mediator;
         _logger = logger;
         _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
+        _enableBulkUpdate = featureConfiguration.Value.EnableBulkUpdate;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -102,6 +104,11 @@ public class StoreController : ControllerBase
         if (_asyncOperationDisabled)
         {
             throw new DicomAsyncOperationDisabledException();
+        }
+
+        if (!_enableBulkUpdate)
+        {
+            throw new DicomBulkUpdateOperationDisabledException();
         }
 
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);

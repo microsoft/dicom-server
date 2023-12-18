@@ -39,4 +39,9 @@ public class FeatureConfiguration
     /// Disables all async operations
     /// </summary>
     public bool DisableOperations { get; set; }
+
+    /// <summary>
+    /// Enables bulk update operation
+    /// </summary>
+    public bool EnableBulkUpdate { get; set; }
 }

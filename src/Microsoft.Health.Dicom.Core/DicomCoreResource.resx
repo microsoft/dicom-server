@@ -679,4 +679,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DicomAsyncOperationDisabled" xml:space="preserve">
     <value>Asynchronous operations are temporarily disabled. Please try again later.</value>
   </data>
+  <data name="DicomBulkUpdateOperationDisabled" xml:space="preserve">
+    <value>DICOM bulk update feature is disabled.</value>
+  </data>
 </root>
