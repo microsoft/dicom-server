@@ -116,7 +116,7 @@ public class BlobFileStore : IFileStore
         return ExecuteAsync(
             func: async () =>
             {
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(stageBlockSizeInBytes);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(Math.Min(stageBlockSizeInBytes, (int)stream.Length));
                 FileProperties fileProperties;
                 KeyValuePair<string, long> block = default;
                 long totalBytesRead = 0;
