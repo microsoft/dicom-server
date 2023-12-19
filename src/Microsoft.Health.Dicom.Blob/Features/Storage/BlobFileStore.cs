@@ -104,37 +104,44 @@ public class BlobFileStore : IFileStore
         long version,
         Partition partition,
         Stream stream,
-        IDictionary<string, long> blockLengths,
+        int stageBlockSizeInBytes,
+        KeyValuePair<string, long> firstBlock,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
         EnsureArg.IsNotNull(partition, nameof(partition));
-        EnsureArg.IsNotNull(blockLengths, nameof(blockLengths));
-        EnsureArg.IsGte(blockLengths.Count, 0, nameof(blockLengths.Count));
 
         BlockBlobClient blobClient = GetNewInstanceBlockBlobClient(version, partition.Name);
-
-        int maxBufferSize = (int)blockLengths.Max(x => x.Value);
 
         return ExecuteAsync(
             func: async () =>
             {
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(stageBlockSizeInBytes);
                 FileProperties fileProperties;
+                KeyValuePair<string, long> block = default;
+                long totalBytesRead = 0;
+                int i = 0;
+                List<string> blockIds = new();
+
                 try
                 {
-                    foreach ((string blockId, long blockSize) in blockLengths)
+                    while (totalBytesRead < stream.Length)
                     {
+                        block = i == 0 ? firstBlock : new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), Math.Min(stageBlockSizeInBytes, stream.Length - totalBytesRead));
+
 #pragma warning disable CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
-                        await stream.ReadAsync(buffer, 0, (int)blockSize, cancellationToken);
+                        long bytesRead = await stream.ReadAsync(buffer, 0, (int)block.Value, cancellationToken);
 #pragma warning restore CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
 
-                        using var blockStream = new MemoryStream(buffer, 0, (int)blockSize);
-                        await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
+                        using var blockStream = new MemoryStream(buffer, 0, (int)bytesRead);
+                        await blobClient.StageBlockAsync(block.Key, blockStream, cancellationToken: cancellationToken);
+                        i++;
+                        totalBytesRead += bytesRead;
+                        blockIds.Add(block.Key);
                     }
 
                     BlobContentInfo info = await blobClient.CommitBlockListAsync(
-                        blockLengths.Keys,
+                        blockIds,
                         cancellationToken: cancellationToken);
 
                     fileProperties = new FileProperties

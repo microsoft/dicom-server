@@ -10,10 +10,13 @@ using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.Imaging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
+using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Operations;
 using Xunit;
@@ -63,7 +66,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         string studyInstanceUid1 = TestUidGenerator.Generate();
         string studyInstanceUid2 = TestUidGenerator.Generate();
 
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 200, columns: 200, frames: 10, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 650, columns: 650, frames: 5, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
         DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid1);
         DicomFile dicomFile3 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid2);
         string originalPatientName1 = dicomFile1.Dataset.GetSingleValue<string>(DicomTag.PatientName);
@@ -217,14 +220,20 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
     private async Task VerifyRetrieveFrame(string studyInstanceUid, DicomFile dicomFile)
     {
-        using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
-            studyInstanceUid,
-            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
-            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
-            1);
-        using Stream frameStream = await response.GetValueAsync();
-        Assert.NotNull(frameStream);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        int numberOfFrames = dicomFile.Dataset.GetSingleValue<int>(DicomTag.NumberOfFrames);
+        var pixelData = DicomPixelData.Create(dicomFile.Dataset);
+        for (int i = 0; i < numberOfFrames; i++)
+        {
+            using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
+               studyInstanceUid,
+               dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+               dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+               1);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using Stream frameStream = await response.GetValueAsync();
+            Assert.NotNull(frameStream);
+            Assert.Equal(frameStream.ToByteArray(), pixelData.GetFrame(i).Data, BinaryComparer.Instance);
+        }
     }
 
     private async Task VerifyRetrieveInstanceWithTranscoding(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName, bool requestOriginalVersion = default)

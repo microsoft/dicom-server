@@ -90,10 +90,11 @@ public interface IFileStore
     /// <param name="version">The DICOM instance version.</param>
     /// <param name="partition">Partition to use when storing file</param>
     /// <param name="stream">The DICOM instance stream.</param>
-    /// <param name="blockLengths">Dictionary of blockId and block lengths</param>
+    /// <param name="stageBlockSizeInBytes">This is the size of the stage block in bytes.</param>
+    /// <param name="firstBlock">This is the ID and length of the initial block</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous Store operation.</returns>
-    Task<FileProperties> StoreFileInBlocksAsync(long version, Partition partition, Stream stream, IDictionary<string, long> blockLengths, CancellationToken cancellationToken = default);
+    Task<FileProperties> StoreFileInBlocksAsync(long version, Partition partition, Stream stream, int stageBlockSizeInBytes, KeyValuePair<string, long> firstBlock, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a file content from the file store. The file content will be in memory. Use only for small files

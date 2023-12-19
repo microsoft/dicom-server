@@ -145,7 +145,8 @@ public class UpdateInstanceServiceTests
                 newFileIdentifier,
                 Partition.Default,
                 Arg.Any<Stream>(),
-                Arg.Any<IDictionary<string, long>>(),
+                0,
+                Arg.Any<KeyValuePair<string, long>>(),
                 cancellationToken)
             .Returns(DefaultCopiedFileProperties);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -170,7 +171,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 1),
+            0,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
         await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<FrameRange>(), cancellationToken);
         _fileStore.UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken).Returns(DefaultUpdatedFileProperties);
@@ -222,7 +224,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Any<IDictionary<string, long>>(),
+            0,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken)
          .Returns(DefaultFileProperties);
 
@@ -240,7 +243,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 2 && x.Sum(y => y.Value) == copyStream.Length),
+            0,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
 
         streamAndStoredFile.Value.Dispose();
@@ -293,7 +297,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Any<IDictionary<string, long>>(),
+            0,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken)
          .Returns(DefaultFileProperties);
 
@@ -312,7 +317,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 2 && x.Sum(y => y.Value) == copyStream.Length),
+            0,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
         await _fileStore.Received(1).GetFirstBlockPropertyAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
 
