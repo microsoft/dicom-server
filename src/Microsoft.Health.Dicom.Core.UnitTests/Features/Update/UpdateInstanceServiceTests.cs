@@ -244,7 +244,7 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            0,
+            _config.StageBlockSizeInBytes,
             Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
 
