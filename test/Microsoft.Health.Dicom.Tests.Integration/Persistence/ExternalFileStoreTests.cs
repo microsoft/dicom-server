@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -197,13 +198,14 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task<FileProperties> AddFileInBlocksAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
+        var config = new UpdateConfiguration();
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
             return await _blobDataStore.StoreFileInBlocksAsync(
                 version,
                 Partition.Default,
                 stream,
-                4 * 1024 * 1024,
+                config.StageBlockSizeInBytes,
                 new System.Collections.Generic.KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length),
                 cancellationToken);
         }

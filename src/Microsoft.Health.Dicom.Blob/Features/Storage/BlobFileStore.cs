@@ -120,26 +120,34 @@ public class BlobFileStore : IFileStore
                 FileProperties fileProperties;
                 KeyValuePair<string, long> block = default;
                 long totalBytesRead = 0;
-                int i = 0;
+                int blockIteration = 0;
                 List<string> blockIds = new();
 
                 try
                 {
                     while (totalBytesRead < stream.Length)
                     {
-                        block = i == 0 ? firstBlock : new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), Math.Min(stageBlockSizeInBytes, stream.Length - totalBytesRead));
+                        // Create a new block with a unique key and a size equal to the minimum value between stageBlockSizeInBytes and the remaining bytes in the stream
+                        // If its a first block use the passed value since it is pre-determined and rest are dependent on the stream readAsync. The first block will contain the patient metadata.
+                        block = blockIteration == 0 ? firstBlock : new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), Math.Min(stageBlockSizeInBytes, stream.Length - totalBytesRead));
 
+                        // Read data from the input stream into the buffer array. Azure.Sorage.LazyLoadingReadOnlyStream may not return the full amount of bytes requested, so we need to loop until we have read the full amount.
 #pragma warning disable CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
                         long bytesRead = await stream.ReadAsync(buffer, 0, (int)block.Value, cancellationToken);
 #pragma warning restore CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
 
+                        // Create a MemoryStream that wraps the buffer array and contains only the data read in the current iteration
                         using var blockStream = new MemoryStream(buffer, 0, (int)bytesRead);
+
+                        // Stage the block with the specified key and data from the blockStream
                         await blobClient.StageBlockAsync(block.Key, blockStream, cancellationToken: cancellationToken);
-                        i++;
+
+                        blockIteration++;
                         totalBytesRead += bytesRead;
                         blockIds.Add(block.Key);
                     }
 
+                    // Commit the blocks that are staged in the blob
                     BlobContentInfo info = await blobClient.CommitBlockListAsync(
                         blockIds,
                         cancellationToken: cancellationToken);
@@ -552,7 +560,7 @@ public class BlobFileStore : IFileStore
         try
         {
             var resp = await func();
-            EmitTelemetry(nameof(operationName), operationType, extractLength?.Invoke(resp));
+            EmitTelemetry(operationName, operationType, extractLength?.Invoke(resp));
             return resp;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !_blobClient.IsExternal)

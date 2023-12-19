@@ -66,7 +66,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         string studyInstanceUid1 = TestUidGenerator.Generate();
         string studyInstanceUid2 = TestUidGenerator.Generate();
 
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 1000, columns: 1000, frames: 5, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 200, columns: 200, frames: 10, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
         DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid1);
         DicomFile dicomFile3 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid2);
         string originalPatientName1 = dicomFile1.Dataset.GetSingleValue<string>(DicomTag.PatientName);
@@ -88,7 +88,36 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         // Verify again to ensure update is successful
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
         await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
-        await VerifyMetadata(studyInstanceUid1, new string[] { originalPatientName1, originalPatientName2 }, true);
+        await VerifyMetadata(studyInstanceUid1, [originalPatientName1, originalPatientName2], true);
+        await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
+    }
+
+    [Fact]
+    public async Task WhenUpdatingDicomMetadataWithDicomFileSizeGreaterThan4MB_ThenItShouldUpdateCorrectly()
+    {
+        string studyInstanceUid1 = TestUidGenerator.Generate();
+        string studyInstanceUid2 = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 1000, columns: 1000, frames: 5, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
+        string originalPatientName1 = dicomFile1.Dataset.GetSingleValue<string>(DicomTag.PatientName);
+
+        // Upload files
+        Assert.True((await _instancesManager.StoreAsync(new[] { dicomFile1 })).IsSuccessStatusCode);
+
+        // Update study
+        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
+
+        // Verify study
+        await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 2).ToArray());
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
+
+        // Update again to ensure DICOM file is not corrupted after update
+        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName1");
+
+        // Verify again to ensure update is successful
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
+        await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
+        await VerifyMetadata(studyInstanceUid1, [originalPatientName1], true);
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
     }
 
