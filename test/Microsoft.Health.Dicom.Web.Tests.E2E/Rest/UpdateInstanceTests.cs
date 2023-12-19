@@ -88,7 +88,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         // Verify again to ensure update is successful
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
         await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
-        await VerifyMetadata(studyInstanceUid1, [originalPatientName1, originalPatientName2], true);
+        await VerifyMetadata(studyInstanceUid1, new string[] { originalPatientName1, originalPatientName2 }, true);
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
     }
 
@@ -117,7 +117,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         // Verify again to ensure update is successful
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
         await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
-        await VerifyMetadata(studyInstanceUid1, [originalPatientName1], true);
+        await VerifyMetadata(studyInstanceUid1, new string[] { originalPatientName1 }, true);
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
     }
 
