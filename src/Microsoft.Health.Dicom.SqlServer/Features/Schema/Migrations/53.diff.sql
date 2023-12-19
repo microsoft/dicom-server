@@ -1,4 +1,9 @@
-﻿/***************************************************************************************/
+﻿SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+GO
+      
+/***************************************************************************************/
 -- STORED PROCEDURE
 --    IIndexInstanceCoreV9
 --
@@ -70,7 +75,7 @@ BEGIN
             AND T.SopInstanceKey1 = @studyKey
             -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
             AND (T.SopInstanceKey2 IS NULL OR T.SopInstanceKey2 = @seriesKey)
-            -- Null InstanceKey indicates a Study/Series level tag, no need to compare InstanceKey
+            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
             AND (T.SopInstanceKey3 IS NULL OR T.SopInstanceKey3 = @instanceKey)
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
@@ -249,3 +254,6 @@ BEGIN
             );
     END
 END
+GO
+
+COMMIT TRANSACTION
