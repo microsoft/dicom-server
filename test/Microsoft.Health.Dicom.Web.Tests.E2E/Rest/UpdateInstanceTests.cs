@@ -108,8 +108,9 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
 
         // Verify study
-        await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 2).ToArray());
+        await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 1).ToArray());
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
+        await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
 
         // Update again to ensure DICOM file is not corrupted after update
         await UpdateStudyAsync(studyInstanceUid1, "New^PatientName1");
