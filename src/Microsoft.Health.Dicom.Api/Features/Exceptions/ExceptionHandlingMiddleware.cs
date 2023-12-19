@@ -91,7 +91,6 @@ public class ExceptionHandlingMiddleware
             case ConnectionResetException:
             case OperationCanceledException:
             case MicrosoftHealthException ex when IsOperationCanceledException(ex.InnerException):
-            case DataStoreException e when IsOperationCanceledException(e.InnerException):
             case BadHttpRequestException:
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;
