@@ -228,7 +228,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
                studyInstanceUid,
                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
-               1);
+               i + 1);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             using Stream frameStream = await response.GetValueAsync();
             Assert.NotNull(frameStream);

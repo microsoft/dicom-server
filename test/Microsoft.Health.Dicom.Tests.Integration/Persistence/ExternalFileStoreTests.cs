@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -200,7 +200,13 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, UpdateInstanceService.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
+            return await _blobDataStore.StoreFileInBlocksAsync(
+                version,
+                Partition.Default,
+                stream,
+                4 * 1024 * 1024,
+                new System.Collections.Generic.KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length),
+                cancellationToken);
         }
     }
 
