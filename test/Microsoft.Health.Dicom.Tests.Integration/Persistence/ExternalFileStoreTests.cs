@@ -11,7 +11,6 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
-using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.IO;
 using Xunit;
 
