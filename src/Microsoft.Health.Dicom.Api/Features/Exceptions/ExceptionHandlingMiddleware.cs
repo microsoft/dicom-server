@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
@@ -21,9 +22,8 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Encryption.Customer.Extensions;
 using Microsoft.Health.SqlServer.Features.Storage;
-using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 using ComponentModelValidationException = System.ComponentModel.DataAnnotations.ValidationException;
-using System.Linq;
+using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions;
 
@@ -90,8 +90,7 @@ public class ExceptionHandlingMiddleware
             case AuditHeaderTooLargeException:
             case ConnectionResetException:
             case OperationCanceledException:
-            case DicomImageException ex when IsTaskCanceledException(ex.InnerException):
-            case DataStoreException e when IsTaskCanceledException(e.InnerException):
+            case MicrosoftHealthException ex when IsOperationCanceledException(ex.InnerException):
             case BadHttpRequestException:
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;
@@ -162,9 +161,9 @@ public class ExceptionHandlingMiddleware
         return GetContentResult(statusCode, message);
     }
 
-    private static bool IsTaskCanceledException(Exception ex)
+    private static bool IsOperationCanceledException(Exception ex)
     {
-        return ex is TaskCanceledException || (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is TaskCanceledException));
+        return ex is OperationCanceledException || (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is OperationCanceledException));
     }
 
     private static bool IsCMKException(Exception ex)
