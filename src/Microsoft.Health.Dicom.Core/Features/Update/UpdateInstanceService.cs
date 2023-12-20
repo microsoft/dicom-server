@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -127,18 +126,15 @@ public class UpdateInstanceService : IUpdateInstanceService
                 firstBlockLength = await dcmFile.GetByteLengthAsync(_recyclableMemoryStreamManager);
             }
 
-            // Get the block lengths for the entire file in 4 MB chunks except for the first block, which will vary depends on the large item in the dataset
-            IDictionary<string, long> blockLengths = GetBlockLengths(stream.Length, firstBlockLength, _stageBlockSizeInBytes);
+            // Retain the first block information to update the metadata information
+            block = new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), firstBlockLength);
 
             _logger.LogInformation("Begin uploading instance file in blocks {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             stream.Seek(0, SeekOrigin.Begin);
 
             // Copy the original file into another file as multiple blocks
-            newFileProperties = await _fileStore.StoreFileInBlocksAsync(newFileIdentifier, partition, stream, blockLengths, cancellationToken);
-
-            // Retain the first block information to update the metadata information
-            block = blockLengths.First();
+            newFileProperties = await _fileStore.StoreFileInBlocksAsync(newFileIdentifier, partition, stream, _stageBlockSizeInBytes, block, cancellationToken);
 
             stopwatch.Stop();
 
@@ -196,24 +192,6 @@ public class UpdateInstanceService : IUpdateInstanceService
 
         _logger.LogInformation("Updating new file {NewFileIdentifier} completed successfully. {TotalTimeTakenInMs} ms", newFileIdentifier, stopwatch.ElapsedMilliseconds);
         return updatedFileProperties;
-    }
-
-    internal static IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, long stageBlockSizeInBytes)
-    {
-        var blockLengths = new Dictionary<string, long>();
-        long fileSizeWithoutFirstBlock = streamLength - initialBlockLength;
-        int numStagesWithoutFirstBlock = (int)Math.Ceiling((double)fileSizeWithoutFirstBlock / stageBlockSizeInBytes) + 1;
-
-        long bytesRead = 0;
-        for (int i = 0; i < numStagesWithoutFirstBlock; i++)
-        {
-            long blockSize = i == 0 ? initialBlockLength : Math.Min(stageBlockSizeInBytes, streamLength - bytesRead);
-            string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            blockLengths.Add(blockId, blockSize);
-            bytesRead += blockSize;
-        }
-
-        return blockLengths;
     }
 
     // Removes all items in the list after the specified item tag

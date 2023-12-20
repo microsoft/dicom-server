@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -8,10 +8,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
-using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.IO;
 using Xunit;
 
@@ -198,9 +198,16 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task<FileProperties> AddFileInBlocksAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
+        var config = new UpdateConfiguration();
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, UpdateInstanceService.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
+            return await _blobDataStore.StoreFileInBlocksAsync(
+                version,
+                Partition.Default,
+                stream,
+                config.StageBlockSizeInBytes,
+                new System.Collections.Generic.KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length),
+                cancellationToken);
         }
     }
 
