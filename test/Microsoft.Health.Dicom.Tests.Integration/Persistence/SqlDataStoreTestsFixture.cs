@@ -127,6 +127,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
+                new SqlInstanceStoreV48(SqlConnectionWrapperFactory),
             }));
 
         PartitionStore = new SqlPartitionStore(new VersionedCache<ISqlPartitionStore>(
