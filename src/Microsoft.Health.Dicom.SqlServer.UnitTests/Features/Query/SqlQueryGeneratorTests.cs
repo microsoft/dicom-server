@@ -66,7 +66,7 @@ AND st.PartitionKey = 1";
         var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
 
         var parm = new SqlQueryParameterManager(CreateSqlParameterCollection());
-        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V44, Partition.DefaultKey);
+        new SqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V52, Partition.DefaultKey);
 
         string expectedDistinctSelect = @"SELECT 
 st.StudyKey

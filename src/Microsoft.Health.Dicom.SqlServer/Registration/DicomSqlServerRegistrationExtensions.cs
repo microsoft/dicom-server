@@ -124,7 +124,6 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddScoped<IChangeFeedStore, SqlChangeFeedStore>();
         services.TryAddScoped<VersionedCache<ISqlChangeFeedStore>>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV4>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV36>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV39>());
 
         return services;
@@ -157,12 +156,6 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddScoped<IIndexDataStore, SqlIndexDataStore>();
         services.TryAddScoped<VersionedCache<ISqlIndexDataStore>>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV1>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV37>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV42>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV44>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV46>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV47>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV48>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV49>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV50>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV52>());
@@ -174,8 +167,6 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddScoped<IInstanceStore, SqlInstanceStore>();
         services.TryAddScoped<VersionedCache<ISqlInstanceStore>>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV1>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV34>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV46>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV48>());
 
         return services;
