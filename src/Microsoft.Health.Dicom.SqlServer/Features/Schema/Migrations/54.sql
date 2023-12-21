@@ -288,7 +288,7 @@ CREATE TABLE dbo.FileProperty (
     Watermark     BIGINT          NOT NULL,
     FilePath      NVARCHAR (4000) NOT NULL,
     ETag          NVARCHAR (4000) NOT NULL,
-    ContentLength BIGINT          NOT NULL
+    ContentLength BIGINT          DEFAULT 0 NOT NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 

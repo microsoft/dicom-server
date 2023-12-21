@@ -14,7 +14,7 @@ IF NOT EXISTS
 )
 BEGIN
 ALTER TABLE dbo.FileProperty 
-    ADD ContentLength BIGINT NOT NULL;
+    ADD ContentLength BIGINT NOT NULL DEFAULT 0;
 END
 
 GO
