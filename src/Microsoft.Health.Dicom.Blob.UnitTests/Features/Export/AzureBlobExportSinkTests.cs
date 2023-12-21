@@ -153,7 +153,8 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
                 FileProperties = new FileProperties
                 {
                     Path = "partition1/123.dcm",
-                    ETag = "e456"
+                    ETag = "e456",
+                    ContentLength = 123
                 }
             });
         using var fileStream = new MemoryStream();
@@ -201,7 +202,8 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
                 FileProperties = new FileProperties
                 {
                     Path = "partition1/123.dcm",
-                    ETag = "e456"
+                    ETag = "e456",
+                    ContentLength = 123
                 }
             });
         using var fileStream = new MemoryStream();

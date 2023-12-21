@@ -43,7 +43,8 @@ public class StoreOrchestratorTests
     private static readonly FileProperties DefaultFileProperties = new FileProperties
     {
         Path = "default/path/0.dcm",
-        ETag = "123"
+        ETag = "123",
+        ContentLength = 123
     };
 
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
@@ -217,7 +218,8 @@ public class StoreOrchestratorTests
                 expectedTags,
                 fileProperties: Arg.Is<FileProperties>(
                     p => p.Path == DefaultFileProperties.Path
-                         && p.ETag == DefaultFileProperties.ETag),
+                         && p.ETag == DefaultFileProperties.ETag
+                         && p.ContentLength == DefaultFileProperties.ContentLength),
                 allowExpiredTags: false,
                 hasFrameMetadata: hasFrameMetadata,
                 cancellationToken: DefaultCancellationToken);

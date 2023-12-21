@@ -14,12 +14,14 @@ public class FileProperty
         long instanceKey,
         long watermark,
         string filePath,
-        string eTag)
+        string eTag,
+        long contentLength)
     {
         InstanceKey = instanceKey;
         Watermark = watermark;
         FilePath = filePath;
         ETag = eTag;
+        ContentLength = contentLength;
     }
 
     public FileProperty(SqlDataReader sqlDataReader)
@@ -29,6 +31,7 @@ public class FileProperty
         Watermark = sqlDataReader.GetInt64(1);
         FilePath = sqlDataReader.GetString(2);
         ETag = sqlDataReader.GetString(3);
+        ContentLength = sqlDataReader.GetInt64(4);
     }
 
     public long InstanceKey { get; private set; }
@@ -38,4 +41,6 @@ public class FileProperty
     public string FilePath { get; }
 
     public string ETag { get; }
+
+    public long ContentLength { get; }
 }

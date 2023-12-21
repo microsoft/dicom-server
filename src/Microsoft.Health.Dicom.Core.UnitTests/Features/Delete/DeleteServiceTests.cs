@@ -43,7 +43,8 @@ public class DeleteServiceTests
     private readonly FileProperties _defaultFileProperties = new FileProperties
     {
         Path = "partitionA/123.dcm",
-        ETag = "e45678"
+        ETag = "e45678",
+        ContentLength = 123
     };
 
     public DeleteServiceTests()
@@ -546,7 +547,8 @@ public class DeleteServiceTests
             fileProperties = new FileProperties
             {
                 Path = Guid.NewGuid() + ".dcm",
-                ETag = "e" + Guid.NewGuid()
+                ETag = "e" + Guid.NewGuid(),
+                ContentLength = 123
             };
         }
         instanceProperties ??= new InstanceProperties() { FileProperties = fileProperties };

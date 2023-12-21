@@ -572,7 +572,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" , ContentLength = 123},
                     NewVersion = 3
                 }
             ),
@@ -585,7 +585,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}", ContentLength = 456},
                     NewVersion = 4
                 }
             )
@@ -661,7 +661,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}", ContentLength = 123},
                     NewVersion = 3
                 }
             ),
@@ -674,7 +674,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}", ContentLength = 456},
                     NewVersion = 4
                 }
             )

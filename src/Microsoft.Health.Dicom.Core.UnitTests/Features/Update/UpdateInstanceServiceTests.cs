@@ -37,20 +37,23 @@ public class UpdateInstanceServiceTests
     private readonly UpdateInstanceService _updateInstanceService;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly UpdateConfiguration _config;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties
+    private static readonly FileProperties DefaultFileProperties = new()
     {
         Path = "default/path/0.dcm",
-        ETag = "123"
+        ETag = "123",
+        ContentLength = 123
     };
-    private static readonly FileProperties DefaultCopiedFileProperties = new FileProperties
+    private static readonly FileProperties DefaultCopiedFileProperties = new()
     {
         Path = "default/path/1.dcm",
-        ETag = "456"
+        ETag = "456",
+        ContentLength = 456
     };
-    private static readonly FileProperties DefaultUpdatedFileProperties = new FileProperties
+    private static readonly FileProperties DefaultUpdatedFileProperties = new()
     {
         Path = "default/path/1.dcm",
-        ETag = "789"
+        ETag = "789",
+        ContentLength = 789
     };
     private static readonly InstanceMetadata DefaultInstanceMetadata = new InstanceMetadata(
         new VersionedInstanceIdentifier(

@@ -36,7 +36,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private readonly IIndexDataStoreTestHelper _testHelper;
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
-    private readonly FileProperties _defaultFileProperties = new() { Path = "partitionA/123.dcm", ETag = "e456" };
+    private readonly FileProperties _defaultFileProperties = new() { Path = "partitionA/123.dcm", ETag = "e456", ContentLength = 123 };
 
     public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
     {
@@ -237,6 +237,21 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Collection(
             await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid),
             ValidateSingleDeletedInstance(instance, expectedFileProperties: _defaultFileProperties));
+    }
+
+    [Fact]
+    public async Task GivenAnExistingDicomInstanceWithFileProperties_WhenStored_ThenFilePropertiesOnInstanceShouldBeStored()
+    {
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        var identifier = dataset.ToInstanceIdentifier(Partition.Default);
+        Instance instance = await CreateIndexAndVerifyInstance(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
+        await _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
+
+        FileProperty storedFileProperty = (await _testHelper.GetFilePropertiesAsync(instance.Watermark)).Single();
+
+        Assert.Equal(storedFileProperty.FilePath, _defaultFileProperties.Path);
+        Assert.Equal(storedFileProperty.ETag, _defaultFileProperties.ETag);
+        Assert.Equal(storedFileProperty.ContentLength, _defaultFileProperties.ContentLength);
     }
 
     [Fact]

@@ -46,7 +46,8 @@ public class BlobFileStoreTests
     private readonly FileProperties _defaultFileProperties = new FileProperties
     {
         Path = DefaultBlobName,
-        ETag = "45678"
+        ETag = "45678",
+        ContentLength = 123
     };
 
     [Theory]

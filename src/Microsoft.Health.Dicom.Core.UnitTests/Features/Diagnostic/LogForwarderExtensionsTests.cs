@@ -34,7 +34,7 @@ public class LogForwarderExtensionsTests
     public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalProperties()
     {
         (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
-        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456" };
+        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456", ContentLength = 123 };
         var expectedPartition = new Partition(1, "partitionOne");
         telemetryClient.ForwardLogTrace("A message", expectedPartition, expectedProperties);
 
@@ -52,7 +52,7 @@ public class LogForwarderExtensionsTests
     public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalPropertiesWithoutPartition()
     {
         (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
-        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456" };
+        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456", ContentLength = 123 };
 
         // because a default partition is being used, we don't log it in telemetry
         var expectedPartition = Partition.Default;
