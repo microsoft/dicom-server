@@ -240,7 +240,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     }
 
     [Fact]
-    public async Task GivenAnExistingDicomInstanceWithFileProperties_WhenStored_ThenFilePropertiesOnInstanceShouldBeStored()
+    public async Task GivenADicomInstanceWithFileProperties_WhenStored_ThenFilePropertiesOnInstanceShouldBeStored()
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
         var identifier = dataset.ToInstanceIdentifier(Partition.Default);
