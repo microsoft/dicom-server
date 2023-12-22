@@ -28,7 +28,8 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly FileProperties _defaultFileProperties = new FileProperties
     {
         Path = "partitionA/123.dcm",
-        ETag = "e45678"
+        ETag = "e45678",
+        ContentLength = 123
     };
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
@@ -137,7 +138,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // store the file with committed blocks
         FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
 
-        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag", ContentLength = 123 };
 
         Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
 
@@ -160,7 +161,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // store the file with committed blocks
         FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
 
-        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag", ContentLength = 123 };
 
         Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
 

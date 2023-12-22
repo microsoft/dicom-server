@@ -40,6 +40,8 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     private readonly IQueryStore _queryStore;
     private readonly SqlDataStoreTestsFixture _fixture;
 
+    private static readonly long ExpectedFilePropertiesContentLength = 123;
+
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
     {
         _fixture = EnsureArg.IsNotNull(fixture, nameof(fixture));
@@ -334,9 +336,12 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         // When we begin to update the instance, we need to retrieve the file properties as they are in this moment
         // so we know which blob file to go copy from when using external store
         IReadOnlyList<FileProperty> fileProperties = await _indexDataStoreTestHelper.GetFilePropertiesAsync(updatedInstance.GetVersion(isOriginalVersionRequested: true));
-        var expectedOriginalFileProperty = fileProperties.First();
-        Assert.Equal(updatedInstance.InstanceProperties.FileProperties.ETag, expectedOriginalFileProperty.ETag);
-        Assert.Equal(updatedInstance.InstanceProperties.FileProperties.Path, expectedOriginalFileProperty.FilePath);
+        var storedFileProperties = fileProperties.First();
+        Assert.Equal(updatedInstance.InstanceProperties.FileProperties.ETag, storedFileProperties.ETag);
+        Assert.Equal(updatedInstance.InstanceProperties.FileProperties.Path, storedFileProperties.FilePath);
+        // once we start reading fp content length, we can switch to this assert. Until then, we have to just assert that the correct contentLength was stored
+        // Assert.Equal(updatedInstance.InstanceProperties.FileProperties.ContentLength, expectedOriginalFileProperty.ContentLength);
+        Assert.Equal(ExpectedFilePropertiesContentLength, storedFileProperties.ContentLength);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
@@ -354,8 +359,9 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         // ensure the original property is still there
         IReadOnlyList<FileProperty> originalFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(originalInstance.Watermark);
         Assert.Single(originalFileProperties);
-        Assert.Equal(expectedOriginalFileProperty.ETag, originalFileProperties.First().ETag);
-        Assert.Equal(expectedOriginalFileProperty.FilePath, originalFileProperties.First().FilePath);
+        Assert.Equal(storedFileProperties.ETag, originalFileProperties.First().ETag);
+        Assert.Equal(storedFileProperties.FilePath, originalFileProperties.First().FilePath);
+        Assert.Equal(storedFileProperties.ContentLength, originalFileProperties.First().ContentLength);
 
         // Update instance one more time
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "NewFirstName_NewLastName");
@@ -394,6 +400,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
                 {
                     Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
                     ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}",
+                    ContentLength = 123,
                 },
                 OriginalVersion = updatedInstance.InstanceProperties.OriginalVersion,
                 NewVersion = updatedInstance.InstanceProperties.NewVersion,
@@ -422,6 +429,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
             {
                 Path = $"test/file_{watermark}.dcm",
                 ETag = $"etag_{watermark}",
+                ContentLength = ExpectedFilePropertiesContentLength,
             };
         }
         return null;

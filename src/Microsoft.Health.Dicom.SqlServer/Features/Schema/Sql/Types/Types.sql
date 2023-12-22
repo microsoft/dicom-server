@@ -97,3 +97,14 @@ CREATE TYPE dbo.FilePropertyTableType AS TABLE
     FilePath    NVARCHAR (4000) NOT NULL,
     ETag        NVARCHAR (4000) NOT NULL
 )
+
+/*************************************************************
+    The user defined type for stored procedures that consume FileProperty, with content length
+*************************************************************/
+CREATE TYPE dbo.FilePropertyTableType_2 AS TABLE
+(
+    Watermark       BIGINT          NOT NULL INDEX IXC_FilePropertyTableType_2 CLUSTERED,
+    FilePath        NVARCHAR (4000) NOT NULL,
+    ETag            NVARCHAR (4000) NOT NULL,
+    ContentLength   BIGINT          NOT NULL
+)
