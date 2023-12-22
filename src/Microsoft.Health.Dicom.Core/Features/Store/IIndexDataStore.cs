@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -177,4 +178,12 @@ public interface IIndexDataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that with list of instance metadata with new watermark.</returns>
     Task UpdateFrameDataAsync(int partitionKey, IEnumerable<long> versions, bool hasFrameMetadata, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously updates DICOM instance file properties content length
+    /// </summary>
+    /// <param name="filePropertiesByWatermark">file properties that need to get the content length updated</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that with list of instance metadata with new watermark.</returns>
+    Task UpdateFilePropertiesContentLengthAsync(ConcurrentDictionary<long, FileProperties> filePropertiesByWatermark, CancellationToken cancellationToken = default);
 }

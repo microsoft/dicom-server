@@ -63,4 +63,18 @@ internal sealed class SqlInstanceStore : IInstanceStore
         ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetInstanceBatchesByTimeStampAsync(batchSize, batchCount, indexStatus, startTimeStamp, endTimeStamp, maxWatermark, cancellationToken);
     }
+    public async Task<IReadOnlyList<WatermarkRange>> GetContentLengthBackFillInstanceBatches(int batchSize, int batchCount, IndexStatus indexStatus, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp, long? maxWatermark = null, CancellationToken cancellationToken = default)
+    {
+        ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetInstanceBatchesByTimeStampAsync(batchSize, batchCount, indexStatus, startTimeStamp, endTimeStamp, maxWatermark, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(
+        WatermarkRange watermarkRange,
+        IndexStatus indexStatus,
+        CancellationToken cancellationToken = default)
+    {
+        ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, indexStatus, cancellationToken);
+    }
 }
