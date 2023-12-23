@@ -17,17 +17,18 @@
 --
 CREATE OR ALTER PROCEDURE dbo.UpdateFilePropertiesContentLength
     @filePropertiesToUpdate dbo.FilePropertyTableType_2 READONLY
-    AS
+AS
 BEGIN
     SET NOCOUNT ON
 
     SET XACT_ABORT ON
-BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-UPDATE FP
-SET ContentLength = @filePropertiesToUpdate.ContentLength
-FROM dbo.FileProperties FP
-WHERE FP.Watermark = @filePropertiesToUpdate.Watermark
-    
-COMMIT TRANSACTION
+        UPDATE FP
+        SET ContentLength = FPTU.ContentLength
+        FROM dbo.FileProperties FP
+        JOIN @filePropertiesToUpdate FPTU
+        ON FP.Watermark = FPTU.Watermark
+        
+    COMMIT TRANSACTION
 END

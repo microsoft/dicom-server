@@ -3228,9 +3228,10 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     UPDATE FP
-    SET    ContentLength = @filePropertiesToUpdate.ContentLength
-    FROM   dbo.FileProperties AS FP
-    WHERE  FP.Watermark = @filePropertiesToUpdate.Watermark;
+    SET    ContentLength = FPTU.ContentLength
+    FROM   dbo.FileProperties FP
+           INNER JOIN @filePropertiesToUpdate FPTU
+           ON FP.Watermark = FPTU.Watermark;
     COMMIT TRANSACTION;
 END
 

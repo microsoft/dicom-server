@@ -37,13 +37,13 @@ internal class SqlIndexDataStoreV55 : SqlIndexDataStoreV54
                     fp.Key,
                     fp.Value.Path,
                     fp.Value.ETag,
-                    fp.Value.ContentLength));
+                    fp.Value.ContentLength)).ToList();
 
         using (SqlConnectionWrapper sqlConnectionWrapper =
                await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            // VLatest.UpdateFilePropertiesContentLength.PopulateCommand(sqlCommandWrapper, fpRows);
+            VLatest.UpdateFilePropertiesContentLength.PopulateCommand(sqlCommandWrapper, fpRows);
 
             try
             {

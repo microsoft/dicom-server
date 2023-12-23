@@ -12,9 +12,12 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 
@@ -41,7 +44,7 @@ internal class SqlInstanceStoreV55 : SqlInstanceStoreV48
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        // VLatest.GetContentLengthBackFillInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, startTimeStamp, endTimeStamp, maxWatermark);
+        VLatest.GetContentLengthBackFillInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, startTimeStamp, endTimeStamp, maxWatermark);
 
         try
         {
@@ -73,30 +76,30 @@ internal class SqlInstanceStoreV55 : SqlInstanceStoreV48
             using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
             using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
             {
-                // VLatest.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange.PopulateCommand(
-                //     sqlCommandWrapper,
-                //     watermarkRange.Start,
-                //     watermarkRange.End,
-                //     (byte)indexStatus);
+                VLatest.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange.PopulateCommand(
+                    sqlCommandWrapper,
+                    watermarkRange.Start,
+                    watermarkRange.End,
+                    (byte)indexStatus);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        // (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark, int partitionKey, string partitionName) = reader.ReadRow(
-                        //     VLatest.Instance.StudyInstanceUid,
-                        //     VLatest.Instance.SeriesInstanceUid,
-                        //     VLatest.Instance.SopInstanceUid,
-                        //     VLatest.Instance.Watermark,
-                        //     VLatest.Partition.PartitionKey,
-                        //     VLatest.Partition.PartitionName);
-                        //
-                        // results.Add(new VersionedInstanceIdentifier(
-                        //     rStudyInstanceUid,
-                        //     rSeriesInstanceUid,
-                        //     rSopInstanceUid,
-                        //     watermark,
-                        //     partition: new Partition(partitionKey, partitionName)));
+                        (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark, int partitionKey, string partitionName) = reader.ReadRow(
+                            VLatest.Instance.StudyInstanceUid,
+                            VLatest.Instance.SeriesInstanceUid,
+                            VLatest.Instance.SopInstanceUid,
+                            VLatest.Instance.Watermark,
+                            VLatest.Partition.PartitionKey,
+                            VLatest.Partition.PartitionName);
+
+                        results.Add(new VersionedInstanceIdentifier(
+                            rStudyInstanceUid,
+                            rSeriesInstanceUid,
+                            rSopInstanceUid,
+                            watermark,
+                            partition: new Partition(partitionKey, partitionName)));
                     }
                 }
             }
