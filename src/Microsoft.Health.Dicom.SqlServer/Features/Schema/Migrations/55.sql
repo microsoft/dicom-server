@@ -3225,7 +3225,7 @@ BEGIN
     BEGIN TRANSACTION;
     UPDATE FP
     SET    ContentLength = FPTU.ContentLength
-    FROM   dbo.FileProperties AS FP
+    FROM   dbo.FileProperty AS FP
            INNER JOIN
            @filePropertiesToUpdate AS FPTU
            ON FP.Watermark = FPTU.Watermark;

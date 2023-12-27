@@ -30,7 +30,7 @@ BEGIN
     BEGIN TRANSACTION
     UPDATE FP
     SET    ContentLength = FPTU.ContentLength
-    FROM   dbo.FileProperties FP
+    FROM   dbo.FileProperty FP
            INNER JOIN @filePropertiesToUpdate FPTU
            ON FP.Watermark = FPTU.Watermark
     COMMIT TRANSACTION

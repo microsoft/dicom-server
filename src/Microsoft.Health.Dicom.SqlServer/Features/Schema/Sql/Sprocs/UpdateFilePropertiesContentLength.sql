@@ -26,7 +26,7 @@ BEGIN
 
         UPDATE FP
         SET ContentLength = FPTU.ContentLength
-        FROM dbo.FileProperties FP
+        FROM dbo.FileProperty FP
         JOIN @filePropertiesToUpdate FPTU
         ON FP.Watermark = FPTU.Watermark
         
