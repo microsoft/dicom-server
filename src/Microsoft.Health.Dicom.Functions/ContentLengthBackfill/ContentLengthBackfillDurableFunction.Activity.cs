@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -102,6 +101,9 @@ public partial class ContentLengthBackFillDurableFunction
 
         await _indexDataStore.UpdateFilePropertiesContentLengthAsync(propertiesByWatermark);
 
-        logger.LogInformation("Completed updating hasFrameMetadata in the range {Range}, {TotalInstanceUpdated}.", watermarkRange, concurrentDictionary.Count);
+        logger.LogInformation(
+            "Complete updating content length for the instances in the range {Range}, with total instances updated count of {TotalInstanceUpdated}.",
+            watermarkRange,
+            propertiesByWatermark.Count);
     }
 }
