@@ -15,9 +15,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Functions.ContentLengthBackfill.Models;
+using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
 
-namespace Microsoft.Health.Dicom.Functions.ContentLengthBackfill;
+namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
 /// <summary>
 /// 

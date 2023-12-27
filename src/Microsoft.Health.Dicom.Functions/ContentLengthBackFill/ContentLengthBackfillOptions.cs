@@ -7,11 +7,11 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.ContentLengthBackfill;
+namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
-public class ContentLengthBackfillOptions
+public class ContentLengthBackFillOptions
 {
-    internal const string SectionName = "ContentLengthBackfill";
+    internal const string SectionName = "ContentLengthBackFill";
 
     /// <summary>
     /// Gets or sets the number of threads available for each batch.

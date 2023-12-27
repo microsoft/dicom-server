@@ -12,11 +12,11 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Functions.ContentLengthBackfill.Models;
+using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
 using Microsoft.Health.Dicom.Functions.DataCleanup;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.ContentLengthBackfill;
+namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
 public partial class ContentLengthBackFillDurableFunction
 {
@@ -42,18 +42,12 @@ public partial class ContentLengthBackFillDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
 
-        // TODO extract into something common?
-        DataCleanupCheckPoint input = context.GetInput<DataCleanupCheckPoint>();
+        ContentLengthBackFillCheckPoint input = context.GetInput<ContentLengthBackFillCheckPoint>();
 
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
             nameof(GetInstanceBatches),
             _options.RetryOptions,
-            new BatchCreationArguments(
-                input.Completed?.Start - 1,
-                input.Batching.Size,
-                input.Batching.MaxParallelCount,
-                input.StartFilterTimeStamp,
-                input.EndFilterTimeStamp));
+            new BatchCreationArguments(input.Batching.Size, input.Batching.MaxParallelCount));
 
         if (batches.Count > 0)
         {
@@ -80,8 +74,6 @@ public partial class ContentLengthBackFillDurableFunction
                     Batching = input.Batching,
                     Completed = completed,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
-                    StartFilterTimeStamp = input.StartFilterTimeStamp,
-                    EndFilterTimeStamp = input.EndFilterTimeStamp
                 });
         }
         else

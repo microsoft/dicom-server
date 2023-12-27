@@ -9,20 +9,20 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
-namespace Microsoft.Health.Dicom.Functions.ContentLengthBackfill;
+namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
 public partial class ContentLengthBackFillDurableFunction
 {
     private readonly IInstanceStore _instanceStore;
     private readonly IIndexDataStore _indexDataStore;
     private readonly IFileStore _fileStore;
-    private readonly ContentLengthBackfillOptions _options;
+    private readonly ContentLengthBackFillOptions _options;
 
     public ContentLengthBackFillDurableFunction(
         IInstanceStore instanceStore,
         IIndexDataStore indexDataStore,
         IFileStore fileStore,
-        IOptions<ContentLengthBackfillOptions> configOptions)
+        IOptions<ContentLengthBackFillOptions> configOptions)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));

@@ -6,15 +6,10 @@
 using System;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Functions.ContentLengthBackfill.Models;
+namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
 
 public class BatchCreationArguments
 {
-    /// <summary>
-    /// Gets or sets the optional inclusive maximum watermark.
-    /// </summary>
-    public long? MaxWatermark { get; }
-
     /// <summary>
     /// Gets or sets the number of DICOM instances processed by a single activity.
     /// </summary>
@@ -26,38 +21,21 @@ public class BatchCreationArguments
     public int MaxParallelBatches { get; }
 
     /// <summary>
-    /// Gets or sets the start filter stamp
-    /// </summary>
-    public DateTimeOffset StartFilterTimeStamp { get; }
-
-    /// <summary>
-    /// Gets or sets the end filter stamp
-    /// </summary>
-    public DateTimeOffset EndFilterTimeStamp { get; }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="BatchCreationArguments"/> class with the specified values.
     /// </summary>
-    /// <param name="maxWatermark">The optional inclusive maximum watermark.</param>
     /// <param name="batchSize">The number of DICOM instances processed by a single activity.</param>
     /// <param name="maxParallelBatches">The maximum number of concurrent batches processed at a given time.</param>
-    /// <param name="startFilterTimeStamp">Start filter stamp</param>
-    /// <param name="endFilterTimeStamp">End filter stamp</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <para><paramref name="batchSize"/> is less than <c>1</c>.</para>
     /// <para>-or-</para>
     /// <para><paramref name="maxParallelBatches"/> is less than <c>1</c>.</para>
     /// </exception>
-    public BatchCreationArguments(long? maxWatermark, int batchSize, int maxParallelBatches, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp)
+    public BatchCreationArguments(int batchSize, int maxParallelBatches)
     {
         EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
         EnsureArg.IsGte(maxParallelBatches, 1, nameof(maxParallelBatches));
-        EnsureArg.IsTrue(startFilterTimeStamp <= endFilterTimeStamp, nameof(startFilterTimeStamp));
 
         BatchSize = batchSize;
         MaxParallelBatches = maxParallelBatches;
-        MaxWatermark = maxWatermark;
-        StartFilterTimeStamp = startFilterTimeStamp;
-        EndFilterTimeStamp = endFilterTimeStamp;
     }
 }
