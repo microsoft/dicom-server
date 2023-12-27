@@ -2212,7 +2212,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.GetContentLengthBackFillInstanceBatches
-@batchSize INT, @batchCount INT, @status TINYINT, @startTimeStamp DATETIMEOFFSET (0), @endTimeStamp DATETIMEOFFSET (0), @maxWatermark BIGINT=NULL
+@batchSize INT, @batchCount INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2224,18 +2224,14 @@ BEGIN
                      INNER JOIN
                      dbo.FileProperty AS FP
                      ON FP.Watermark = I.Watermark
-              WHERE  FP.ContentLength = 0
-                     AND I.Watermark <= ISNULL(@maxWatermark, I.Watermark)
-                     AND I.Status = @status
-                     AND I.CreatedDate >= @startTimeStamp
-                     AND I.CreatedDate <= @endTimeStamp) AS I
+              WHERE  FP.ContentLength = 0) AS I
     GROUP BY Batch
     ORDER BY Batch ASC;
 END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange
-@startWatermark BIGINT, @endWatermark BIGINT, @status TINYINT
+@startWatermark BIGINT, @endWatermark BIGINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2255,7 +2251,7 @@ BEGIN
            ON FP.Watermark = I.Watermark
     WHERE  I.Watermark BETWEEN @startWatermark AND @endWatermark
            AND FP.ContentLength = 0
-           AND I.Status = @status;
+           AND I.Status = 1;
 END
 
 GO
@@ -3229,8 +3225,9 @@ BEGIN
     BEGIN TRANSACTION;
     UPDATE FP
     SET    ContentLength = FPTU.ContentLength
-    FROM   dbo.FileProperties FP
-           INNER JOIN @filePropertiesToUpdate FPTU
+    FROM   dbo.FileProperties AS FP
+           INNER JOIN
+           @filePropertiesToUpdate AS FPTU
            ON FP.Watermark = FPTU.Watermark;
     COMMIT TRANSACTION;
 END

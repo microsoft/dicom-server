@@ -51,20 +51,12 @@ GO
 --         * The desired number of instances per batch. Actual number may be smaller.
 --     @batchCount
 --         * The desired number of batches. Actual number may be smaller.
---     @status
---         * The instance status.
---     @startTimeStamp
---         * The start filter timestamp.
---     @endTimeStamp
---         * The inclusive end filter timestamp.
---     @maxWatermark
---         * The optional inclusive maximum watermark.
 --
 -- RETURN VALUE
 --     The batches as defined by their inclusive minimum and maximum values.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetContentLengthBackFillInstanceBatches
-@batchSize INT, @batchCount INT, @status TINYINT, @startTimeStamp DATETIMEOFFSET (0), @endTimeStamp DATETIMEOFFSET (0), @maxWatermark BIGINT=NULL
+@batchSize INT, @batchCount INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -76,11 +68,7 @@ BEGIN
         FROM dbo.Instance AS I
         INNER JOIN dbo.FileProperty AS FP
         ON FP.Watermark = I.Watermark
-        WHERE  FP.ContentLength = 0
-        AND I.Watermark <= ISNULL(@maxWatermark, I.Watermark)
-        AND I.Status = @status
-        AND I.CreatedDate >= @startTimeStamp
-        AND I.CreatedDate <= @endTimeStamp) AS I
+        WHERE  FP.ContentLength = 0) AS I
     GROUP BY Batch
     ORDER BY Batch ASC
 END
@@ -100,13 +88,11 @@ GO
 --         * The inclusive start watermark.
 --     @endWatermark
 --         * The inclusive end watermark.
---     @status
---         * The instance status.
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange
-    @startWatermark BIGINT, @endWatermark BIGINT, @status TINYINT
+    @startWatermark BIGINT, @endWatermark BIGINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -124,7 +110,7 @@ BEGIN
     ON FP.Watermark = I.Watermark
     WHERE I.Watermark BETWEEN @startWatermark AND @endWatermark
     AND FP.ContentLength = 0
-    AND I.Status = @status
+    AND I.Status = 1 -- only backfill instances that are in the 'Created' state
 END
 GO
 

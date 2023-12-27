@@ -55,10 +55,6 @@ public partial class ContentLengthBackFillDurableFunction
         return _instanceStore.GetContentLengthBackFillInstanceBatches(
             arguments.BatchSize,
             arguments.MaxParallelBatches,
-            IndexStatus.Created,
-            arguments.StartFilterTimeStamp,
-            arguments.EndFilterTimeStamp,
-            arguments.MaxWatermark,
             CancellationToken.None);
     }
 
@@ -78,7 +74,7 @@ public partial class ContentLengthBackFillDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
-            await _instanceStore.GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, IndexStatus.Created);
+            await _instanceStore.GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(watermarkRange);
 
         logger.LogInformation("Getting content length for the instances in the range {Range}.", watermarkRange);
 

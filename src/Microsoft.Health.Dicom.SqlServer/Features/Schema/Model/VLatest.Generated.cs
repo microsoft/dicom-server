@@ -1603,21 +1603,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.DateTimeOffset> _startTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@startTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
-            private readonly ParameterDefinition<System.DateTimeOffset> _endTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@endTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
-            private readonly ParameterDefinition<System.Nullable<System.Int64>> _maxWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@maxWatermark", global::System.Data.SqlDbType.BigInt, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Byte status, System.DateTimeOffset startTimeStamp, System.DateTimeOffset endTimeStamp, System.Nullable<System.Int64> maxWatermark)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetContentLengthBackFillInstanceBatches";
                 _batchSize.AddParameter(command.Parameters, batchSize);
                 _batchCount.AddParameter(command.Parameters, batchCount);
-                _status.AddParameter(command.Parameters, status);
-                _startTimeStamp.AddParameter(command.Parameters, startTimeStamp);
-                _endTimeStamp.AddParameter(command.Parameters, endTimeStamp);
-                _maxWatermark.AddParameter(command.Parameters, maxWatermark);
             }
         }
 
@@ -1629,15 +1621,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             private readonly ParameterDefinition<System.Int64> _startWatermark = new ParameterDefinition<System.Int64>("@startWatermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Int64> _endWatermark = new ParameterDefinition<System.Int64>("@endWatermark", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int64 startWatermark, System.Int64 endWatermark, System.Byte status)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 startWatermark, System.Int64 endWatermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange";
                 _startWatermark.AddParameter(command.Parameters, startWatermark);
                 _endWatermark.AddParameter(command.Parameters, endWatermark);
-                _status.AddParameter(command.Parameters, status);
             }
         }
 

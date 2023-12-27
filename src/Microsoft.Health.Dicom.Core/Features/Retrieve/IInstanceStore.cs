@@ -73,12 +73,10 @@ public interface IInstanceStore
     /// Gets identifiers of instances within the given range of watermarks which need content length backfilled.
     /// </summary>
     /// <param name="watermarkRange">The watermark range</param>
-    /// <param name="indexStatus">The index status</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>The instanceidentifiers</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(
         WatermarkRange watermarkRange,
-        IndexStatus indexStatus,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -154,14 +152,10 @@ public interface IInstanceStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously retrieves the specified number of instance batches filtered by timestamp.
+    /// Asynchronously retrieves the specified number of instance batches whose content length needs to be backfilled.
     /// </summary>
     /// <param name="batchSize">The desired size of each batch.</param>
     /// <param name="batchCount">The maximum number of batches.</param>
-    /// <param name="indexStatus">The index status</param>
-    /// <param name="startTimeStamp">Start filterstamp</param>
-    /// <param name="endTimeStamp">End filterstamp</param>
-    /// <param name="maxWatermark">An optional maximum watermark to consider.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
@@ -177,9 +171,5 @@ public interface IInstanceStore
     Task<IReadOnlyList<WatermarkRange>> GetContentLengthBackFillInstanceBatches(
         int batchSize,
         int batchCount,
-        IndexStatus indexStatus,
-        DateTimeOffset startTimeStamp,
-        DateTimeOffset endTimeStamp,
-        long? maxWatermark = null,
         CancellationToken cancellationToken = default);
 }

@@ -11,15 +11,12 @@
 --         * The inclusive start watermark.
 --     @endWatermark
 --         * The inclusive end watermark.
---     @status
---         * The instance status.
 -- RETURN VALUE
 --     The instance identifiers.
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange
     @startWatermark BIGINT,
-    @endWatermark BIGINT,
-    @status TINYINT
+    @endWatermark BIGINT
 AS
 BEGIN
     SET NOCOUNT ON
@@ -37,5 +34,5 @@ BEGIN
                     ON FP.Watermark = I.Watermark
     WHERE I.Watermark BETWEEN @startWatermark AND @endWatermark
           AND FP.ContentLength = 0
-          AND I.Status = @status
+          AND I.Status = 1 -- only backfill instances that are in the 'Created' state
 END
