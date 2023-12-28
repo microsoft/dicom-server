@@ -19,6 +19,9 @@ internal class DicomFunctionOptions
     public FanOutFunctionOptions DataCleanup { get; set; }
 
     [Required]
+    public FanOutFunctionOptions ContentLengthBackFill { get; set; }
+
+    [Required]
     public FanOutFunctionOptions Export { get; set; }
 
     [Required]

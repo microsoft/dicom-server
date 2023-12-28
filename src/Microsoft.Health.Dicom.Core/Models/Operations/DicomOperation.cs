@@ -22,6 +22,11 @@ public enum DicomOperation
     DataCleanup,
 
     /// <summary>
+    /// Specifies an content length backfill operation.
+    /// </summary>
+    ContentLengthBackFill,
+
+    /// <summary>
     /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
     /// </summary>
     Reindex,

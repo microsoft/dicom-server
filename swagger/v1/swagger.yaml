@@ -3067,6 +3067,7 @@ components:
     DicomOperation:
       enum:
         - unknown
+        - contentLengthBackFill
         - reindex
         - export
         - update

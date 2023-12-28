@@ -14,7 +14,6 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
 
 namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
@@ -43,14 +42,7 @@ public partial class ContentLengthBackFillDurableFunction
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        if (arguments.MaxWatermark.HasValue)
-        {
-            logger.LogInformation("Dividing up the instances into batches starting from the largest watermark {Watermark}.", arguments.MaxWatermark);
-        }
-        else
-        {
-            logger.LogInformation("Dividing up the instances into batches starting from the end.");
-        }
+        logger.LogInformation("Dividing up the instances into batches starting from the end.");
 
         return _instanceStore.GetContentLengthBackFillInstanceBatches(
             arguments.BatchSize,

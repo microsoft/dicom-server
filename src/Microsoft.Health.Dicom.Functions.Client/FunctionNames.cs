@@ -7,6 +7,8 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 
 internal static class FunctionNames
 {
+    public const string ContentLengthBackFill = "ContentLengthBackFill";
+
     public const string DataCleanup = "DataCleanup";
 
     public const string ExportDicomFiles = "ExportDicomFiles";

@@ -13,7 +13,6 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
-using Microsoft.Health.Dicom.Functions.DataCleanup;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
@@ -69,7 +68,7 @@ public partial class ContentLengthBackFillDurableFunction
                 : batchRange;
 
             context.ContinueAsNew(
-                new DataCleanupCheckPoint
+                new ContentLengthBackFillCheckPoint()
                 {
                     Batching = input.Batching,
                     Completed = completed,
