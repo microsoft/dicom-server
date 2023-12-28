@@ -82,7 +82,16 @@ public partial class ContentLengthBackFillDurableFunction
             {
                 FileProperties blobStoreFileProperties = await _fileStore.GetFilePropertiesAsync(instanceIdentifier.Version, instanceIdentifier.Partition, fileProperties: null, token);
                 if (blobStoreFileProperties.ContentLength > 0)
+                {
                     propertiesByWatermark.TryAdd(instanceIdentifier.Version, blobStoreFileProperties);
+                }
+
+                {
+                    logger.LogWarning("Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be greater than 0 but it was {Length}.",
+                        instanceIdentifier.Version,
+                        instanceIdentifier.Partition.Key,
+                        blobStoreFileProperties.ContentLength);
+                }
             });
 
         logger.LogInformation("Completed getting content length for the instances in the range {Range}.", watermarkRange);
