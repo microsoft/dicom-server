@@ -34,6 +34,14 @@
         "MaxNumberOfAttempts": 4
       }
     },
+    "ContentLengthBackFill": {
+      "MaxParallelThreads": 2,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
+    },
     "Export": {
       "BatchSize": 100,
       "MaxParallelThreads": 5,
