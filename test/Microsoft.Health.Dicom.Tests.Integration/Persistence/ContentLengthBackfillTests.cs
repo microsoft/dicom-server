@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
@@ -25,7 +27,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 /// Storing of correct content length is tested in other test classes.
 /// Can not be run in parallel as each inserts data and each queries ranges of these inserts for testing.
 /// </summary>
-[Collection("Content Length Collection")]
+[Collection("Content Length BackFill Collection")]
 public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture>
 {
     private readonly IInstanceStore _instanceStore;
@@ -39,6 +41,8 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
         ETag = "E1230",
         ContentLength = 0
     };
+
+    private static readonly string StudyInstanceUid = TestUidGenerator.Generate();
 
     public ContentLengthBackfillTests(SqlDataStoreTestsFixture fixture)
     {
@@ -67,6 +71,9 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
         var firstBatch = batches[0];
 
         Assert.Equal(new WatermarkRange(instances[1].Version, instances[1].Version), firstBatch);
+
+        // cleanup so other tests are not affected
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, StudyInstanceUid, DateTime.Now, CancellationToken.None);
     }
 
 
@@ -109,6 +116,9 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
 
         Assert.Equal(new WatermarkRange(instances[2].Version, instances[4].Version), firstBatch);
         Assert.Equal(new WatermarkRange(instances[0].Version, instances[0].Version), secondBatch);
+
+        // cleanup so other tests are not affected
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, StudyInstanceUid, DateTime.Now, CancellationToken.None);
     }
 
 
@@ -144,6 +154,9 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
         Assert.Equal(4, identitiers.Count);
         instances.Remove(nonZeroLengthInstance);
         Assert.All(instances, i => Assert.Contains(i, identitiers));
+
+        // cleanup so other tests are not affected
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, StudyInstanceUid, DateTime.Now, CancellationToken.None);
     }
 
 
@@ -211,6 +224,9 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
         Assert.Equal(ExpectedFilePropertiesContentLength, resultNonZeroInstance.ContentLength);
         Assert.NotEqual(newFileProperties.ETag, resultNonZeroInstance.ETag);
         Assert.NotEqual(newFileProperties.Path, resultNonZeroInstance.FilePath);
+
+        // cleanup so other tests are not affected
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, StudyInstanceUid, DateTime.Now, CancellationToken.None);
     }
 
     private static FileProperties CreateFileProperties(bool createFileProperty, long watermark)
@@ -230,7 +246,7 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
 
     private async Task<VersionedInstanceIdentifier> CreateRandomInstanceAsync(Partition partition = null, FileProperties fileProperties = null)
     {
-        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset(StudyInstanceUid);
         partition ??= Partition.Default;
 
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dataset);

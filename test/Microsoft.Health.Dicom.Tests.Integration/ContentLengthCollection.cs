@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration;
 
-[CollectionDefinition("Content Length Collection", DisableParallelization = true)]
+[CollectionDefinition("Content Length BackFill Collection", DisableParallelization = true)]
 public class ContentLengthCollection
 {
 }
