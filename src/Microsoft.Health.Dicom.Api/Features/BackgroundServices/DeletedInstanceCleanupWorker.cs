@@ -59,8 +59,6 @@ public class DeletedInstanceCleanupWorker
                 _deleteMeter.OldestRequestedDeletion.Add(metrics.OldestDeletion.ToUnixTimeSeconds());
                 _deleteMeter.CountDeletionsMaxRetry.Add(metrics.TotalExhaustedRetries);
 
-                await Task.Delay(_pollingInterval, stoppingToken);
-
                 // Delete all instances pending deletion
                 bool success;
                 int retrievedInstanceCount;
@@ -87,6 +85,16 @@ public class DeletedInstanceCleanupWorker
             {
                 // The job failed.
                 _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
+            }
+
+            try
+            {
+                await Task.Delay(_pollingInterval, stoppingToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Cancel requested.
+                throw;
             }
         }
     }
