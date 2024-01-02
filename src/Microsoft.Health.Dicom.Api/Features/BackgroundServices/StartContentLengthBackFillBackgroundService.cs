@@ -23,7 +23,7 @@ public class StartContentLengthBackFillBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<StartContentLengthBackFillBackgroundService> _logger;
-    private readonly ContentLengthBackFillConfiguration _contentLengthBackFillConfiguration;
+    private readonly ContentLengthBackFillConfiguration _config;
 
     public StartContentLengthBackFillBackgroundService(
         IServiceProvider serviceProvider,
@@ -33,7 +33,7 @@ public class StartContentLengthBackFillBackgroundService : BackgroundService
         _serviceProvider = EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(options, nameof(options));
-        _contentLengthBackFillConfiguration = options.Value;
+        _config = EnsureArg.IsNotNull(options?.Value, nameof(options));
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not throw exceptions.")]
@@ -46,7 +46,7 @@ public class StartContentLengthBackFillBackgroundService : BackgroundService
             IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
             // Get existing operation status
-            OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_contentLengthBackFillConfiguration.OperationId, stoppingToken);
+            OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_config.OperationId, stoppingToken);
 
             if (existingInstance == null)
             {
@@ -60,28 +60,26 @@ public class StartContentLengthBackFillBackgroundService : BackgroundService
             if (IsOperationInterruptedOrNull(existingInstance))
             {
                 await operationsClient.StartContentLengthBackFillOperationAsync(
-                    _contentLengthBackFillConfiguration.OperationId,
+                    _config.OperationId,
                     stoppingToken);
             }
             else if (existingInstance.Status == OperationStatus.Succeeded)
             {
-                _logger.LogInformation("Content length backfill operation with ID '{InstanceId}' has already completed successfully.", _contentLengthBackFillConfiguration.OperationId);
+                _logger.LogInformation("Content length backfill operation with ID '{InstanceId}' has already completed successfully.", _config.OperationId);
             }
             else
             {
-                _logger.LogInformation("Content length backfill operation with ID '{InstanceId}' has already been started by another client.", _contentLengthBackFillConfiguration.OperationId);
+                _logger.LogInformation("Content length backfill operation with ID '{InstanceId}' has already been started by another client.", _config.OperationId);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "Unhandled exception while starting content length backfill operation.");
+            _logger.LogError(ex, "Unhandled exception while starting content length backfill operation.");
         }
     }
 
     private static bool IsOperationInterruptedOrNull(OperationCheckpointState<DicomOperation> operation)
     {
-        return operation == null
-            || operation.Status == OperationStatus.Canceled
-            || operation.Status == OperationStatus.Failed;
+        return operation == null || operation.Status is OperationStatus.Canceled or OperationStatus.Failed;
     }
 }
