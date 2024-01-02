@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 public partial class ContentLengthBackFillDurableFunction
 {
     /// <summary>
-    /// Asynchronously cleans up instance data.
+    /// Asynchronously backfills the content length for instance data.
     /// </summary>
     /// <remarks>
     /// Durable functions are reliable, and their implementations will be executed repeatedly over the lifetime of

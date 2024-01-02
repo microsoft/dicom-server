@@ -25,7 +25,6 @@ internal class SqlIndexDataStoreV55 : SqlIndexDataStoreV54
 
     public override SchemaVersion Version => SchemaVersion.V55;
 
-
     public override async Task UpdateFilePropertiesContentLengthAsync(
         IReadOnlyDictionary<long, FileProperties> filePropertiesByWatermark,
         CancellationToken cancellationToken = default)
@@ -36,10 +35,10 @@ internal class SqlIndexDataStoreV55 : SqlIndexDataStoreV54
                     fp.Key,
                     fp.Value.Path,
                     fp.Value.ETag,
-                    fp.Value.ContentLength)).ToList();
+                    fp.Value.ContentLength))
+            .ToList();
 
-        using (SqlConnectionWrapper sqlConnectionWrapper =
-               await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
             VLatest.UpdateFilePropertiesContentLength.PopulateCommand(sqlCommandWrapper, fpRows);

@@ -18,9 +18,6 @@ using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
 
 namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
-/// <summary>
-/// 
-/// </summary>
 public partial class ContentLengthBackFillDurableFunction
 {
     ///<summary>
@@ -85,9 +82,10 @@ public partial class ContentLengthBackFillDurableFunction
                 {
                     propertiesByWatermark.TryAdd(instanceIdentifier.Version, blobStoreFileProperties);
                 }
-
+                else
                 {
-                    logger.LogWarning("Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be greater than 0 but it was {Length}.",
+                    logger.LogWarning(
+                        "Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be greater than 0 but it was {Length}.",
                         instanceIdentifier.Version,
                         instanceIdentifier.Partition.Key,
                         blobStoreFileProperties.ContentLength);
