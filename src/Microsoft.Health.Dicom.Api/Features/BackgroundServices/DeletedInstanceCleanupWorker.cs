@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -15,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Models.Delete;
+using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
@@ -71,6 +73,10 @@ public class DeletedInstanceCleanupWorker
             catch (DataStoreNotReadyException)
             {
                 _logger.LogInformation("The data store is not currently ready. Processing will continue after the next wait period.");
+            }
+            catch (SqlException sqlEx) when (sqlEx.IsCMKError())
+            {
+                _logger.LogInformation(sqlEx, "The customer-managed key is misconfigured by the customer.");
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
