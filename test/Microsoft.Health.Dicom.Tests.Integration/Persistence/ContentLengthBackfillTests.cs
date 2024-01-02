@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -196,7 +195,7 @@ public class ContentLengthBackfillTests : IClassFixture<SqlDataStoreTestsFixture
         var identitiersToUpdate = await _instanceStore.GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(batches[0]);
         Assert.Equal(4, identitiersToUpdate.Count);
 
-        var filePropertiesByWatermarkToUpdate = new ConcurrentDictionary<long, FileProperties>();
+        var filePropertiesByWatermarkToUpdate = new Dictionary<long, FileProperties>();
 
         foreach (var identifier in identitiersToUpdate)
         {

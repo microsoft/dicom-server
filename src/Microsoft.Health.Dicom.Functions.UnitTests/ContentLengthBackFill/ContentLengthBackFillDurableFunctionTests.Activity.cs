@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -73,7 +72,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
                 .Returns(expectedFileProperty);
         }
 
-        ConcurrentDictionary<long, FileProperties> expectedFilePropertiesByWatermark = new ConcurrentDictionary<long, FileProperties>();
+        Dictionary<long, FileProperties> expectedFilePropertiesByWatermark = new Dictionary<long, FileProperties>();
         foreach (var x in expected)
         {
             expectedFilePropertiesByWatermark.TryAdd(x.Version, expectedFileProperty);
@@ -97,7 +96,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
                     Arg.Any<CancellationToken>());
         }
 
-        await _indexStore.Received(1).UpdateFilePropertiesContentLengthAsync(Arg.Is<ConcurrentDictionary<long, FileProperties>>(x =>
+        await _indexStore.Received(1).UpdateFilePropertiesContentLengthAsync(Arg.Is<IReadOnlyDictionary<long, FileProperties>>(x =>
             x.Keys.SequenceEqual(expected.Select(y => y.Version)) &&
             x.Values.All(y => y.ContentLength == expectedFileProperty.ContentLength)));
     }
@@ -135,7 +134,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
 
 
         // Only non-corrupted data will be updated
-        ConcurrentDictionary<long, FileProperties> expectedFilePropertiesByWatermark = new ConcurrentDictionary<long, FileProperties>()
+        IReadOnlyDictionary<long, FileProperties> expectedFilePropertiesByWatermark = new Dictionary<long, FileProperties>()
         {
             [expected[0].Version] = expectedFileProperty,
             [expected[2].Version] = expectedFileProperty
@@ -158,7 +157,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
                 .GetFilePropertiesAsync(identifier.Version, identifier.Partition, fileProperties: null, Arg.Any<CancellationToken>());
         }
 
-        await _indexStore.Received(1).UpdateFilePropertiesContentLengthAsync(Arg.Is<ConcurrentDictionary<long, FileProperties>>(x =>
+        await _indexStore.Received(1).UpdateFilePropertiesContentLengthAsync(Arg.Is<IReadOnlyDictionary<long, FileProperties>>(x =>
             x.Keys.SequenceEqual(expectedFilePropertiesByWatermark.Keys) &&
             x.Values.All(y => y.ContentLength == expectedFileProperty.ContentLength)));
     }

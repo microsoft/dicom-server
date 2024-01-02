@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,7 +27,7 @@ internal class SqlIndexDataStoreV55 : SqlIndexDataStoreV54
 
 
     public override async Task UpdateFilePropertiesContentLengthAsync(
-        ConcurrentDictionary<long, FileProperties> filePropertiesByWatermark,
+        IReadOnlyDictionary<long, FileProperties> filePropertiesByWatermark,
         CancellationToken cancellationToken = default)
     {
         IEnumerable<FilePropertyTableTypeV2Row> fpRows = filePropertiesByWatermark

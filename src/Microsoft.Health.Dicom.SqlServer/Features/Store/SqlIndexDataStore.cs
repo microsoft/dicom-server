@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,7 +126,9 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         await store.UpdateFrameDataAsync(partitionKey, versions, hasFrameMetadata, cancellationToken);
     }
 
-    public async Task UpdateFilePropertiesContentLengthAsync(ConcurrentDictionary<long, FileProperties> filePropertiesByWatermark, CancellationToken cancellationToken = default)
+    public async Task UpdateFilePropertiesContentLengthAsync(
+        IReadOnlyDictionary<long, FileProperties> filePropertiesByWatermark,
+        CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         await store.UpdateFilePropertiesContentLengthAsync(filePropertiesByWatermark, cancellationToken);
