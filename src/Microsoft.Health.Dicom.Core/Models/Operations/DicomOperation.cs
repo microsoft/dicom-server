@@ -39,5 +39,6 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an content length backfill operation.
     /// </summary>
+    [IgnoreEnum]
     ContentLengthBackFill
 }
