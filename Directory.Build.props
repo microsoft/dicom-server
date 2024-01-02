@@ -11,26 +11,24 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HighEntropyVA>true</HighEntropyVA>
     <LangVersion>Latest</LangVersion>
-    <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <StsVersion>net7.0</StsVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <TrimMode>partial</TrimMode>
     <WarningsAsErrors />
   </PropertyGroup>
 
-  <!-- Currently the latest version is .NET 7 -->
+  <!-- Currently the latest version is .NET 8 -->
   <PropertyGroup>
-    <LatestVersion>$(StsVersion)</LatestVersion>
-    <LibraryFrameworks>$(LtsVersion);$(StsVersion)</LibraryFrameworks>
+    <LatestVersion>net8.0</LatestVersion>
+    <LibraryFrameworks>net8.0;net6.0</LibraryFrameworks>
   </PropertyGroup>
 
   <!-- SDK Packages -->
   <Choose>
-    <When Condition="'$(TargetFramework)' == '$(LtsVersion)'">
+    <When Condition="'$(TargetFramework)' == 'net6.0'">
       <PropertyGroup>
         <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
@@ -44,8 +42,8 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <DependencyInjectionVersion>7.0.0</DependencyInjectionVersion>
-        <SdkPackageVersion>7.0.0</SdkPackageVersion>
+        <DependencyInjectionVersion>8.0.0</DependencyInjectionVersion>
+        <SdkPackageVersion>8.0.0</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>

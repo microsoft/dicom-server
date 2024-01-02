@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -230,12 +229,7 @@ public class StoreOrchestrator : IStoreOrchestrator
             }
         }
 
-        if (framesRange.Any())
-        {
-            return framesRange;
-        }
-
-        return null;
+        return framesRange.Count > 0 ? framesRange : null;
     }
 
     private static bool TryGetBufferPosition(IByteBuffer buffer, out long position, out long size)

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
@@ -37,6 +36,7 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
     private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
     private readonly ISyncStateService _syncStateService;
     private readonly IExceptionStore _exceptionStore;
+    private readonly TimeProvider _timeProvider;
     private readonly DicomCastConfiguration _configuration;
     private readonly ILogger<ChangeFeedProcessor> _logger;
 
@@ -47,13 +47,24 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
         IExceptionStore exceptionStore,
         IOptions<DicomCastConfiguration> dicomCastConfiguration,
         ILogger<ChangeFeedProcessor> logger)
+        : this(changeFeedRetrieveService, fhirTransactionPipeline, syncStateService, exceptionStore, TimeProvider.System, dicomCastConfiguration, logger)
+    { }
+
+    internal ChangeFeedProcessor(
+        IChangeFeedRetrieveService changeFeedRetrieveService,
+        IFhirTransactionPipeline fhirTransactionPipeline,
+        ISyncStateService syncStateService,
+        IExceptionStore exceptionStore,
+        TimeProvider timeProvider,
+        IOptions<DicomCastConfiguration> dicomCastConfiguration,
+        ILogger<ChangeFeedProcessor> logger)
     {
         _changeFeedRetrieveService = EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
         _fhirTransactionPipeline = EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
         _syncStateService = EnsureArg.IsNotNull(syncStateService, nameof(syncStateService));
         _exceptionStore = EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
-        EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
-        _configuration = EnsureArg.IsNotNull(dicomCastConfiguration.Value, nameof(dicomCastConfiguration.Value));
+        _timeProvider = EnsureArg.IsNotNull(timeProvider, nameof(timeProvider));
+        _configuration = EnsureArg.IsNotNull(dicomCastConfiguration?.Value, nameof(dicomCastConfiguration));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
@@ -82,7 +93,7 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
                 long maxSequence = changeFeedEntries.Count > 0 ? changeFeedEntries[^1].Sequence : state.SyncedSequence + DefaultLimit;
                 await ProcessChangeFeedEntriesAsync(changeFeedEntries, cancellationToken);
 
-                var newSyncState = new SyncState(maxSequence, Clock.UtcNow);
+                var newSyncState = new SyncState(maxSequence, _timeProvider.GetUtcNow());
                 await _syncStateService.UpdateSyncStateAsync(newSyncState, cancellationToken);
                 _logger.LogInformation("Processed DICOM events sequenced [{SequenceId}, {MaxSequence}]", state.SyncedSequence + 1, maxSequence);
                 state = newSyncState;
@@ -115,7 +126,7 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
     private async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedEntriesOneByOne(SyncState state, CancellationToken cancellationToken)
     {
         long start = state.SyncedSequence;
-        IList<ChangeFeedEntry> changeFeedEntries = new List<ChangeFeedEntry>();
+        List<ChangeFeedEntry> changeFeedEntries = [];
 
         while (start < state.SyncedSequence + DefaultLimit)
         {

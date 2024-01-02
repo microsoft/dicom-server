@@ -14,6 +14,7 @@
     <PackageReference Include="fo-dicom" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+    <!-- Luckily this package is separate from the ASP.NET Core Framework, so it can be versioned separately -->
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" />
