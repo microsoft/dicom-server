@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
@@ -20,6 +21,9 @@ namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
 public partial class ContentLengthBackFillDurableFunction
 {
+    internal static int CorruptedAndProcessed = -1;
+    private const int ExpectedMinValue = 1;
+
     ///<summary>
     /// Asynchronously retrieves the next set of instance batches based on the configured options and whatever
     /// instances meet criteria of needing content length backfilled on file properties
@@ -77,19 +81,36 @@ public partial class ContentLengthBackFillDurableFunction
             },
             async (instanceIdentifier, token) =>
             {
-                FileProperties blobStoreFileProperties = await _fileStore.GetFilePropertiesAsync(instanceIdentifier.Version, instanceIdentifier.Partition, fileProperties: null, token);
-                if (blobStoreFileProperties.ContentLength > 0)
+                FileProperties blobStoreFileProperties;
+                try
                 {
-                    propertiesByWatermark.TryAdd(instanceIdentifier.Version, blobStoreFileProperties);
+                    blobStoreFileProperties = await _fileStore.GetFilePropertiesAsync(
+                        instanceIdentifier.Version,
+                        instanceIdentifier.Partition,
+                        fileProperties: null, token);
+                    if (blobStoreFileProperties.ContentLength < ExpectedMinValue)
+                    {
+                        blobStoreFileProperties = new FileProperties { ContentLength = CorruptedAndProcessed };
+                        logger.LogWarning(
+                            "Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be {ExpectedMin} or greater, but it was {Length}. Will store as {Value} to mark as processed.",
+                            instanceIdentifier.Version,
+                            instanceIdentifier.Partition.Key,
+                            ExpectedMinValue,
+                            blobStoreFileProperties.ContentLength,
+                            CorruptedAndProcessed);
+                    }
                 }
-                else
+                catch (Exception e) when (e is DataStoreRequestFailedException or DataStoreException)
                 {
+                    blobStoreFileProperties = new FileProperties { ContentLength = CorruptedAndProcessed };
                     logger.LogWarning(
-                        "Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be greater than 0 but it was {Length}.",
+                        "Could not get content length from blob store for the instance with watermark {Watermark} in partition {Partition}. Will store as {Value} to mark as processed.",
                         instanceIdentifier.Version,
                         instanceIdentifier.Partition.Key,
-                        blobStoreFileProperties.ContentLength);
+                        CorruptedAndProcessed);
                 }
+
+                propertiesByWatermark.TryAdd(instanceIdentifier.Version, blobStoreFileProperties);
             });
 
         logger.LogInformation("Completed getting content length for the instances in the range {Range}.", watermarkRange);
