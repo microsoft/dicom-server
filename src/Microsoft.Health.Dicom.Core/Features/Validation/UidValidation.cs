@@ -13,10 +13,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 internal partial class UidValidation : StringElementValidation
 {
 #if NET7_0_OR_GREATER
-    [GeneratedRegex("^(0|(?:[1-9][0-9]*))(?:\\.(0|(?:[1-9][0-9]*)))*$")]
+    [GeneratedRegex("^(0|([1-9][0-9]*))(\\.(0|([1-9][0-9]*)))*$", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline)]
     private static partial Regex UidRegex();
 #else
-    private static readonly Regex UidRegex = new("^(0|(?:[1-9][0-9]*))(?:\\.(0|(?:[1-9][0-9]*)))*$", RegexOptions.Compiled);
+    private static readonly Regex UidRegex = new("^(0|([1-9][0-9]*))(\\.(0|([1-9][0-9]*)))*$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline);
 #endif
 
     protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
