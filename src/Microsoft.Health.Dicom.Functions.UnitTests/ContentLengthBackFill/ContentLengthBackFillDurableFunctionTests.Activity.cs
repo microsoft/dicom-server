@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -16,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -166,15 +168,35 @@ public partial class ContentLengthBackFillDurableFunctionTests
             x.Values.Select(fp => fp.ContentLength).SequenceEqual(expectedFilePropertiesByWatermark.Values.Select(fileProperty => fileProperty.ContentLength))));
     }
 
+    public static IEnumerable<object[]> GetEtagExceptions()
+    {
+        yield return new object[]
+        {
+            new DataStoreRequestFailedException(new RequestFailedException(
+                    status: 412,
+                    message: string.Empty,
+                    errorCode: BlobErrorCode.ConditionNotMet.ToString(),
+                    innerException: new Exception()),
+                isExternal: true)
+        };
+    }
+
     public static IEnumerable<object[]> GetExceptions()
     {
-        yield return new object[] { new DataStoreRequestFailedException(new RequestFailedException(string.Empty), isExternal: true) };
-        yield return new object[] { new DataStoreException(new Exception(string.Empty), isExternal: true) };
+        yield return new object[]
+        {
+            new DataStoreRequestFailedException(new RequestFailedException(
+                    status: 412,
+                    message: string.Empty,
+                    errorCode: BlobErrorCode.AuthenticationFailed.ToString(),
+                    innerException: new Exception()),
+                isExternal: true)
+        };
     }
 
     [Theory]
-    [MemberData(nameof(GetExceptions))]
-    public async Task GivenBatch_WhenExceptionOnGettingLengthFromBlobStore_ThenExpectInstanceUpdatedWithNegativeOne(Exception exception)
+    [MemberData(nameof(GetEtagExceptions))]
+    public async Task GivenBatch_WhenExceptionOnGettingLengthFromBlobStoreDueToEtagMismatch_ThenExpectInstanceUpdatedWithNegativeOne(Exception exception)
     {
         var watermarkRange = new WatermarkRange(3, 10);
 
@@ -218,5 +240,48 @@ public partial class ContentLengthBackFillDurableFunctionTests
         await _indexStore.Received(1).UpdateFilePropertiesContentLengthAsync(Arg.Is<IReadOnlyDictionary<long, FileProperties>>(x =>
             x.Keys.SequenceEqual(expectedFilePropertiesByWatermark.Keys) &&
             x.Values.Select(fp => fp.ContentLength).SequenceEqual(expectedFilePropertiesByWatermark.Values.Select(fileProperty => fileProperty.ContentLength))));
+    }
+
+
+    [Theory]
+    [MemberData(nameof(GetExceptions))]
+    public async Task GivenBatch_WhenExceptionOnGettingLengthFromBlobStoreNotDueToEtag_ThenExpectInstanceNotUpdated(Exception exception)
+    {
+        var watermarkRange = new WatermarkRange(3, 10);
+
+        var expected = new List<VersionedInstanceIdentifier>
+        {
+            new(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 3),
+        };
+
+        // Arrange input
+        _instanceStore
+            .GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, Arg.Any<CancellationToken>())
+            .Returns(expected);
+
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), expected[0].Partition, fileProperties: null, Arg.Any<CancellationToken>())
+            .Throws(exception);
+
+        IReadOnlyDictionary<long, FileProperties> expectedFilePropertiesByWatermark = new Dictionary<long, FileProperties>();
+        _indexStore.UpdateFilePropertiesContentLengthAsync(expectedFilePropertiesByWatermark).Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _contentLengthBackFillDurableFunction.BackFillContentLengthRangeDataAsync(watermarkRange, NullLogger.Instance);
+
+        // Assert behavior
+        await _instanceStore
+            .Received(1)
+            .GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, CancellationToken.None);
+
+        foreach (VersionedInstanceIdentifier identifier in expected)
+        {
+            await _fileStore
+                .Received(1)
+                .GetFilePropertiesAsync(identifier.Version, identifier.Partition, fileProperties: null, Arg.Any<CancellationToken>());
+        }
+
+        await _indexStore.Received(1).UpdateFilePropertiesContentLengthAsync(Arg.Is<IReadOnlyDictionary<long, FileProperties>>(x =>
+            x.Values.IsNullOrEmpty() &&
+            x.Values.SequenceEqual(expectedFilePropertiesByWatermark.Values)));
     }
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -90,7 +91,7 @@ public partial class ContentLengthBackFillDurableFunction
                         fileProperties: null, token);
                     if (blobStoreFileProperties.ContentLength < ExpectedMinValue)
                     {
-                        blobStoreFileProperties = new FileProperties { ContentLength = CorruptedAndProcessed };
+                        propertiesByWatermark.TryAdd(instanceIdentifier.Version, new FileProperties { ContentLength = CorruptedAndProcessed });
                         logger.LogWarning(
                             "Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be {ExpectedMin} or greater, but it was {Length}. Will store as {Value} to mark as processed.",
                             instanceIdentifier.Version,
@@ -99,18 +100,29 @@ public partial class ContentLengthBackFillDurableFunction
                             blobStoreFileProperties.ContentLength,
                             CorruptedAndProcessed);
                     }
+                    propertiesByWatermark.TryAdd(instanceIdentifier.Version, blobStoreFileProperties);
                 }
-                catch (Exception e) when (e is DataStoreRequestFailedException or DataStoreException)
+                catch (Exception e) when (e is DataStoreException or DataStoreRequestFailedException)
                 {
-                    blobStoreFileProperties = new FileProperties { ContentLength = CorruptedAndProcessed };
-                    logger.LogWarning(
-                        "Could not get content length from blob store for the instance with watermark {Watermark} in partition {Partition}. Will store as {Value} to mark as processed.",
-                        instanceIdentifier.Version,
-                        instanceIdentifier.Partition.Key,
-                        CorruptedAndProcessed);
+                    if (e is DataStoreRequestFailedException &&
+                        e.Message.Contains(BlobErrorCode.ConditionNotMet.ToString(), StringComparison.InvariantCulture))
+                    {
+                        propertiesByWatermark.TryAdd(instanceIdentifier.Version, new FileProperties { ContentLength = CorruptedAndProcessed });
+                        logger.LogWarning(
+                            "Could not get content length from blob store for the instance with watermark {Watermark} in partition {Partition} due to data corruption. The file may be missing or etags mismatch. Will store as {Value} to mark as processed.",
+                            instanceIdentifier.Version,
+                            instanceIdentifier.Partition.Key,
+                            CorruptedAndProcessed);
+                    }
+                    else
+                    {
+                        // try to reprocess later by leaving content length 0, but allow other instances to attempt to update
+                        logger.LogInformation(
+                            "Could not get content length from blob store for the instance with watermark {Watermark} in partition {Partition}. Will leave length as 0 to allow for reprocessing as data does not appear to be corrupted.",
+                            instanceIdentifier.Version,
+                            instanceIdentifier.Partition.Key);
+                    }
                 }
-
-                propertiesByWatermark.TryAdd(instanceIdentifier.Version, blobStoreFileProperties);
             });
 
         logger.LogInformation("Completed getting content length for the instances in the range {Range}.", watermarkRange);
