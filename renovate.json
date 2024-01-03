@@ -28,6 +28,12 @@
       ]
     },
     {
+      "groupName": "fo-dicom",
+      "matchPackagePrefixes": [
+        "fo-dicom"
+      ]
+    },
+    {
       "excludePackagePrefixes": [
         "Microsoft.Health.Fhir."
       ],

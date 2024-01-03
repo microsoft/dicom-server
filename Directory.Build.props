@@ -32,6 +32,7 @@
       <PropertyGroup>
         <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <MediatRVersion>12.1.1</MediatRVersion>
+        <OTelVersion>1.6.0</OTelVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
       </PropertyGroup>
     </When>
@@ -39,6 +40,7 @@
       <PropertyGroup>
         <DependencyInjectionVersion>8.0.0</DependencyInjectionVersion>
         <MediatRVersion>12.2.0</MediatRVersion>
+        <OTelVersion>1.7.0</OTelVersion>
         <SdkPackageVersion>8.0.0</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>
