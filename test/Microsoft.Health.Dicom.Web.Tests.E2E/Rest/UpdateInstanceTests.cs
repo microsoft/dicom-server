@@ -143,7 +143,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     {
         DicomTag ageTag = DicomTag.PatientAge;
         DicomTag patientSexTag = DicomTag.PatientSex;
-        string tagValue = "053Y";
+        string tagValue = "035Y";
 
         // Try to delete these extended query tags.
         await _tagManager.DeleteExtendedQueryTagAsync(ageTag.GetPath());
@@ -179,7 +179,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.Equal(3, instances.Length);
 
         // Verify using QIDO not original values
-        queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=053Y");
+        queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=035Y&{DicomTag.StudyInstanceUID.GetPath()}={studyInstanceUid}");
         instances = await queryResponse.ToArrayAsync();
         Assert.Empty(instances);
     }
