@@ -54,7 +54,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.True((await _instancesManager.StoreStudyAsync(new[] { dicomFile1, dicomFile2, dicomFile3 })).IsSuccessStatusCode);
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid, "New^PatientName");
+        await UpdateStudyAsync(3, studyInstanceUid, "New^PatientName");
 
         // Verify study
         await VerifyMetadata(studyInstanceUid, Enumerable.Repeat("New^PatientName", 3).ToArray());
@@ -76,14 +76,14 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.True((await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 })).IsSuccessStatusCode);
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
+        await UpdateStudyAsync(2, studyInstanceUid1, "New^PatientName");
 
         // Verify study
         await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 2).ToArray());
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
 
         // Update again to ensure DICOM file is not corrupted after update
-        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName1");
+        await UpdateStudyAsync(2, studyInstanceUid1, "New^PatientName1");
 
         // Verify again to ensure update is successful
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
@@ -96,7 +96,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     public async Task WhenUpdatingDicomMetadataWithDicomFileSizeGreaterThan4MB_ThenItShouldUpdateCorrectly()
     {
         string studyInstanceUid1 = TestUidGenerator.Generate();
-        string studyInstanceUid2 = TestUidGenerator.Generate();
 
         DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 1000, columns: 1000, frames: 5, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
         string originalPatientName1 = dicomFile1.Dataset.GetSingleValue<string>(DicomTag.PatientName);
@@ -105,7 +104,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.True((await _instancesManager.StoreAsync(new[] { dicomFile1 })).IsSuccessStatusCode);
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
+        await UpdateStudyAsync(1, studyInstanceUid1, "New^PatientName");
 
         // Verify study
         await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 1).ToArray());
@@ -113,7 +112,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
 
         // Update again to ensure DICOM file is not corrupted after update
-        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName1");
+        await UpdateStudyAsync(1, studyInstanceUid1, "New^PatientName1");
 
         // Verify again to ensure update is successful
         await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
@@ -132,7 +131,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.True((await _instancesManager.StoreAsync(new[] { dicomFile1 })).IsSuccessStatusCode);
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
+        await UpdateStudyAsync(1, studyInstanceUid1, "New^PatientName");
 
         // call delete service and verify both new and original blobs deleted
         await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, requestOriginalVersion: true);
@@ -171,7 +170,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
                 new AddExtendedQueryTagEntry { Path = patientSexTag.GetPath(), VR = patientSexTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
 
         // Update study
-        await UpdateStudyAsync(studyInstanceUid, "New^PatientName", "054Y", "M", expectedPhysicianName: "NewPhysicianName");
+        await UpdateStudyAsync(3, studyInstanceUid, "New^PatientName", "054Y", "M", expectedPhysicianName: "NewPhysicianName");
 
         // Verify using QIDO
         DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{ageTag.GetPath()}=054Y&{patientSexTag.GetPath()}=M&{DicomTag.ReferringPhysicianName.GetPath()}=NewPhysicianName");
@@ -184,7 +183,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         Assert.Empty(instances);
     }
 
-    private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null, string expectedPhysicianName = null)
+    private async Task UpdateStudyAsync(int expectedInstancesUpdated, string studyInstanceUid, string expectedPatientName, string age = null, string patientSex = null, string expectedPhysicianName = null)
     {
         var datasetToUpdate = new DicomDataset();
         datasetToUpdate.AddOrUpdate(DicomTag.PatientName, expectedPatientName);
@@ -204,7 +203,17 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
             datasetToUpdate.AddOrUpdate(DicomTag.ReferringPhysicianName, expectedPhysicianName);
         }
 
-        Assert.Equal(OperationStatus.Succeeded, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate));
+        IOperationState<DicomOperation> response = await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate);
+
+        Assert.Equal(OperationStatus.Succeeded, response.Status);
+
+        var updateResult = response.Results as UpdateResults;
+        Assert.NotNull(updateResult);
+        Assert.Equal(expectedInstancesUpdated, updateResult.InstanceUpdated);
+        Assert.Equal(0, updateResult.StudyFailed);
+        Assert.Equal(1, updateResult.StudyUpdated);
+        Assert.Equal(1, updateResult.StudyProcessed);
+        Assert.Null(updateResult.Errors);
     }
 
     private async Task VerifyRetrieveInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName, bool requestOriginalVersion = default)
