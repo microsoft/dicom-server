@@ -11,7 +11,6 @@
   <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Ensure.That" />
-    <PackageReference Include="Google.Protobuf" PrivateAssets="All" />
     <PackageReference Include="IdentityServer4" />
     <PackageReference Include="IdentityServer4.Storage" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />

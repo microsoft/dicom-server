@@ -1,12 +1,12 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -26,6 +26,6 @@ public static class IIndexDataStoreExtensions
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
         await indexDataStore.DeleteInstanceIndexAsync(
-            instanceIdentifier.Partition, instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, Clock.UtcNow, cancellationToken);
+            instanceIdentifier.Partition, instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, DateTimeOffset.UtcNow, cancellationToken);
     }
 }

@@ -70,7 +70,7 @@ public class BlobWorkitemStore : IWorkitemStore
 
         try
         {
-            await using Stream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(AddWorkitemAsync));
+            await using RecyclableMemoryStream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(AddWorkitemAsync));
             await JsonSerializer.SerializeAsync(stream, dataset, _jsonSerializerOptions, cancellationToken);
 
             // Uploads the blob. Overwrites the blob if it exists, otherwise creates a new one.

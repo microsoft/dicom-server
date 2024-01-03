@@ -14,7 +14,9 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
+#if !NET8_0_OR_GREATER
 using Microsoft.Health.Core;
+#endif
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -41,6 +43,46 @@ public class DeleteService : IDeleteService
 
     private TimeSpan DeleteDelay => _isExternalStoreEnabled ? TimeSpan.Zero : _deletedInstanceCleanupConfiguration.DeleteDelay;
 
+#if NET8_0_OR_GREATER
+    private readonly TimeProvider _timeProvider;
+
+    public DeleteService(
+        IIndexDataStore indexDataStore,
+        IMetadataStore metadataStore,
+        IFileStore fileStore,
+        IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
+        ITransactionHandler transactionHandler,
+        ILogger<DeleteService> logger,
+        IDicomRequestContextAccessor contextAccessor,
+        IOptions<FeatureConfiguration> featureConfiguration,
+        TelemetryClient telemetryClient)
+        : this(
+            indexDataStore,
+            metadataStore,
+            fileStore,
+            deletedInstanceCleanupConfiguration,
+            transactionHandler,
+            logger,
+            contextAccessor,
+            featureConfiguration,
+            telemetryClient,
+            TimeProvider.System)
+    { }
+
+    internal DeleteService(
+        IIndexDataStore indexDataStore,
+        IMetadataStore metadataStore,
+        IFileStore fileStore,
+        IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
+        ITransactionHandler transactionHandler,
+        ILogger<DeleteService> logger,
+        IDicomRequestContextAccessor contextAccessor,
+        IOptions<FeatureConfiguration> featureConfiguration,
+        TelemetryClient telemetryClient,
+        TimeProvider timeProvider)
+    {
+        _timeProvider = EnsureArg.IsNotNull(timeProvider, nameof(timeProvider));
+#else
     public DeleteService(
         IIndexDataStore indexDataStore,
         IMetadataStore metadataStore,
@@ -52,23 +94,16 @@ public class DeleteService : IDeleteService
         IOptions<FeatureConfiguration> featureConfiguration,
         TelemetryClient telemetryClient)
     {
-        EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
-        EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-        EnsureArg.IsNotNull(fileStore, nameof(fileStore));
-        EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
-        EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-        EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+#endif
+        _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+        _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+        _deletedInstanceCleanupConfiguration = EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
+        _transactionHandler = EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration.Value, nameof(featureConfiguration)).EnableExternalStore;
-        _indexDataStore = indexDataStore;
-        _metadataStore = metadataStore;
-        _fileStore = fileStore;
-        _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
-        _transactionHandler = transactionHandler;
-        _logger = logger;
-        _contextAccessor = contextAccessor;
     }
 
     public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
@@ -94,7 +129,17 @@ public class DeleteService : IDeleteService
 
     public Task DeleteInstanceNowAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
     {
-        return _indexDataStore.DeleteInstanceIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
+        return _indexDataStore.DeleteInstanceIndexAsync(
+            GetPartition(),
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+#if NET8_0_OR_GREATER
+            _timeProvider.GetUtcNow(),
+#else
+            Clock.UtcNow,
+#endif
+            cancellationToken);
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
@@ -209,13 +254,14 @@ public class DeleteService : IDeleteService
         }
     }
 
-    private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)
-    {
-        return Clock.UtcNow + delay;
-    }
-
     private Partition GetPartition()
-    {
-        return _contextAccessor.RequestContext.GetPartition();
-    }
+        => _contextAccessor.RequestContext.GetPartition();
+
+#if NET8_0_OR_GREATER
+    private DateTimeOffset GenerateCleanupAfter(TimeSpan delay)
+        => _timeProvider.GetUtcNow() + delay;
+#else
+    private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)
+        => Clock.UtcNow + delay;
+#endif
 }

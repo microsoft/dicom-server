@@ -292,13 +292,13 @@
                 {
                     "apiVersion": "2020-12-01",
                     "type": "siteextensions",
-                    "name": "AspNetCoreRuntime.7.0.x64",
+                    "name": "AspNetCoreRuntime.8.0.x64",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]" // Avoid restarts mid-installation
                     ],
                     "properties": {
-                        "version": "7.0.3"
+                        "version": "8.0.0"
                     }
                 },
                 {
@@ -309,7 +309,7 @@
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
-                        "[resourceId('Microsoft.Web/sites/siteextensions', variables('serviceName'), 'AspNetCoreRuntime.7.0.x64')]"
+                        "[resourceId('Microsoft.Web/sites/siteextensions', variables('serviceName'), 'AspNetCoreRuntime.8.0.x64')]"
                     ],
                     "properties": {
                         "packageUri": "[parameters('deployWebPackageUrl')]"
