@@ -173,6 +173,23 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
+    [Fact]
+    public async Task GivenV2Enabled_WhenCoreTagInvalid_ExpectTagValidatedAndErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(studyInstanceUid: "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", validateItems: false);
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.True(result.InvalidTagErrors.Any());
+        Assert.Single(result.InvalidTagErrors);
+        Assert.True(result.HasCoreTagError); // Failing here
+        Assert.False(result.InvalidTagErrors[DicomTag.StudyInstanceUID].IsRequiredCoreTag);
+        Assert.Contains("does not validate VR UI: value exceeds maximum length of 64 characters", result.InvalidTagErrors[DicomTag.StudyInstanceUID].Error);
+    }
+
     [Theory]
     [InlineData("123,345")]
     public async Task GivenV2Enabled_WhenPatientIDPAddedWithComma_ExpectTagValidatedAndNoErrorProduced(string value)
@@ -324,7 +341,7 @@ public class StoreDatasetValidatorTestsV2
     }
 
     [Fact]
-    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidInnerNullPaddedValues_ExpectTagValidatedAndNoErrorProduced()
+    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidInnerTag_ExpectTagValidatedAndErrorProduced()
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
         var sq = new DicomDataset();
@@ -341,6 +358,26 @@ public class StoreDatasetValidatorTestsV2
 
         Assert.Single(result.InvalidTagErrors);
         Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidNestedCoreTag_ExpectTagValidatedAndErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        var sq = new DicomDataset();
+        sq.NotValidated();
+        sq.AddOrUpdate(DicomTag.StudyInstanceUID, "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+
+        dicomDataset.Add(new DicomSequence(DicomTag.RegistrationSequence, sq));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Single(result.InvalidTagErrors);
+        Assert.False(result.HasCoreTagError);
+        Assert.Contains("does not validate VR UI: value exceeds maximum length of 64 characters", result.InvalidTagErrors[DicomTag.StudyInstanceUID].Error);
     }
 
     [Fact]
