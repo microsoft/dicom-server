@@ -309,6 +309,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NVarCharColumn ETag = new NVarCharColumn("ETag", 4000);
             internal readonly BigIntColumn ContentLength = new BigIntColumn("ContentLength");
             internal readonly Index IXC_FileProperty = new Index("IXC_FileProperty");
+            internal readonly Index IXC_FileProperty_ContentLength = new Index("IXC_FileProperty_ContentLength");
         }
 
         internal class InstanceTable : Table

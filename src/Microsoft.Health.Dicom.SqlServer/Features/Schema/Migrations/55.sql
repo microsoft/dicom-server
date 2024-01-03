@@ -295,6 +295,9 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty
     ON dbo.FileProperty(InstanceKey, Watermark) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
 
+CREATE UNIQUE NONCLUSTERED INDEX IXC_FileProperty_ContentLength
+    ON dbo.FileProperty(InstanceKey, Watermark, ContentLength) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
+
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
     SeriesKey             BIGINT        NOT NULL,
