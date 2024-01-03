@@ -82,7 +82,7 @@ public class BlobMetadataStore : IMetadataStore
 
         try
         {
-            await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(StoreInstanceMetadataAsync));
+            await using RecyclableMemoryStream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(StoreInstanceMetadataAsync));
             await JsonSerializer.SerializeAsync(stream, dicomDatasetWithoutBulkData, _jsonSerializerOptions, cancellationToken);
 
             stream.Seek(0, SeekOrigin.Begin);
@@ -169,7 +169,7 @@ public class BlobMetadataStore : IMetadataStore
         try
         {
             // TOOD: Stream directly to blob storage
-            await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(StoreInstanceFramesRangeAsync));
+            await using RecyclableMemoryStream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(StoreInstanceFramesRangeAsync));
             await JsonSerializer.SerializeAsync(stream, framesRange, _jsonSerializerOptions, cancellationToken);
 
             stream.Seek(0, SeekOrigin.Begin);

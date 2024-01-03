@@ -58,7 +58,7 @@ public class FrameHandler : IFrameHandler
         }
     }
 
-    private MemoryStream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
+    private RecyclableMemoryStream GetFrameAsDicomData(DicomPixelData pixelData, int frame)
     {
         EnsureArg.IsNotNull(pixelData, nameof(pixelData));
 
