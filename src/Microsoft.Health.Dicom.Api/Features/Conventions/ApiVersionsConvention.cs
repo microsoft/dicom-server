@@ -77,7 +77,7 @@ internal class ApiVersionsConvention : IControllerConvention
         return true;
     }
 
-    private static List<ApiVersion> GetAllSupportedVersions(int start, int end)
+    private static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int start, int end)
     {
         if (start < 1)
         {

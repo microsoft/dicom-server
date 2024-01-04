@@ -56,7 +56,7 @@ public class QueryServiceTests
     [Theory]
     [InlineData(QueryResource.StudySeries, "123.001")]
     [InlineData(QueryResource.StudyInstances, "abc.1234")]
-    public Task GivenQidoQuery_WithInvalidStudyInstanceUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
+    public void GivenQidoQuery_WithInvalidStudyInstanceUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid)
     {
         var parameters = new QueryParameters
         {
@@ -64,14 +64,13 @@ public class QueryServiceTests
             QueryResourceType = resourceType,
             StudyInstanceUid = studyInstanceUid
         };
-
-        return Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
+        Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
     }
 
     [Theory]
     [InlineData(QueryResource.StudySeriesInstances, "123.111", "1234.001")]
     [InlineData(QueryResource.StudySeriesInstances, "123.abc", "1234.001")]
-    public Task GivenQidoQuery_WithInvalidStudySeriesUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid, string seriesInstanceUid)
+    public void GivenQidoQuery_WithInvalidStudySeriesUid_ThrowsValidationException(QueryResource resourceType, string studyInstanceUid, string seriesInstanceUid)
     {
         var parameters = new QueryParameters
         {
@@ -80,8 +79,7 @@ public class QueryServiceTests
             SeriesInstanceUid = seriesInstanceUid,
             StudyInstanceUid = studyInstanceUid,
         };
-
-        return Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
+        Assert.ThrowsAsync<InvalidIdentifierException>(() => _queryService.QueryAsync(parameters, CancellationToken.None));
     }
 
     [Theory]

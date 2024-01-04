@@ -132,7 +132,7 @@ public class Transcoder : ITranscoder
             throw new TranscodingException();
         }
 
-        RecyclableMemoryStream resultStream = _recyclableMemoryStreamManager.GetStream(tag: nameof(TranscodeFileAsync));
+        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream(tag: nameof(TranscodeFileAsync));
 
         if (dicomFile != null)
         {

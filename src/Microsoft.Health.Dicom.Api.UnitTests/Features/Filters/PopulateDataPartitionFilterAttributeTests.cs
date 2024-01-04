@@ -86,7 +86,7 @@ public class PopulateDataPartitionFilterAttributeTests
     }
 
     [Fact]
-    public Task GivenRetrieveRequestWithDataPartitionsEnabled_WhenNoPartitionId_ThenItShouldThrowError()
+    public void GivenRetrieveRequestWithDataPartitionsEnabled_WhenNoPartitionId_ThenItShouldThrowError()
     {
         var routeValueDictionary = new RouteValueDictionary
         {
@@ -94,11 +94,11 @@ public class PopulateDataPartitionFilterAttributeTests
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
-        return Assert.ThrowsAsync<DataPartitionsMissingPartitionException>(() => _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
+        Assert.ThrowsAsync<DataPartitionsMissingPartitionException>(() => _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
     }
 
     [Fact]
-    public Task GivenRetrieveRequestWithDataPartitionsDisabled_WhenPartitionIdIsPassed_ThenItShouldThrowError()
+    public void GivenRetrieveRequestWithDataPartitionsDisabled_WhenPartitionIdIsPassed_ThenItShouldThrowError()
     {
         var routeValueDictionary = new RouteValueDictionary
         {
@@ -110,7 +110,7 @@ public class PopulateDataPartitionFilterAttributeTests
         _featureConfiguration.Value.EnableDataPartitions = false;
         _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
 
-        return Assert.ThrowsAsync<DataPartitionsFeatureDisabledException>(() => _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
+        Assert.ThrowsAsync<DataPartitionsFeatureDisabledException>(() => _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
     }
 
     [Fact]
