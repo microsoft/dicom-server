@@ -341,7 +341,7 @@ public class StoreDatasetValidatorTestsV2
     }
 
     [Fact]
-    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidInnerTag_ExpectTagValidatedAndErrorProduced()
+    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidInnerTag_ExpectTagValidatedAndWarningsProduced()
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
         var sq = new DicomDataset();
@@ -361,11 +361,12 @@ public class StoreDatasetValidatorTestsV2
     }
 
     [Fact]
-    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidNestedCoreTag_ExpectTagValidatedAndErrorProduced()
+    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidNestedStudyInstanceUID_ExpectTagValidatedAndWarningsProduced()
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
         var sq = new DicomDataset();
         sq.NotValidated();
+        // Nothing inside sequence will be considered to be a core tag
         sq.AddOrUpdate(DicomTag.StudyInstanceUID, "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
 
         dicomDataset.Add(new DicomSequence(DicomTag.RegistrationSequence, sq));
