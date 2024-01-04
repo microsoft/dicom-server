@@ -94,7 +94,7 @@ public class DeletedInstanceCleanupWorker
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 // Cancel requested.
-                throw;
+                break;
             }
         }
     }
