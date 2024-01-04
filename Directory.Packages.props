@@ -10,9 +10,9 @@
     <PackageVersion Include="Azure.Storage.Queues" Version="12.17.1" />
     <PackageVersion Include="Azure.Storage.Common" Version="12.18.1" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
-    <PackageVersion Include="fo-dicom" Version="5.1.1" />
+    <PackageVersion Include="fo-dicom" Version="5.1.2" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.11.0" />
-    <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.0" />
+    <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.2" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="4.3.0" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="4.3.0" />
@@ -29,7 +29,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(WebUtilitiesVersion)" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Azure.ServiceBus" Version="5.2.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.39" />
@@ -91,10 +91,10 @@
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.1.167" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.8.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="OpenTelemetry" Version="1.6.0" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.6.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.6.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.6.0" />
+    <PackageVersion Include="OpenTelemetry" Version="$(OTelVersion)" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="$(OTelVersion)" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OTelVersion)" />
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="$(OTelVersion)" />
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
     <PackageVersion Include="Polly" Version="8.2.0" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />

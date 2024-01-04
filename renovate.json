@@ -28,6 +28,12 @@
       ]
     },
     {
+      "groupName": "fo-dicom",
+      "matchPackagePrefixes": [
+        "fo-dicom"
+      ]
+    },
+    {
       "excludePackagePrefixes": [
         "Microsoft.Health.Fhir."
       ],
@@ -44,7 +50,6 @@
       ]
     },
     {
-      "allowedVersions": "<7.0.0",
       "groupName": "IdentityModel.Tokens",
       "matchPackagePatterns": [
         "IdentityModel.Tokens"
