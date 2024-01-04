@@ -53,6 +53,8 @@ public class DeletedInstanceCleanupWorker
         {
             try
             {
+                await Task.Delay(_pollingInterval, stoppingToken).ConfigureAwait(false);
+
                 // Send metrics related to deletion progress
                 DeleteMetrics metrics = await _deleteService.GetMetricsAsync(stoppingToken);
 
@@ -85,16 +87,6 @@ public class DeletedInstanceCleanupWorker
             {
                 // The job failed.
                 _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
-            }
-
-            try
-            {
-                await Task.Delay(_pollingInterval, stoppingToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                // Cancel requested.
-                break;
             }
         }
     }
