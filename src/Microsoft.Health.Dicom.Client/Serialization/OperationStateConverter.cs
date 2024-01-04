@@ -25,6 +25,7 @@ internal sealed class OperationStateConverter : JsonConverter<IOperationState<Di
         return value.Deserialize<DicomOperation>(options) switch
         {
             DicomOperation.Export => obj.Deserialize<OperationState<DicomOperation, ExportResults>>(options),
+            DicomOperation.Update => obj.Deserialize<OperationState<DicomOperation, UpdateResults>>(options),
             _ => obj.Deserialize<OperationState<DicomOperation>>(options),
         };
     }
