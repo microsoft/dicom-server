@@ -140,6 +140,8 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         // The format of the identifiers will be validated by fo-dicom.
         string studyInstanceUid = EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.StudyInstanceUID);
+        EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SeriesInstanceUID);
+        EnsureRequiredTagIsPresentWithValue(dicomDataset, DicomTag.SOPInstanceUID);
 
         // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match, ignoring whitespace.
         if (requiredStudyInstanceUid != null &&
