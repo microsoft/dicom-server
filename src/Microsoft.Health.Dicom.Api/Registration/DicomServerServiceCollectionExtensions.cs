@@ -28,6 +28,7 @@ using Microsoft.Health.Dicom.Api.Features.Partitioning;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Api.Logging;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
@@ -53,9 +54,18 @@ public static class DicomServerServiceCollectionExtensions
     public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
     {
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+        // var featuresOptions = Options.Create(new DicomServerConfiguration().Features);
+
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
+        configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
+
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
-        serverBuilder.Services.AddHostedService<StartContentLengthBackFillBackgroundService>();
+        if (featureConfiguration.EnableExternalStore)
+        {
+            serverBuilder.Services.AddHostedService<StartContentLengthBackFillBackgroundService>();
+        }
 
         serverBuilder.Services
             .AddCustomerKeyValidationBackgroundService(options => configuration
