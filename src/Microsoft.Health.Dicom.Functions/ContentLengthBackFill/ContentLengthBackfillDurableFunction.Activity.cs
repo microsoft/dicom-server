@@ -38,8 +38,8 @@ public partial class ContentLengthBackFillDurableFunction
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    [FunctionName(nameof(GetInstanceBatches))]
-    public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatches([ActivityTrigger] BatchCreationArguments arguments, ILogger logger)
+    [FunctionName(nameof(GetContentLengthBackFillInstanceBatches))]
+    public Task<IReadOnlyList<WatermarkRange>> GetContentLengthBackFillInstanceBatches([ActivityTrigger] BatchCreationArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));

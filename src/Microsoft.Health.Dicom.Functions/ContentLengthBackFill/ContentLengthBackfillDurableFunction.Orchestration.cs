@@ -44,7 +44,7 @@ public partial class ContentLengthBackFillDurableFunction
         ContentLengthBackFillCheckPoint input = context.GetInput<ContentLengthBackFillCheckPoint>();
 
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-            nameof(GetInstanceBatches),
+            nameof(GetContentLengthBackFillInstanceBatches),
             _options.RetryOptions,
             new BatchCreationArguments(input.Batching.Size, input.Batching.MaxParallelCount));
 

@@ -37,7 +37,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
             .GetContentLengthBackFillInstanceBatches(batchSize, maxParallelBatches, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _contentLengthBackFillDurableFunction.GetInstanceBatches(
+        IReadOnlyList<WatermarkRange> actual = await _contentLengthBackFillDurableFunction.GetContentLengthBackFillInstanceBatches(
             new BatchCreationArguments(batchSize, maxParallelBatches),
             NullLogger.Instance);
 

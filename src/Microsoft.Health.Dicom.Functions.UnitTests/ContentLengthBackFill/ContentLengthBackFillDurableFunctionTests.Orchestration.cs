@@ -48,7 +48,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(ContentLengthBackFillDurableFunction.GetInstanceBatches),
+                nameof(ContentLengthBackFillDurableFunction.GetContentLengthBackFillInstanceBatches),
                 _options.RetryOptions,
                 Arg.Is<BatchCreationArguments>(
                     x => x.BatchSize == batchSize && x.MaxParallelBatches == maxParallelBatches))
@@ -72,7 +72,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(ContentLengthBackFillDurableFunction.GetInstanceBatches),
+                nameof(ContentLengthBackFillDurableFunction.GetContentLengthBackFillInstanceBatches),
                 _options.RetryOptions,
                 Arg.Is<BatchCreationArguments>(
                     x => x.BatchSize == batchSize && x.MaxParallelBatches == maxParallelBatches));
@@ -124,7 +124,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(ContentLengthBackFillDurableFunction.GetInstanceBatches),
+                nameof(ContentLengthBackFillDurableFunction.GetContentLengthBackFillInstanceBatches),
                 _options.RetryOptions,
                 Arg.Is<BatchCreationArguments>(
                     x => x.BatchSize == batchSize && x.MaxParallelBatches == maxParallelBatches))
@@ -148,7 +148,7 @@ public partial class ContentLengthBackFillDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(ContentLengthBackFillDurableFunction.GetInstanceBatches),
+                nameof(ContentLengthBackFillDurableFunction.GetContentLengthBackFillInstanceBatches),
                 _options.RetryOptions,
                 Arg.Is<BatchCreationArguments>(
                     x => x.BatchSize == batchSize && x.MaxParallelBatches == maxParallelBatches));

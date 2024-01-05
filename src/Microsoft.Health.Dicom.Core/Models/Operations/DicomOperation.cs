@@ -11,20 +11,16 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations;
 public enum DicomOperation
 {
     /// <summary>
-    /// Specifies an operation whose type is missing or unrecognized.
-    /// </summary>
-    Unknown,
-
-    /// <summary>
     /// Specifies an data cleanup operation that cleans up instance data.
     /// </summary>
     [IgnoreEnum]
     DataCleanup,
 
     /// <summary>
-    /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
+    /// Specifies an content length backfill operation.
     /// </summary>
-    Reindex,
+    [IgnoreEnum]
+    ContentLengthBackFill,
 
     /// <summary>
     /// Specifies an export operation that copies data out of the DICOM server and into an external data store.
@@ -32,13 +28,17 @@ public enum DicomOperation
     Export,
 
     /// <summary>
-    /// Specifies an update operation that updates the Dicom attributes.
+    /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
     /// </summary>
-    Update,
+    Reindex,
 
     /// <summary>
-    /// Specifies an content length backfill operation.
+    /// Specifies an operation whose type is missing or unrecognized.
     /// </summary>
-    [IgnoreEnum]
-    ContentLengthBackFill
+    Unknown,
+
+    /// <summary>
+    /// Specifies an update operation that updates the Dicom attributes.
+    /// </summary>
+    Update
 }

@@ -57,7 +57,6 @@ internal class SqlInstanceStoreV55 : SqlInstanceStoreV48
         }
     }
 
-
     public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeAsync(
         WatermarkRange watermarkRange,
         CancellationToken cancellationToken = default)

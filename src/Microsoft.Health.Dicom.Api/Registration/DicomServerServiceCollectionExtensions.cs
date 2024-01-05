@@ -55,7 +55,6 @@ public static class DicomServerServiceCollectionExtensions
     {
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
-        // var featuresOptions = Options.Create(new DicomServerConfiguration().Features);
 
         FeatureConfiguration featureConfiguration = new FeatureConfiguration();
         configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
