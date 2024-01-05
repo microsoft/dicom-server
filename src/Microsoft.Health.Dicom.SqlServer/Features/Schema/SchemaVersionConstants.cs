@@ -7,6 +7,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 public static class SchemaVersionConstants
 {
-    public const int Min = (int)SchemaVersion.V37;
-    public const int Max = (int)SchemaVersion.V52;
+    public const int Min = (int)SchemaVersion.V50;
+    public const int Max = (int)SchemaVersion.V54;
 }

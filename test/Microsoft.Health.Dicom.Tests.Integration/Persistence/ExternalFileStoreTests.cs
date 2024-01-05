@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -8,10 +8,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
-using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.IO;
 using Xunit;
 
@@ -28,7 +28,8 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly FileProperties _defaultFileProperties = new FileProperties
     {
         Path = "partitionA/123.dcm",
-        ETag = "e45678"
+        ETag = "e45678",
+        ContentLength = 123
     };
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
@@ -137,7 +138,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // store the file with committed blocks
         FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
 
-        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag", ContentLength = 123 };
 
         Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
 
@@ -160,7 +161,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // store the file with committed blocks
         FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
 
-        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag", ContentLength = 123 };
 
         Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
 
@@ -198,9 +199,16 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task<FileProperties> AddFileInBlocksAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
+        var config = new UpdateConfiguration();
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, UpdateInstanceService.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
+            return await _blobDataStore.StoreFileInBlocksAsync(
+                version,
+                Partition.Default,
+                stream,
+                config.StageBlockSizeInBytes,
+                new System.Collections.Generic.KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length),
+                cancellationToken);
         }
     }
 

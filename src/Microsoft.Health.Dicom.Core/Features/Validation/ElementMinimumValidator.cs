@@ -1,9 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using EnsureThat;
 using FellowOakDicom;
@@ -12,26 +13,27 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 public class ElementMinimumValidator : IElementMinimumValidator
 {
-    private static readonly IReadOnlyDictionary<DicomVR, IElementValidation> Validations = new Dictionary<DicomVR, IElementValidation>
-    {
-        { DicomVR.AE, new ElementMaxLengthValidation(16) },
-        { DicomVR.AS, new ElementRequiredLengthValidation(4) },
-        { DicomVR.CS, new ElementMaxLengthValidation(16) },
-        { DicomVR.DA, new DateValidation() },
-        { DicomVR.DT, new EncodedStringElementValidation() },
-        { DicomVR.FD, new ElementRequiredLengthValidation(8) },
-        { DicomVR.FL, new ElementRequiredLengthValidation(4) },
-        { DicomVR.IS, new EncodedStringElementValidation() },
-        { DicomVR.LO, new LongStringValidation() },
-        { DicomVR.PN, new PersonNameValidation() },
-        { DicomVR.SH, new ElementMaxLengthValidation(16) },
-        { DicomVR.SL, new ElementRequiredLengthValidation(4) },
-        { DicomVR.SS, new ElementRequiredLengthValidation(2) },
-        { DicomVR.TM, new EncodedStringElementValidation() },
-        { DicomVR.UI, new UidValidation() },
-        { DicomVR.UL, new ElementRequiredLengthValidation(4) },
-        { DicomVR.US, new ElementRequiredLengthValidation(2) },
-    };
+    private static readonly ImmutableDictionary<DicomVR, IElementValidation> Validations = ImmutableDictionary.CreateRange(
+        new KeyValuePair<DicomVR, IElementValidation>[]
+        {
+            new(DicomVR.AE, new ElementMaxLengthValidation(16)),
+            new(DicomVR.AS, new ElementRequiredLengthValidation(4)),
+            new(DicomVR.CS, new ElementMaxLengthValidation(16)),
+            new(DicomVR.DA, new DateValidation()),
+            new(DicomVR.DT, new EncodedStringElementValidation()),
+            new(DicomVR.FD, new ElementRequiredLengthValidation(8)),
+            new(DicomVR.FL, new ElementRequiredLengthValidation(4)),
+            new(DicomVR.IS, new EncodedStringElementValidation()),
+            new(DicomVR.LO, new LongStringValidation()),
+            new(DicomVR.PN, new PersonNameValidation()),
+            new(DicomVR.SH, new ElementMaxLengthValidation(16)),
+            new(DicomVR.SL, new ElementRequiredLengthValidation(4)),
+            new(DicomVR.SS, new ElementRequiredLengthValidation(2)),
+            new(DicomVR.TM, new EncodedStringElementValidation()),
+            new(DicomVR.UI, new UidValidation()),
+            new(DicomVR.UL, new ElementRequiredLengthValidation(4)),
+            new(DicomVR.US, new ElementRequiredLengthValidation(2)),
+        });
 
     public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
     {

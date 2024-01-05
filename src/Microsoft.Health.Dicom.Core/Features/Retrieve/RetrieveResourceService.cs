@@ -127,7 +127,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             // transcoding of single instance
             if (needsTranscoding)
             {
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition, instance.InstanceProperties.FileProperties, false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition, instance.InstanceProperties.FileProperties, false, _logger, cancellationToken);
                 LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
@@ -219,7 +219,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
         _logger.LogInformation("Downloading the entire instance for frame parsing");
 
-        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, cancellationToken);
+        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, _logger, cancellationToken);
         LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response

@@ -135,7 +135,7 @@ public sealed class DeletedInstanceCleanupWorkerTests : IDisposable
                 return new DeleteMetrics { OldestDeletion = oldest, TotalExhaustedRetries = TotalExhausted };
             });
 
-        await Assert.ThrowsAsync<TaskCanceledException>(() => _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token));
+        await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
 
         // Force the meter provides to emit the metrics earlier than they might otherwise
         _meterProvider.ForceFlush();

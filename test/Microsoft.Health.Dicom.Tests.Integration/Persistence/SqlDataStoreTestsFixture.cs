@@ -116,14 +116,10 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV37(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV42(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV44(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV46(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV47(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV49(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV50(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV52(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV54(SqlConnectionWrapperFactory),
             }),
             NullLogger<SqlIndexDataStore>.Instance);
 
@@ -132,8 +128,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV34(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV46(SqlConnectionWrapperFactory),
+                new SqlInstanceStoreV48(SqlConnectionWrapperFactory),
             }));
 
         PartitionStore = new SqlPartitionStore(new VersionedCache<ISqlPartitionStore>(
@@ -174,7 +169,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
-                new SqlChangeFeedStoreV36(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV39(SqlConnectionWrapperFactory),
             }));
 

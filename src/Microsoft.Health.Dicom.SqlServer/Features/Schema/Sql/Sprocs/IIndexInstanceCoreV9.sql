@@ -69,9 +69,9 @@ BEGIN
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
             -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
-            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
-            -- Null InstanceKey indicates a Study/Series level tag, no to compare InstanceKey
-            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
+            AND (T.SopInstanceKey2 IS NULL OR T.SopInstanceKey2 = @seriesKey)
+            -- Null InstanceKey indicates a Study/Series level tag, no need to compare InstanceKey
+            AND (T.SopInstanceKey3 IS NULL OR T.SopInstanceKey3 = @instanceKey)
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
@@ -109,8 +109,10 @@ BEGIN
             AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
-            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
-            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND (T.SopInstanceKey2 IS NULL OR T.SopInstanceKey2 = @seriesKey)
+            -- Null InstanceKey indicates a Study/Series level tag, no need to compare InstanceKey
+            AND (T.SopInstanceKey3 IS NULL OR T.SopInstanceKey3 = @instanceKey)
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
@@ -146,8 +148,10 @@ BEGIN
             AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
-            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
-            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND (T.SopInstanceKey2 IS NULL OR T.SopInstanceKey2 = @seriesKey)
+            -- Null InstanceKey indicates a Study/Series level tag, no need to compare InstanceKey
+            AND (T.SopInstanceKey3 IS NULL OR T.SopInstanceKey3 = @instanceKey)
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
@@ -183,8 +187,10 @@ BEGIN
             AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
-            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
-            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND (T.SopInstanceKey2 IS NULL OR T.SopInstanceKey2 = @seriesKey)
+            -- Null InstanceKey indicates a Study/Series level tag, no need to compare InstanceKey
+            AND (T.SopInstanceKey3 IS NULL OR T.SopInstanceKey3 = @instanceKey)
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
@@ -221,8 +227,10 @@ BEGIN
             AND T.TagKey = S.TagKey
             AND T.PartitionKey = @partitionKey
             AND T.SopInstanceKey1 = @studyKey
-            AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
-            AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
+            -- Null SeriesKey indicates a Study level tag, no need to compare SeriesKey
+            AND (T.SopInstanceKey2 IS NULL OR T.SopInstanceKey2 = @seriesKey)
+            -- Null InstanceKey indicates a Study/Series level tag, no need to compare InstanceKey
+            AND (T.SopInstanceKey3 IS NULL OR T.SopInstanceKey3 = @instanceKey)
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
             UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)

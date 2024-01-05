@@ -105,7 +105,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -226,7 +226,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunctionWithExternalStore.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunctionWithExternalStore.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -347,7 +347,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -444,7 +444,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -520,7 +520,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
 
         // Invoke the orchestration
-        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance));
+        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance));
 
         // Assert behavior
         context
@@ -572,7 +572,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" , ContentLength = 123},
                     NewVersion = 3
                 }
             ),
@@ -585,7 +585,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}", ContentLength = 456},
                     NewVersion = 4
                 }
             )
@@ -629,7 +629,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         await context
@@ -661,7 +661,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}", ContentLength = 123},
                     NewVersion = 3
                 }
             ),
@@ -674,7 +674,7 @@ public partial class UpdateDurableFunctionTests
                     Partition.Default),
                 new InstanceProperties
                 {
-                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}" },
+                    FileProperties = new FileProperties { ETag = $"etag-{2}", Path = $"path-{2}", ContentLength = 456},
                     NewVersion = 4
                 }
             )
@@ -718,7 +718,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         await context
@@ -804,7 +804,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -902,8 +902,8 @@ public partial class UpdateDurableFunctionTests
         {
             FileProperties = new FileProperties
             {
-                ETag = $"etag-{x.NewVersion.ToString()}",
-                Path = $"path-{x.NewVersion.ToString()}",
+                ETag = $"etag-{x.NewVersion}",
+                Path = $"path-{x.NewVersion}",
             }
         })).ToList();
         return instanceMetadataList;

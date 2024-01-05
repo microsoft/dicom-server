@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Core.Internal;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
@@ -21,7 +21,6 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.State;
 using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
-using Microsoft.Health.Test.Utilities;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Polly.Timeout;
@@ -37,6 +36,7 @@ public class ChangeFeedProcessorTests
     private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
     private readonly ISyncStateService _syncStateService = Substitute.For<ISyncStateService>();
     private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+    private readonly FakeTimeProvider _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
     private readonly IOptions<DicomCastConfiguration> _config = Substitute.For<IOptions<DicomCastConfiguration>>();
     private readonly DicomCastConfiguration _dicomCastConfiguration = new DicomCastConfiguration();
     private readonly ChangeFeedProcessor _changeFeedProcessor;
@@ -51,6 +51,7 @@ public class ChangeFeedProcessorTests
             _fhirTransactionPipeline,
             _syncStateService,
             _exceptionStore,
+            _timeProvider,
             _config,
             NullLogger<ChangeFeedProcessor>.Instance);
 
@@ -457,25 +458,21 @@ public class ChangeFeedProcessorTests
     {
         const long expectedSequence = 10;
 
-        ChangeFeedEntry[] changeFeeds = new[]
-        {
-            ChangeFeedGenerator.Generate(expectedSequence),
-        };
+        ChangeFeedEntry[] changeFeeds = [ChangeFeedGenerator.Generate(expectedSequence)];
 
         // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(expectedSequence);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds);
 
-        var instant = new DateTimeOffset(2020, 6, 1, 15, 30, 25, TimeSpan.FromHours(-8));
+        var instant = DateTimeOffset.UtcNow.AddHours(1);
+        _timeProvider.SetUtcNow(instant);
 
-        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => instant))
-        {
-            // Act
-            await ExecuteProcessAsync();
-        }
+        // Act
+        await ExecuteProcessAsync();
 
         // Assert
-        await _syncStateService.Received(1)
+        await _syncStateService
+            .Received(1)
             .UpdateSyncStateAsync(Arg.Is<SyncState>(syncState => syncState != null && syncState.SyncedSequence == expectedSequence && syncState.SyncedDate == instant), DefaultCancellationToken);
     }
 

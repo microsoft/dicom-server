@@ -1,9 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
@@ -17,8 +17,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidator
 {
     // The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELED".
-    private static readonly IReadOnlySet<string> AllowedTargetStatesForWorkitemChangeState =
-        new HashSet<string> { ProcedureStepStateConstants.InProgress, ProcedureStepStateConstants.Canceled, ProcedureStepStateConstants.Completed };
+    private static readonly ImmutableHashSet<string> AllowedTargetStatesForWorkitemChangeState = ImmutableHashSet.Create(
+        ProcedureStepStateConstants.InProgress,
+        ProcedureStepStateConstants.Canceled,
+        ProcedureStepStateConstants.Completed);
 
     protected override void OnValidate(DicomDataset dataset)
     {

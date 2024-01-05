@@ -29,8 +29,7 @@ public class HttpRequestExtensionsTests
     public void GivenNonEmptyHeaders_WhenGetAcceptHeaders_ThenShouldReturnHeaders()
     {
         var httpRequest = Substitute.For<HttpRequest>();
-        IHeaderDictionary headers = new HeaderDictionary();
-        headers.Add("accept", "application/dicom");
+        HeaderDictionary headers = new() { { "accept", "application/dicom" } };
         httpRequest.Headers.Returns(headers);
         IEnumerable<AcceptHeader> acceptHeaders = httpRequest.GetAcceptHeaders();
         Assert.Single(acceptHeaders);

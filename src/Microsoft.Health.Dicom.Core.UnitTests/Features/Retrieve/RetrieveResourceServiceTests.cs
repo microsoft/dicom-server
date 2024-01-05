@@ -57,7 +57,7 @@ public class RetrieveResourceServiceTests
     private readonly IInstanceMetadataCache _instanceMetadataCache;
     private readonly IFramesRangeCache _framesRangeCache;
     private readonly RetrieveMeter _retrieveMeter;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties() { Path = "default/path/0.dcm", ETag = "123" };
+    private static readonly FileProperties DefaultFileProperties = new FileProperties() { Path = "default/path/0.dcm", ETag = "123", ContentLength = 123 };
 
     public RetrieveResourceServiceTests()
     {
@@ -209,7 +209,7 @@ public class RetrieveResourceServiceTests
     {
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         int originalVersion = 5;
-        FileProperties fileProperties = new FileProperties { Path = "123.dcm" };
+        FileProperties fileProperties = new FileProperties { Path = "123.dcm", ETag = "e456", ContentLength = 123 };
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Instance,
             instanceProperty: new InstanceProperties()
@@ -785,7 +785,7 @@ public class RetrieveResourceServiceTests
             Arg.Is<long>(x => x == instance.VersionedInstanceIdentifier.Version),
             Partition.Default,
             Arg.Any<FrameRange>(),
-            Arg.Is<FileProperties>(f => f.Path == DefaultFileProperties.Path && f.ETag == DefaultFileProperties.ETag),
+            Arg.Is<FileProperties>(f => f.Path == DefaultFileProperties.Path && f.ETag == DefaultFileProperties.ETag && f.ContentLength == DefaultFileProperties.ContentLength),
             Arg.Any<CancellationToken>());
     }
 
@@ -825,7 +825,7 @@ public class RetrieveResourceServiceTests
             Arg.Is<long>(x => x == instance.InstanceProperties.OriginalVersion.Value),
             Partition.Default,
             Arg.Any<FrameRange>(),
-            Arg.Is<FileProperties>(f => f.Path == DefaultFileProperties.Path && f.ETag == DefaultFileProperties.ETag),
+            Arg.Is<FileProperties>(f => f.Path == DefaultFileProperties.Path && f.ETag == DefaultFileProperties.ETag && f.ContentLength == DefaultFileProperties.ContentLength),
             Arg.Any<CancellationToken>());
     }
 

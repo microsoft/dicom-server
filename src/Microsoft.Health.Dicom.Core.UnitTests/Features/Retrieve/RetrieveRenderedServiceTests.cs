@@ -43,7 +43,7 @@ public class RetrieveRenderedServiceTests
     private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
     private readonly string _sopInstanceUid = TestUidGenerator.Generate();
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties() { Path = "default/path/0.dcm", ETag = "123" };
+    private static readonly FileProperties DefaultFileProperties = new FileProperties() { Path = "default/path/0.dcm", ETag = "123", ContentLength = 123 };
     private readonly RetrieveMeter _retrieveMeter;
 
 

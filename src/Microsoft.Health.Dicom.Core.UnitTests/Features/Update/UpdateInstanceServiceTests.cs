@@ -36,20 +36,24 @@ public class UpdateInstanceServiceTests
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly UpdateInstanceService _updateInstanceService;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties
+    private readonly UpdateConfiguration _config;
+    private static readonly FileProperties DefaultFileProperties = new()
     {
         Path = "default/path/0.dcm",
-        ETag = "123"
+        ETag = "123",
+        ContentLength = 123
     };
-    private static readonly FileProperties DefaultCopiedFileProperties = new FileProperties
+    private static readonly FileProperties DefaultCopiedFileProperties = new()
     {
         Path = "default/path/1.dcm",
-        ETag = "456"
+        ETag = "456",
+        ContentLength = 456
     };
-    private static readonly FileProperties DefaultUpdatedFileProperties = new FileProperties
+    private static readonly FileProperties DefaultUpdatedFileProperties = new()
     {
         Path = "default/path/1.dcm",
-        ETag = "789"
+        ETag = "789",
+        ContentLength = 789
     };
     private static readonly InstanceMetadata DefaultInstanceMetadata = new InstanceMetadata(
         new VersionedInstanceIdentifier(
@@ -68,13 +72,13 @@ public class UpdateInstanceServiceTests
         _logger = NullLogger<UpdateInstanceService>.Instance;
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
-        var config = new UpdateConfiguration();
+        _config = new UpdateConfiguration();
 
         _updateInstanceService = new UpdateInstanceService(
             _fileStore,
             _metadataStore,
             _recyclableMemoryStreamManager,
-            Options.Create(config),
+            Options.Create(_config),
             _logger);
     }
 
@@ -145,7 +149,8 @@ public class UpdateInstanceServiceTests
                 newFileIdentifier,
                 Partition.Default,
                 Arg.Any<Stream>(),
-                Arg.Any<IDictionary<string, long>>(),
+                _config.StageBlockSizeInBytes,
+                Arg.Any<KeyValuePair<string, long>>(),
                 cancellationToken)
             .Returns(DefaultCopiedFileProperties);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -170,7 +175,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 1),
+            _config.StageBlockSizeInBytes,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
         await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<FrameRange>(), cancellationToken);
         _fileStore.UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken).Returns(DefaultUpdatedFileProperties);
@@ -222,7 +228,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Any<IDictionary<string, long>>(),
+            _config.StageBlockSizeInBytes,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken)
          .Returns(DefaultFileProperties);
 
@@ -240,7 +247,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 2 && x.Sum(y => y.Value) == copyStream.Length),
+            _config.StageBlockSizeInBytes,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
 
         streamAndStoredFile.Value.Dispose();
@@ -293,7 +301,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Any<IDictionary<string, long>>(),
+            _config.StageBlockSizeInBytes,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken)
          .Returns(DefaultFileProperties);
 
@@ -312,7 +321,8 @@ public class UpdateInstanceServiceTests
             newFileIdentifier,
             Partition.Default,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 2 && x.Sum(y => y.Value) == copyStream.Length),
+            _config.StageBlockSizeInBytes,
+            Arg.Any<KeyValuePair<string, long>>(),
             cancellationToken);
         await _fileStore.Received(1).GetFirstBlockPropertyAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
 

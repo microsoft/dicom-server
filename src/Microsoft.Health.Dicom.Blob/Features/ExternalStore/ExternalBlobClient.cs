@@ -94,7 +94,7 @@ internal class ExternalBlobClient : IBlobClient
 
     private static string SanitizeServiceStorePath(string path)
     {
-        return !path.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? path + "/" : path;
+        return !path.EndsWith('/') ? path + "/" : path;
     }
 
     /// <summary>

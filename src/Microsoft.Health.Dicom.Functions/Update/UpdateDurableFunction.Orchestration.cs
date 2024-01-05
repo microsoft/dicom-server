@@ -43,6 +43,7 @@ public partial class UpdateDurableFunction
     /// </exception>
     /// <exception cref="FormatException">Orchestration instance ID is invalid.</exception>
     [FunctionName(nameof(UpdateInstancesV5Async))]
+    [Obsolete("This function is obsolete. Use UpdateInstancesV6Async instead.")]
     public async Task UpdateInstancesV5Async(
         [OrchestrationTrigger] IDurableOrchestrationContext context,
         ILogger logger)
@@ -167,6 +168,192 @@ public partial class UpdateDurableFunction
             {
                 logger.LogWarning("Update operation completed with errors. {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
                      input.NumberOfStudyCompleted - input.NumberOfStudyFailed,
+                     input.NumberOfStudyFailed,
+                     input.TotalNumberOfInstanceUpdated);
+
+                _telemetryClient.ForwardOperationLogTrace(
+                    "Update operation completed with errors",
+                    context.InstanceId,
+                    serializedInput,
+                    AuditEventSubType.UpdateStudyOperation,
+                    ApplicationInsights.DataContracts.SeverityLevel.Error);
+
+                _auditLogger.LogAudit(
+                    AuditAction.Executed,
+                    AuditEventSubType.UpdateStudyOperation,
+                    null,
+                    HttpStatusCode.BadRequest,
+                    Activity.Current?.RootId,
+                    null,
+                    null,
+                    null);
+
+                // Throwing the exception so that it can set the operation status to Failed
+                throw new OperationErrorException("Update operation completed with errors.");
+            }
+            else
+            {
+                logger.LogInformation("Update operation completed successfully. {NumberOfStudyUpdated}, {TotalNumberOfInstanceUpdated}.",
+                     input.NumberOfStudyCompleted,
+                     input.TotalNumberOfInstanceUpdated);
+
+                _telemetryClient.ForwardOperationLogTrace("Update operation completed successfully", context.InstanceId, serializedInput, AuditEventSubType.UpdateStudyOperation);
+
+                _auditLogger.LogAudit(
+                    AuditAction.Executed,
+                    AuditEventSubType.UpdateStudyOperation,
+                    null,
+                    HttpStatusCode.OK,
+                    Activity.Current?.RootId,
+                    null,
+                    null,
+                    null);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously updates list of instances in a study
+    /// </summary>
+    /// <remarks>
+    /// Durable functions are reliable, and their implementations will be executed repeatedly over the lifetime of
+    /// a single instance.
+    /// </remarks>
+    /// <param name="context">The context for the orchestration instance.</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>A task representing the <see cref="UpdateInstancesV6Async"/> operation.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="FormatException">Orchestration instance ID is invalid.</exception>
+    [FunctionName(nameof(UpdateInstancesV6Async))]
+    public async Task UpdateInstancesV6Async(
+        [OrchestrationTrigger] IDurableOrchestrationContext context,
+        ILogger logger)
+    {
+        EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
+        logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
+        ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
+        IReadOnlyList<InstanceMetadata> instanceMetadataList;
+        UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
+        input.Partition ??= new Partition(input.PartitionKey, Partition.UnknownName);
+
+        _auditLogger.LogAudit(
+            AuditAction.Executing,
+            AuditEventSubType.UpdateStudyOperation,
+            null,
+            null,
+            Activity.Current?.RootId,
+            null,
+            null,
+            null);
+
+        if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
+        {
+            string studyInstanceUid = input.StudyInstanceUids[input.NumberOfStudyCompleted];
+
+            logger.LogInformation("Beginning to update all instances new watermark in a study.");
+
+            IReadOnlyList<InstanceMetadata> instances = await context
+                .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
+                    nameof(UpdateInstanceWatermarkV2Async),
+                    _options.RetryOptions,
+                    new UpdateInstanceWatermarkArgumentsV2(input.Partition, studyInstanceUid));
+            var instanceWatermarks = instances.Select(x => x.ToInstanceFileState()).ToList();
+
+            logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instances.Count);
+
+            int totalNoOfInstances = input.TotalNumberOfInstanceUpdated;
+            int numberStudyUpdated = input.NumberOfStudyCompleted;
+
+            if (instances.Count > 0)
+            {
+                bool isFailedToUpdateStudy = false;
+
+                try
+                {
+                    UpdateInstanceResponse response = await context.CallActivityWithRetryAsync<UpdateInstanceResponse>(
+                        nameof(UpdateInstanceBlobsV3Async),
+                        _options.RetryOptions,
+                        new UpdateInstanceBlobArgumentsV2(input.Partition, instances, input.ChangeDataset));
+
+                    instanceMetadataList = response.InstanceMetadataList;
+
+                    if (response.Errors?.Count > 0)
+                    {
+                        isFailedToUpdateStudy = true;
+                        logger.LogWarning("Failed to update instances for study. Total instance failed for study {TotalFailed}", response.Errors.Count);
+                        await HandleException(context, input, studyInstanceUid, instances, response.Errors);
+                    }
+                    else
+                    {
+                        await context.CallActivityWithRetryAsync(
+                            nameof(CompleteUpdateStudyV4Async),
+                            _options.RetryOptions,
+                            new CompleteStudyArgumentsV2(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadataList(instanceMetadataList)));
+
+                        totalNoOfInstances += instances.Count;
+                        numberStudyUpdated++;
+                    }
+                }
+                catch (FunctionFailedException ex)
+                {
+                    isFailedToUpdateStudy = true;
+
+                    logger.LogError(ex, "Failed to update instances for study", ex);
+
+                    await HandleException(context, input, studyInstanceUid, instances, null);
+                }
+
+                if (!isFailedToUpdateStudy)
+                {
+                    await context.CallActivityWithRetryAsync(
+                        nameof(DeleteOldVersionBlobV3Async),
+                        _options.RetryOptions,
+                        new CleanupBlobArgumentsV2(instances, input.Partition));
+
+                    await context.CallActivityWithRetryAsync(
+                        nameof(SetOriginalBlobToColdAccessTierV2Async),
+                        _options.RetryOptions,
+                        new CleanupBlobArgumentsV2(instances, input.Partition));
+                }
+            }
+
+            var numberOfStudyProcessed = input.NumberOfStudyProcessed + 1;
+
+            if (input.TotalNumberOfStudies != numberOfStudyProcessed)
+            {
+                logger.LogInformation("Completed updating the instances for a study. {Updated}. Continuing with new execution...", instances.Count);
+            }
+
+            context.ContinueAsNew(
+                new UpdateCheckpoint
+                {
+                    StudyInstanceUids = input.StudyInstanceUids,
+                    ChangeDataset = input.ChangeDataset,
+                    Partition = input.Partition,
+                    PartitionKey = input.PartitionKey,
+                    NumberOfStudyProcessed = numberOfStudyProcessed,
+                    NumberOfStudyCompleted = numberStudyUpdated,
+                    NumberOfStudyFailed = input.NumberOfStudyFailed,
+                    TotalNumberOfInstanceUpdated = totalNoOfInstances,
+                    Errors = input.Errors,
+                    CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                });
+        }
+        else
+        {
+            if (input.TotalNumberOfInstanceUpdated > 0)
+            {
+                replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
+            }
+
+            string serializedInput = GetSerializedCheckpointResult(input);
+
+            if (input.Errors?.Count > 0)
+            {
+                logger.LogWarning("Update operation completed with errors. {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
+                     input.NumberOfStudyCompleted,
                      input.NumberOfStudyFailed,
                      input.TotalNumberOfInstanceUpdated);
 

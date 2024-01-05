@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -6,6 +6,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
@@ -50,7 +51,7 @@ public class MetadataResult : ObjectResult
         // If response contains an ETag, add it to the headers.
         if (!_response.IsCacheValid && !string.IsNullOrEmpty(_response.ETag))
         {
-            context.HttpContext.Response.Headers.Add(HeaderNames.ETag, _response.ETag);
+            context.HttpContext.Response.Headers.Append(HeaderNames.ETag, _response.ETag);
         }
 
         await result.ExecuteResultAsync(context);
