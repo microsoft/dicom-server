@@ -91,7 +91,7 @@ public partial class ContentLengthBackFillDurableFunction
                         fileProperties: null, token);
                     if (blobStoreFileProperties.ContentLength < ExpectedMinValue)
                     {
-                        propertiesByWatermark.TryAdd(instanceIdentifier.Version, new FileProperties { ContentLength = CorruptedAndProcessed });
+                        blobStoreFileProperties = new FileProperties { ContentLength = CorruptedAndProcessed };
                         logger.LogWarning(
                             "Content length for the instance with watermark {Watermark} in partition {Partition} appears to be corrupted. Value should be {ExpectedMin} or greater, but it was {Length}. Will store as {Value} to mark as processed.",
                             instanceIdentifier.Version,
