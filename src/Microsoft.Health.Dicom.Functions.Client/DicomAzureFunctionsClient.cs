@@ -278,7 +278,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         {
             case DicomOperation.Export:
             case DicomOperation.DataCleanup:
-                return null;
             case DicomOperation.ContentLengthBackFill:
                 return null;
             case DicomOperation.Reindex:
