@@ -11,7 +11,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.FileProperty')
 )
 BEGIN
-    CREATE UNIQUE INDEX IXC_FileProperty_ContentLength ON dbo.FileProperty
+    CREATE INDEX IXC_FileProperty_ContentLength ON dbo.FileProperty
     (
     InstanceKey,
     Watermark,
