@@ -378,4 +378,32 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
         Assert.Equal(ValidationWarnings.None, result.WarningCodes);
     }
+
+    [Theory]
+    [MemberData(nameof(GetDuplicatedDicomIdentifierValues))]
+    public async Task GivenDuplicatedIdentifiers_WhenValidated_ThenValidationPasses(string firstDicomTagInString, string secondDicomTagInString)
+    {
+        DicomTag firstDicomTag = DicomTag.Parse(firstDicomTagInString);
+        DicomTag secondDicomTag = DicomTag.Parse(secondDicomTagInString);
+
+        string value = _dicomDataset.GetSingleValue<string>(firstDicomTag);
+        _dicomDataset.AddOrUpdate(secondDicomTag, value);
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+    public static IEnumerable<object[]> GetDuplicatedDicomIdentifierValues()
+    {
+        return new List<object[]>
+        {
+            new[] { DicomTag.StudyInstanceUID.ToString(), DicomTag.SeriesInstanceUID.ToString() },
+            new[] { DicomTag.StudyInstanceUID.ToString(), DicomTag.SOPInstanceUID.ToString() },
+            new[] { DicomTag.SeriesInstanceUID.ToString(), DicomTag.SOPInstanceUID.ToString() },
+        };
+    }
 }
