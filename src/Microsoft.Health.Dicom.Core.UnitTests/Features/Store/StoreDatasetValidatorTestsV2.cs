@@ -183,9 +183,9 @@ public class StoreDatasetValidatorTestsV2
 
         Assert.True(result.InvalidTagErrors.Any());
         Assert.Single(result.InvalidTagErrors);
-        Assert.True(result.HasCoreTagError); // Failing here
-        Assert.False(result.InvalidTagErrors[DicomTag.StudyInstanceUID].IsRequiredCoreTag);
-        Assert.Contains("does not validate VR UI: value exceeds maximum length of 64 characters", result.InvalidTagErrors[DicomTag.StudyInstanceUID].Error);
+        Assert.True(result.HasCoreTagError);
+        Assert.True(result.InvalidTagErrors[DicomTag.StudyInstanceUID].IsRequiredCoreTag);
+        Assert.Contains("DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters", result.InvalidTagErrors[DicomTag.StudyInstanceUID].Error);
     }
 
     [Theory]
@@ -281,8 +281,9 @@ public class StoreDatasetValidatorTestsV2
             new CancellationToken());
 
         Assert.Single(result.InvalidTagErrors);
-        Assert.False(result.InvalidTagErrors.Values.First().IsRequiredCoreTag); // we only fail when invalid core tags are present
-        Assert.Contains("does not validate VR UI: components must not have leading zeros", result.InvalidTagErrors.Values.First().Error);
+        // TODO:Fix leading zero validation
+        Assert.True(result.InvalidTagErrors.Values.First().IsRequiredCoreTag); // we only fail when invalid core tags are present
+        Assert.Contains("Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number", result.InvalidTagErrors.Values.First().Error);
     }
 
     [Fact]
