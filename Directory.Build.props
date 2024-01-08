@@ -32,27 +32,14 @@
       <PropertyGroup>
         <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <MediatRVersion>12.1.1</MediatRVersion>
-        <OTelVersion>1.6.0</OTelVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
-        <WebUtilitiesVersion>2.2.0</WebUtilitiesVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'netstandard2.0'">
-      <PropertyGroup>
-        <DependencyInjectionVersion>8.0.0</DependencyInjectionVersion>
-        <MediatRVersion>12.2.0</MediatRVersion>
-        <OTelVersion>1.7.0</OTelVersion>
-        <SdkPackageVersion>8.0.0</SdkPackageVersion>
-        <WebUtilitiesVersion>2.2.0</WebUtilitiesVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
         <DependencyInjectionVersion>8.0.0</DependencyInjectionVersion>
         <MediatRVersion>12.2.0</MediatRVersion>
-        <OTelVersion>1.7.0</OTelVersion>
         <SdkPackageVersion>8.0.0</SdkPackageVersion>
-        <WebUtilitiesVersion>8.0.0</WebUtilitiesVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
