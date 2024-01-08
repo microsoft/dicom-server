@@ -15,15 +15,17 @@ public class UidValidationTests
 
     [Theory]
     [InlineData("13.14.520")]
-    [InlineData("13.14.0520")]
-    [InlineData("13.14.520\0")]
-    [InlineData("13")]
-    [InlineData("0")]
-    [InlineData("0.2.4.6.8")]
-    [InlineData("98.0.705.456.1.52365")]
-    [InlineData("123.0.45.6345.16765.0")]
-    [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020")]
-    [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020    ")]
+    [InlineData("13.14.052")] // leading 0 is ok >> the 0 in front of the 5 in 0520 is considered a leading zero
+    [InlineData("13.14.520\0")] // trailing null is ok
+    [InlineData("13.14.520\0\0\0\0")] // multiple trailing nullsare ok
+    [InlineData("13")] // single digit is ok
+    [InlineData("0")] // single digit/segment that itself is a zero is ok
+    [InlineData("0.2.4.6.8")] // starting with a zero for the uid is ok
+    [InlineData("13.14.520.123")] // just more examples of multiple segments with all expected chars and segmentation with periods
+    [InlineData("98.0.705.456.1.52365")] // just more examples of multiple segments with all expected chars and segmentation with periods
+    [InlineData("123.0.45.6345.16765.0")] // just more examples of multiple segments with all expected chars and segmentation with periods
+    [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020")] // just more examples of multiple segments with all expected chars and segmentation with periods
+    [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020    ")] // empty str padding is ok
     public void GivenValidateUid_WhenValidating_ThenShouldPass(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
@@ -31,9 +33,9 @@ public class UidValidationTests
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("\0")]
-    [InlineData(null)]
+    [InlineData("")] // a uid that is a totally empty str is not ok
+    [InlineData("\0")] // a uid that is just a null char and nothing else is not ok
+    [InlineData(null)] // a uid that is null is not ok
     public void GivenValidateUid_WhenValidatingNullOrEmpty_ThenShouldNotPass(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
@@ -48,13 +50,15 @@ public class UidValidationTests
     }
 
     [Theory]
-    [InlineData("123.")] // end with .
-    [InlineData("abc.123")] // a is invalid character
-    [InlineData("11|")] // | is invalid character
-    [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789")] // value is too long
-    [InlineData("12.003.456")] // not enough segments
-    [InlineData("987.111.111a.654")] // segment itself invalid as it contains alpha chars
-    [InlineData("98-0-705-456-1-52365")] // segments should be separated by .
+    [InlineData("13.14.520.")] // end with .
+    [InlineData("13.14.5|20")] // | is invalid character
+    [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020.12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020")] // value is too long
+    [InlineData("13.14.5a20")] // segment itself invalid as it contains alpha char "a"
+    [InlineData("13-14-520")] // segments should be separated by .
+    [InlineData("\013.14.520")] // leading null padding is not ok
+    [InlineData("13.\014.520")] // null padding in the middle of uid is not ok
+    [InlineData("13.1\04.520")] // null padding in the middle of uid is not ok
+    [InlineData("13.14\0.520")] // null padding in the middle of uid is not ok
     public void GivenInvalidUidWhenValidating_ThenShouldThrow(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
