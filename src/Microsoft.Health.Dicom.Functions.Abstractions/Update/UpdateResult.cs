@@ -9,6 +9,8 @@ namespace Microsoft.Health.Dicom.Functions.Update;
 
 public class UpdateResult
 {
+    public int StudyProcessed { get; }
+
     public int StudyUpdated { get; }
 
     public int StudyFailed { get; }
@@ -17,8 +19,9 @@ public class UpdateResult
 
     public IReadOnlyList<string> Errors { get; }
 
-    public UpdateResult(int studyUpdated, long instanceUpdated, int studyFailed, IReadOnlyList<string> errors)
+    public UpdateResult(int studyProcessed, int studyUpdated, long instanceUpdated, int studyFailed, IReadOnlyList<string> errors)
     {
+        StudyProcessed = studyProcessed;
         StudyUpdated = studyUpdated;
         InstanceUpdated = instanceUpdated;
         StudyFailed = studyFailed;

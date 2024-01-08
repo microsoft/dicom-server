@@ -243,21 +243,13 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     }
 
     [Fact]
-    public async Task GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnConflict()
+    public async Task GivenDatasetWithDuplicateIdentifiers_WhenStoring_TheServerShouldReturnAccepted()
     {
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, studyInstanceUID);
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
-        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
-
-        DicomDataset dataset = exception.ResponseDataset;
-
-        Assert.False(dataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
-
-        ValidationHelpers.ValidateFailedSopSequence(
-            dataset,
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode));
+        using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile1, dicomFile1 }, studyInstanceUID);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
 
     [Fact]

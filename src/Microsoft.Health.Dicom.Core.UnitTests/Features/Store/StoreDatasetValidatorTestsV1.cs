@@ -338,7 +338,7 @@ public class StoreDatasetValidatorTestsV1
 
     [Theory]
     [MemberData(nameof(GetDuplicatedDicomIdentifierValues))]
-    public async Task GivenDuplicatedIdentifiers_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string firstDicomTagInString, string secondDicomTagInString)
+    public async Task GivenDuplicatedIdentifiers_WhenValidated_ThenValidationPasses(string firstDicomTagInString, string secondDicomTagInString)
     {
         DicomTag firstDicomTag = DicomTag.Parse(firstDicomTagInString);
         DicomTag secondDicomTag = DicomTag.Parse(secondDicomTagInString);
@@ -346,7 +346,12 @@ public class StoreDatasetValidatorTestsV1
         string value = _dicomDataset.GetSingleValue<string>(firstDicomTag);
         _dicomDataset.AddOrUpdate(secondDicomTag, value);
 
-        await ExecuteAndValidateInvalidTagEntries(secondDicomTag);
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
     }
 
     [Fact]

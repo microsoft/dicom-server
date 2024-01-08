@@ -134,10 +134,6 @@
     <value>Dicom element '{0}' failed validation for VR '{1}': {2}</value>
     <comment>Dicom element {0} of VR {1}. {2} has more detailed message on why.</comment>
   </data>
-  <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
-    <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
-    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated.</comment>
-  </data>
   <data name="DuplicateAttribute" xml:space="preserve">
     <value>Invalid query: attribute '{0}' has been specified more than once using different ID formats. Each attribute is only allowed to be specified once.</value>
     <comment>{0} attribute-id</comment>

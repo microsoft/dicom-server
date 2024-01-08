@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -37,7 +37,13 @@ public class SecurityModule : IStartupModule
         EnsureArg.IsNotNull(services, nameof(services));
 
         // Set the token handler to not do auto inbound mapping. (e.g. "roles" -> "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+        // The JWT security token handler has a new property MapInboundClaims which is set to true by default.
+        // When this property is true, it maps some claim types to Microsoft's proprietary ones.
+        // This includes mapping the standard JWT "roles" claim to ClaimTypes.Role.
+        // If you want to keep the "roles" claim as is, you need to set MapInboundClaims to false
+        // In .Net 7, JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); works
+        // Im .Net 8. JwtSecurityTokenHandler.DefaultMapInboundClaims = false; works
+        JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
         if (_securityConfiguration.Enabled)
         {

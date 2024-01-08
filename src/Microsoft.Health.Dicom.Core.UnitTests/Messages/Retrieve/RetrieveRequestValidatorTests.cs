@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -51,20 +51,18 @@ public class RetrieveRequestValidatorTests
     [InlineData("1", "1", "2")]
     [InlineData("1", "2", "1")]
     [InlineData("1", "2", "2")]
-    public void GivenARequestWithRepeatedIdentifiers_WhenValidatedForRequestedResourceTypeInstance_ThenBadRequestExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    public void GivenARequestWithRepeatedIdentifiers_WhenValidatedForRequestedResourceTypeInstance_ThenNoExceptionIsThrown(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
-        var ex = Assert.Throws<BadRequestException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid));
-        Assert.Equal("The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.", ex.Message);
+        RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Instance, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
     }
 
     [Fact]
-    public void GivenARequestWithRepeatedStudyAndSeriesInstanceIdentifiers_WhenValidatedForRequestedResourceTypeSeries_ThenBadRequestExceptionIsThrown()
+    public void GivenARequestWithRepeatedStudyAndSeriesInstanceIdentifiers_WhenValidatedForRequestedResourceTypeSeries_ThenNoExceptionIsThrown()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
 
         // Use same identifier as studyInstanceUid and seriesInstanceUid.
-        var ex = Assert.Throws<BadRequestException>(() => RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, studyInstanceUid, studyInstanceUid));
-        Assert.Equal("The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.", ex.Message);
+        RetrieveRequestValidator.ValidateInstanceIdentifiers(ResourceType.Series, studyInstanceUid, studyInstanceUid);
     }
 
     [Theory]

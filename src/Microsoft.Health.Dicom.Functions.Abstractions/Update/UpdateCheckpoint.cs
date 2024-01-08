@@ -17,6 +17,8 @@ namespace Microsoft.Health.Dicom.Functions.Update;
 /// </summary>
 public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 {
+    public int NumberOfStudyProcessed { get; set; }
+
     public int NumberOfStudyCompleted { get; set; }
 
     public int NumberOfStudyFailed { get; set; }
@@ -36,9 +38,9 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
     {
         get
         {
-            if (NumberOfStudyCompleted > 0)
+            if (NumberOfStudyProcessed > 0)
             {
-                return NumberOfStudyCompleted == TotalNumberOfStudies ? 100 : (int)(((double)(NumberOfStudyCompleted) / TotalNumberOfStudies) * 100);
+                return NumberOfStudyProcessed == TotalNumberOfStudies ? 100 : (int)(((double)(NumberOfStudyProcessed) / TotalNumberOfStudies) * 100);
             }
 
             return 0;
@@ -47,5 +49,5 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 
     public IReadOnlyCollection<string> ResourceIds => null;
 
-    public object GetResults(JToken output) => new UpdateResult(NumberOfStudyCompleted - NumberOfStudyFailed, TotalNumberOfInstanceUpdated, NumberOfStudyFailed, Errors);
+    public object GetResults(JToken output) => new UpdateResult(NumberOfStudyProcessed, NumberOfStudyCompleted, TotalNumberOfInstanceUpdated, NumberOfStudyFailed, Errors);
 }
