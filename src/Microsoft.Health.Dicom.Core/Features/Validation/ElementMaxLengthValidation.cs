@@ -22,7 +22,7 @@ internal class ElementMaxLengthValidation : StringElementValidation
 
     public int MaxLength { get; }
 
-    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
     {
         Validate(value, MaxLength, name, vr);
     }

@@ -33,7 +33,7 @@ public class StoreDatasetValidatorTestsV2
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
-    private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
+    private readonly IElementMinimumValidator _minimumValidator;
 
     public StoreDatasetValidatorTestsV2()
     {
@@ -44,6 +44,7 @@ public class StoreDatasetValidatorTestsV2
         _storeMeter = new StoreMeter();
         _dicomRequestContextV2.Version.Returns(2);
         _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
+        _minimumValidator = new ElementMinimumValidator();
         _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2, NullLogger<StoreDatasetValidator>.Instance);
     }
 
@@ -74,8 +75,6 @@ public class StoreDatasetValidatorTestsV2
         Assert.Contains(
             """does not validate VR LO: value contains invalid character""",
             result.InvalidTagErrors[DicomTag.PatientID].Error);
-
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>(), ValidationLevel.Default);
     }
 
     [Fact]

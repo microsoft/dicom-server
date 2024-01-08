@@ -29,10 +29,10 @@ internal abstract class StringElementValidation : IElementValidation
         if (AllowNullOrEmpty && string.IsNullOrEmpty(value))
             return;
 
-        ValidateStringElement(name, dicomElement.ValueRepresentation, value, dicomElement.Buffer);
+        ValidateStringElement(name, dicomElement.ValueRepresentation, value, dicomElement.Buffer, validationLevel);
     }
 
-    protected abstract void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer);
+    protected abstract void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel);
 
     protected virtual string GetValueOrDefault(DicomElement dicomElement)
     {

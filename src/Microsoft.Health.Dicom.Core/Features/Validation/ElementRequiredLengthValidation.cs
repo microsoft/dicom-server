@@ -40,7 +40,7 @@ internal class ElementRequiredLengthValidation : StringElementValidation
         ExpectedLength = expectedLength;
     }
 
-    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
     {
         if (!String.IsNullOrEmpty(value))
         {

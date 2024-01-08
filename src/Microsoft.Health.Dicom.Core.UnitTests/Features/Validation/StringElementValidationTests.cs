@@ -15,7 +15,7 @@ public class StringElementValidationTests
 {
     private class StringValidation : StringElementValidation
     {
-        protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+        protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
         {
             if (value.Contains('\0'))
             {
@@ -28,7 +28,7 @@ public class StringElementValidationTests
     {
         protected override bool AllowNullOrEmpty => false;
 
-        protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+        protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
         {
             if (string.IsNullOrEmpty(value) || value.Contains('\0'))
             {

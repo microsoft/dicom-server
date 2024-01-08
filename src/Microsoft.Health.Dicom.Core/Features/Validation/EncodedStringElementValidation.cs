@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class EncodedStringElementValidation : StringElementValidation
 {
-    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
     {
         switch (vr.Code)
         {

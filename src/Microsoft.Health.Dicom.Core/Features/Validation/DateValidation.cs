@@ -15,7 +15,7 @@ internal class DateValidation : StringElementValidation
 {
     private const string DateFormatDA = "yyyyMMdd";
 
-    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
     {
         if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
         {

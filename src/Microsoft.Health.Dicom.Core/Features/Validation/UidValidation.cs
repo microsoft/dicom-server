@@ -13,37 +13,55 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 internal partial class UidValidation : StringElementValidation
 {
 #if NET7_0_OR_GREATER
-    [GeneratedRegex("^(0|([1-9][0-9]*))(\\.(0|([1-9][0-9]*)))*$", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline)]
+    [GeneratedRegex("^(0|([1-9][0-9]*))(\\\\.(0|([1-9][0-9]*)))*$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline)]
+    private static partial Regex UidRegexStrict();
+
+    [GeneratedRegex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline)]
     private static partial Regex UidRegex();
 #else
-    private static readonly Regex UidRegex = new("^(0|([1-9][0-9]*))(\\.(0|([1-9][0-9]*)))*$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline);
+    private static readonly Regex UidRegexStrict = new("^(0|([1-9][0-9]*))(\\\\\\\\.(0|([1-9][0-9]*)))*$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline);
+    private static readonly Regex UidRegex = new("^[0-9\\.]*[0-9]$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline);
 #endif
 
-    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
-        => Validate(value, name, allowEmpty: true);
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
+        => Validate(value, name, allowEmpty: true, validationLevel: validationLevel);
 
-    public static bool IsValid(string value, bool allowEmpty = false)
+    public static bool IsValid(string value, bool allowEmpty = false, ValidationLevel validationLevel = ValidationLevel.Default)
     {
         if (string.IsNullOrEmpty(value))
             return allowEmpty;
 
-        // trailling spaces are allowed
+        // trailing spaces are allowed
         value = value.TrimEnd(' ');
 
-#if NET7_0_OR_GREATER
-        if (value.Length > 64 || !UidRegex().IsMatch(value))
-#else
-        if (value.Length > 64 || !UidRegex.IsMatch(value))
-#endif
+        if (value.Length > 64)
+        {
+            // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
             return false;
+        }
 
-        return true;
+#if NET7_0_OR_GREATER
+        if (validationLevel is ValidationLevel.Strict)
+        {
+            return UidRegexStrict().IsMatch(value);
+        }
+
+        return UidRegex().IsMatch(value);
+
+#else
+        if (validationLevel is ValidationLevel.Strict)
+        {
+            return UidRegexStrict.IsMatch(value);
+        }
+
+        return UidRegex.IsMatch(value);
+#endif
     }
 
-    public static void Validate(string value, string name, bool allowEmpty = false)
+    public static void Validate(string value, string name, bool allowEmpty = false, ValidationLevel validationLevel = ValidationLevel.Default)
     {
         // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
-        if (!IsValid(value, allowEmpty))
+        if (!IsValid(value, allowEmpty, validationLevel))
             throw new InvalidIdentifierException(name);
     }
 }

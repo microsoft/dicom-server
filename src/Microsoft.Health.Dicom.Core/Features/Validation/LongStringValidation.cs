@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 /// </summary>
 internal class LongStringValidation : StringElementValidation
 {
-    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
     {
         Validate(value, name);
     }
