@@ -16,6 +16,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class ElementRequiredLengthValidation : StringElementValidation
 {
+    protected override bool AllowNullOrEmpty => false;
+
     private static readonly HashSet<DicomVR> StringVrs = new()
     {
        DicomVR.AE,

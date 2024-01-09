@@ -26,7 +26,9 @@ public class StringElementValidationTests
 
     private class StringValidationNotAllowedNulls : StringElementValidation
     {
-        protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel = ValidationLevel.Strict)
+        protected override bool AllowNullOrEmpty => false;
+
+        protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer, ValidationLevel validationLevel)
         {
             if (string.IsNullOrEmpty(value) || value.Contains('\0'))
             {
@@ -48,10 +50,19 @@ public class StringElementValidationTests
     }
 
     [Theory]
+    [InlineData("13.14.520")]
+    [InlineData("13")]
     [InlineData(null)]
+    public void GivenAValue_WhenValidatingWithoutLeniencyAndAllowableNullOrEmpty_ThenShouldPass(string value)
+    {
+        DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
+        new StringValidation().Validate(element, ValidationLevel.Strict);
+    }
+
+    [Theory]
     [InlineData("13\0\0\0")]
     [InlineData("\0\0\0")]
-    public void GivenAValue_WhenValidatingWithoutLeniency_ThenShouldNotPass(string value)
+    public void GivenAValue_WhenValidatingWithoutLeniencyAndWithNullPadding_ThenShouldNotPass(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
         Assert.Throws<Exception>(() => new StringValidation().Validate(element, ValidationLevel.Strict));
@@ -61,12 +72,19 @@ public class StringElementValidationTests
     [InlineData("13.14.520")]
     [InlineData("13")]
     [InlineData("13\0\0\0")]
-    [InlineData("\0\0\0")]
-    [InlineData(null)]
-    public void GivenAValue_WhenValidatingWithLeniency_ThenShouldPass(string value)
+    public void GivenAValue_WhenValidatingWithLeniencyAndNullOrEmptyNotAllowed_ThenShouldPass(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
-        new StringValidation().Validate(element);
+        new StringValidationNotAllowedNulls().Validate(element);
+    }
+
+    [Theory]
+    [InlineData("\0\0\0")]
+    [InlineData(null)]
+    public void GivenAValue_WhenValidatingWithLeniencyAndNullOrEmptyNotAllowed_ThenShouldNotPass(string value)
+    {
+        DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
+        Assert.Throws<Exception>(() => new StringValidationNotAllowedNulls().Validate(element));
     }
 
     [Theory]
@@ -75,7 +93,7 @@ public class StringElementValidationTests
     public void GivenAValue_WhenValidatingWithoutLeniencyAndNullOrEmptyNotAllowed_ThenShouldPass(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
-        new StringValidation().Validate(element, ValidationLevel.Strict);
+        new StringValidationNotAllowedNulls().Validate(element, ValidationLevel.Strict);
     }
 
     [Theory]
