@@ -902,8 +902,8 @@ public partial class UpdateDurableFunctionTests
         {
             FileProperties = new FileProperties
             {
-                ETag = $"etag-{x.NewVersion}",
-                Path = $"path-{x.NewVersion}",
+                ETag = $"etag-{x.NewVersion.ToString()}",
+                Path = $"path-{x.NewVersion.ToString()}",
             }
         })).ToList();
         return instanceMetadataList;

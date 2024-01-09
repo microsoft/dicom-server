@@ -600,7 +600,7 @@ internal static class WorkitemDatasetValidatorExtension
         };
     }
 
-    private static HashSet<RequirementDetail> GetDigitalSignatureMacroAttributesRequirements()
+    private static IEnumerable<RequirementDetail> GetDigitalSignatureMacroAttributesRequirements()
     {
         return new HashSet<RequirementDetail>
         {

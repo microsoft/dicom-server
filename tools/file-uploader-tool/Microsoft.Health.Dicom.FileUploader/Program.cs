@@ -62,17 +62,18 @@ public static class Program
         // Use locally present identity, which would be managed identity on a VM in Azure.
         var credential = new DefaultAzureCredential();
 
-        var token = await credential.GetTokenAsync(new TokenRequestContext(["https://dicom.healthcareapis.azure.com/.default"]));
+        var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://dicom.healthcareapis.azure.com/.default" }));
         var accessToken = token.Token;
 
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        DicomWebClient client = new(httpClient);
+        IDicomWebClient client = new DicomWebClient(httpClient);
 
         foreach (string file in files)
         {
-            DicomFile dicomFile = await DicomFile.OpenAsync(file);
-            var response = await client.StoreAsync(dicomFile, dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+            var dicomFile = await DicomFile.OpenAsync(file);
+
+            var response = await client.StoreAsync(dicomFile);
 
             Console.WriteLine($"{dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID)}/{dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID)}/{dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID)} saved with status code: {response.StatusCode}");
         }

@@ -1132,7 +1132,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
         }
 
 
-        private static MemoryByteBuffer ReadJsonInlineBinary(ref Utf8JsonReader reader)
+        private static IByteBuffer ReadJsonInlineBinary(ref Utf8JsonReader reader)
         {
             reader.AssumeAndSkip(JsonTokenType.StartArray);
             if (reader.TokenType != JsonTokenType.String) { throw new JsonException("Malformed DICOM json. string expected"); }
