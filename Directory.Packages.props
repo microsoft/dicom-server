@@ -38,7 +38,7 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.2.2" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.13.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.2" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.4" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.7.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />
