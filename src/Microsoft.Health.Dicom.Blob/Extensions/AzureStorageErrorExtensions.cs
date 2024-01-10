@@ -38,9 +38,9 @@ internal static class AzureStorageErrorExtensions
 
     public static bool IsConnectedStoreCustomerError(this RequestFailedException rfe)
     {
-        return (rfe.Status == 403 && Customer403ErrorCodes.Contains(rfe.ErrorCode)) ||
-            (rfe.Status == 404 && Customer404ErrorCodes.Contains(rfe.ErrorCode)) ||
-            (rfe.Status == 409 && Customer409ErrorCodes.Contains(rfe.ErrorCode));
+        return (rfe.Status == 403 && Customer403ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
+            (rfe.Status == 404 && Customer404ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
+            (rfe.Status == 409 && Customer409ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase)));
     }
 
     public static bool IsStorageAccountUnknownHostError(this Exception exception)
