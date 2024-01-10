@@ -13,9 +13,12 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Core.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -27,6 +30,7 @@ public class DicomConnectedStoreHealthCheckTests
     private readonly BlobContainerClient _blobContainerClient = Substitute.For<BlobContainerClient>();
     private readonly BlockBlobClient _blockBlobClient = Substitute.For<BlockBlobClient>();
     private readonly IBlobClient _blobClient = Substitute.For<IBlobClient>();
+    private readonly IOptions<ExternalBlobDataStoreConfiguration> _externalBlobOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
 
     private readonly DicomConnectedStoreHealthCheck _dicomConnectedStoreHealthCheck;
 
@@ -35,7 +39,14 @@ public class DicomConnectedStoreHealthCheckTests
         _blobClient.BlobContainerClient.Returns(_blobContainerClient);
         _blobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(_blockBlobClient);
 
-        _dicomConnectedStoreHealthCheck = new DicomConnectedStoreHealthCheck(_blobClient);
+        _externalBlobOptions.Value.Returns(new ExternalBlobDataStoreConfiguration()
+        {
+            StorageDirectory = "AHDS/",
+        });
+
+        var logger = new NullLogger<DicomConnectedStoreHealthCheck>();
+
+        _dicomConnectedStoreHealthCheck = new DicomConnectedStoreHealthCheck(_blobClient, _externalBlobOptions, logger);
     }
 
     [Fact]

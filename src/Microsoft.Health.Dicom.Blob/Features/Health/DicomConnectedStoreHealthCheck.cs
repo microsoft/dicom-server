@@ -15,9 +15,12 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Core.Features.Health;
 using Microsoft.Health.Dicom.Blob.Extensions;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Utilities;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Health;
 
@@ -26,42 +29,51 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
     private readonly string _degradedDescription = "The health of the connected store has degraded.";
 
     private readonly string _testContent = "Test content.";
-    private readonly string _testDirectoryName = "DicomServiceHealthCheck";
-    private readonly string _testFileName = "healthCheck.txt";
+    private readonly string _testDirectoryName = "healthCheck/";
+    private readonly string _testFileName = "health.txt";
 
+    private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IBlobClient _blobClient;
+    private readonly ILogger<DicomConnectedStoreHealthCheck> _logger;
 
-    public DicomConnectedStoreHealthCheck(IBlobClient blobClient)
+    /// <summary>
+    /// Validate health of connected blob store
+    /// </summary>
+    /// <param name="blobClient">the blob client</param>
+    /// <param name="externalStoreOptions">external store options</param>
+    /// <param name="logger">logger</param>
+    public DicomConnectedStoreHealthCheck(IBlobClient blobClient, IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions, ILogger<DicomConnectedStoreHealthCheck> logger)
     {
+        _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
         _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
-        BlockBlobClient blobClient = containerClient.GetBlockBlobClient($"{_testDirectoryName}/{_testFileName}");
+        BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions}{_testDirectoryName}{_testFileName}");
 
         // start trying to delete the blob, in case delete failed on the previous run
-        await TryDeleteBlob(blobClient, cancellationToken);
+        await TryDeleteBlob(blockBlobClient, cancellationToken);
 
         try
         {
-            using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(_testContent)))
-            {
-                string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(_testContent));
 
-                // test blob/write and that block blobs are supported
-                await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
-                await blobClient.CommitBlockListAsync(new List<string> { blockId }, new CommitBlockListOptions(), cancellationToken);
+            string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 
-                // test blob/read and blob/metadata/read
-                await blobClient.DownloadContentAsync(cancellationToken);
+            // test blob/write and that block blobs are supported
+            await blockBlobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
+            await blockBlobClient.CommitBlockListAsync(new List<string> { blockId }, new CommitBlockListOptions(), cancellationToken);
 
-                // test blob/delete
-                await blobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
+            // test blob/read and blob/metadata/read
+            await blockBlobClient.DownloadContentAsync(cancellationToken);
 
-                return HealthCheckResult.Healthy("Successfully connected.");
-            }
+            // test blob/delete
+            await blockBlobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
+
+            return HealthCheckResult.Healthy("Successfully connected.");
         }
         catch (RequestFailedException rfe) when (rfe.IsConnectedStoreCustomerError())
         {
@@ -74,7 +86,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         finally
         {
             // Just in case the blob was successfully created but failed to be deleted, try clean up again
-            await TryDeleteBlob(blobClient, cancellationToken);
+            await TryDeleteBlob(blockBlobClient, cancellationToken);
         }
     }
 
@@ -93,6 +105,8 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
 
     private HealthCheckResult GetConnectedStoreDegradedResult(Exception exception)
     {
+        _logger.LogInformation(exception, "The connected store health check failed due to a client issue.");
+
         return new HealthCheckResult(
             HealthStatus.Degraded,
             _degradedDescription,
