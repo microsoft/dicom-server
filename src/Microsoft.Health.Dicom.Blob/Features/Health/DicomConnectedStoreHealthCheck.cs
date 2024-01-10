@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Health.Core.Features.Health;
@@ -25,6 +26,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
     private readonly string _degradedDescription = "The health of the connected store has degraded.";
 
     private readonly string _testContent = "Test content.";
+    private readonly string _testDirectoryName = "DicomServiceHealthCheck";
     private readonly string _testFileName = "healthCheck.txt";
 
     private readonly IBlobClient _blobClient;
@@ -37,17 +39,25 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
+        BlockBlobClient blobClient = containerClient.GetBlockBlobClient($"{_testDirectoryName}/{_testFileName}");
 
-        // Use GUID for directory name to avoid conflicts with customer files
-        Guid directoryName = Guid.NewGuid();
-        BlobClient blobClient = containerClient.GetBlobClient($"{directoryName}/{_testFileName}");
+        // start trying to delete the blob, in case delete failed on the previous run
+        await TryDeleteBlob(blobClient, cancellationToken);
+
         try
         {
             using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(_testContent)))
             {
-                await blobClient.UploadAsync(stream, cancellationToken);
+                string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+                // test blob/write and that block blobs are supported
+                await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
+                await blobClient.CommitBlockListAsync(new List<string> { blockId }, new CommitBlockListOptions(), cancellationToken);
+
+                // test blob/read and blob/metadata/read
                 await blobClient.DownloadContentAsync(cancellationToken);
 
+                // test blob/delete
                 await blobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
 
                 return HealthCheckResult.Healthy("Successfully connected.");
@@ -57,7 +67,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         {
             return GetConnectedStoreDegradedResult(rfe);
         }
-        catch (Exception ex) when (ex.IsStorageAccountUnknownError())
+        catch (Exception ex) when (ex.IsStorageAccountUnknownHostError())
         {
             return GetConnectedStoreDegradedResult(ex);
         }
@@ -69,7 +79,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not fail during final clean up")]
-    private static async Task TryDeleteBlob(BlobClient blobClient, CancellationToken cancellationToken)
+    private static async Task TryDeleteBlob(BlockBlobClient blobClient, CancellationToken cancellationToken)
     {
         try
         {
@@ -83,11 +93,10 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
 
     private HealthCheckResult GetConnectedStoreDegradedResult(Exception exception)
     {
-        // TODO: Update HealthStatusReason
         return new HealthCheckResult(
             HealthStatus.Degraded,
             _degradedDescription,
             exception,
-            new Dictionary<string, object> { { "Reason", HealthStatusReason.CustomerManagedKeyAccessLost.ToString() } });
+            new Dictionary<string, object> { { "Reason", HealthStatusReason.ConnectedStoreDegraded.ToString() } });
     }
 }
