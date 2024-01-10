@@ -46,20 +46,6 @@ public class DicomConnectedStoreHealthCheckTests
         Assert.Equal(HealthStatus.Healthy, result.Status);
     }
 
-    [Fact]
-    public async Task GivenWritePermissionsRevoked_RunHealthCheck_ReturnsDegraded()
-    {
-        _blockBlobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>())
-            .Throws(new RequestFailedException(403, "Permissions not granted for this action", BlobErrorCode.AuthorizationPermissionMismatch.ToString(), new System.Exception()));
-
-        HealthCheckResult result = await _dicomConnectedStoreHealthCheck.CheckHealthAsync(null, CancellationToken.None);
-
-        result.Data.TryGetValue("Reason", out object healthStatusReason);
-
-        Assert.Equal(HealthStatus.Degraded, result.Status);
-        Assert.Equal(HealthStatusReason.ConnectedStoreDegraded.ToString(), healthStatusReason.ToString());
-    }
-
     [Theory]
     [InlineData(403, "AuthorizationFailure")]
     [InlineData(403, "AuthorizationPermissionMismatch")]
