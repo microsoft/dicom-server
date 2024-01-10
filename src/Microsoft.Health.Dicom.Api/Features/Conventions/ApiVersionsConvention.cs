@@ -40,6 +40,8 @@ internal class ApiVersionsConvention : IControllerConvention
     internal static IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>() { };
 
     internal const int CurrentVersion = 2;
+    internal const int MinimumSupportedVersionForDicomUpdate = 2;
+
     private readonly bool _isLatestApiVersionEnabled;
 
     public ApiVersionsConvention(IOptions<FeatureConfiguration> featureConfiguration)

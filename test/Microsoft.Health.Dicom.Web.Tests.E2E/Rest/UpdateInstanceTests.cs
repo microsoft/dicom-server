@@ -30,6 +30,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
+    private readonly IDicomWebClient _v1Client;
     private readonly DicomTagsManager _tagManager;
     private readonly DicomInstancesManager _instancesManager;
 
@@ -37,8 +38,18 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
+        _v1Client = fixture.GetDicomWebClient(DicomApiVersions.V1);
         _tagManager = new DicomTagsManager(_client);
         _instancesManager = new DicomInstancesManager(_client);
+    }
+
+    [Fact]
+    public async Task GivenV1DicomClient_WhenUpdateStudy_TheItShouldReturnNotFound()
+    {
+        string studyInstanceUid1 = TestUidGenerator.Generate();
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _v1Client.UpdateStudyAsync([studyInstanceUid1], new DicomDataset()));
+
+        Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
     }
 
     [Fact]
