@@ -52,7 +52,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
-        BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions}{_testDirectoryName}{_testFileName}");
+        BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_testDirectoryName}{_testFileName}");
 
         // start trying to delete the blob, in case delete failed on the previous run
         await TryDeleteBlob(blockBlobClient, cancellationToken);

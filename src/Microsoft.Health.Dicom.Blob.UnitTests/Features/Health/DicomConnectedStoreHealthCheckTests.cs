@@ -102,7 +102,7 @@ public class DicomConnectedStoreHealthCheckTests
     [Fact]
     public async Task HostNotFound_RunHealthCheck_ReturnsDegraded()
     {
-        _blockBlobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>())
+        _blockBlobClient.StageBlockAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<BlockBlobStageBlockOptions>(), Arg.Any<CancellationToken>())
             .Throws(new AggregateException(new List<Exception>()
             {
                 new Exception("No such host is known."),
