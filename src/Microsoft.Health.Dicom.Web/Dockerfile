@@ -1,23 +1,21 @@
 # See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 # Define the "runtime" image which will run the DICOM Server
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.0-alpine3.18-amd64@sha256:f8163ae2fd3f14b24798b66f61831c3587ef9c0dc668dd32834ed36498456600 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.1-alpine3.18-amd64@sha256:90aaa0aad7d0927ba02fa8513095f70d617ca65f96b0e5fa1ad3d96ca8437129 AS runtime
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
     apk update && \
-    apk add --no-cache icu-libs && \
-    addgroup nonroot && \
-    adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
+    apk add --no-cache icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_URLS=http://+:8080 \
     # Explicitly set locale to be en_US for DICOM Web
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8
 EXPOSE 8080
-USER nonroot
+USER $APP_UID
 
 # Copy the DICOM Server project and build it
-FROM mcr.microsoft.com/dotnet/sdk:8.0.100-alpine3.18-amd64@sha256:0341bee808a875f6cdf9da1b04b3e24a48857ca4fa2b6315f97e383c0982ef3d AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.101-alpine3.18-amd64@sha256:70c1c8249e539a34a7ca55888c139b0217f72f2ecd6c0b9fb0d651a0f7f2ab25 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 
