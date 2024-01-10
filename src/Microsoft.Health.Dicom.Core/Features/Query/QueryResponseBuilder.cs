@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using EnsureThat;
@@ -15,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query;
 
 internal class QueryResponseBuilder
 {
-    internal static readonly HashSet<DicomTag> DefaultStudyTags = new HashSet<DicomTag>()
+    internal static readonly ImmutableHashSet<DicomTag> DefaultStudyTags = ImmutableHashSet.CreateRange(new DicomTag[]
     {
         DicomTag.SpecificCharacterSet,
         DicomTag.StudyDate,
@@ -30,9 +31,9 @@ internal class QueryResponseBuilder
         DicomTag.PatientSex,
         DicomTag.StudyInstanceUID,
         DicomTag.StudyID,
-    };
+    });
 
-    internal static readonly HashSet<DicomTag> V2DefaultStudyTags = new HashSet<DicomTag>()
+    internal static readonly ImmutableHashSet<DicomTag> V2DefaultStudyTags = ImmutableHashSet.CreateRange(new DicomTag[]
     {
         DicomTag.StudyInstanceUID,
         DicomTag.StudyDate,
@@ -42,9 +43,9 @@ internal class QueryResponseBuilder
         DicomTag.PatientName,
         DicomTag.PatientID,
         DicomTag.PatientBirthDate
-    };
+    });
 
-    internal static readonly HashSet<DicomTag> AllStudyTags = new HashSet<DicomTag>(DefaultStudyTags)
+    internal static readonly ImmutableHashSet<DicomTag> AllStudyTags = DefaultStudyTags.Union(new DicomTag[]
     {
         DicomTag.StudyDescription,
         DicomTag.AnatomicRegionsInStudyCodeSequence,
@@ -57,9 +58,9 @@ internal class QueryResponseBuilder
         DicomTag.PatientWeight,
         DicomTag.Occupation,
         DicomTag.AdditionalPatientHistory,
-    };
+    });
 
-    internal static readonly HashSet<DicomTag> DefaultSeriesTags = new HashSet<DicomTag>()
+    internal static readonly ImmutableHashSet<DicomTag> DefaultSeriesTags = ImmutableHashSet.CreateRange(new DicomTag[]
     {
         DicomTag.SpecificCharacterSet,
         DicomTag.Modality,
@@ -69,26 +70,26 @@ internal class QueryResponseBuilder
         DicomTag.PerformedProcedureStepStartDate,
         DicomTag.PerformedProcedureStepStartTime,
         DicomTag.RequestAttributesSequence,
-    };
+    });
 
 
-    internal static readonly HashSet<DicomTag> V2DefaultSeriesTags = new HashSet<DicomTag>()
+    internal static readonly ImmutableHashSet<DicomTag> V2DefaultSeriesTags = ImmutableHashSet.CreateRange(new DicomTag[]
     {
         DicomTag.SeriesInstanceUID,
         DicomTag.Modality,
         DicomTag.PerformedProcedureStepStartDate,
         DicomTag.ManufacturerModelName
-    };
+    });
 
-    internal static readonly HashSet<DicomTag> AllSeriesTags = new HashSet<DicomTag>(DefaultSeriesTags)
+    internal static readonly ImmutableHashSet<DicomTag> AllSeriesTags = DefaultSeriesTags.Union(new DicomTag[]
     {
         DicomTag.SeriesNumber,
         DicomTag.Laterality,
         DicomTag.SeriesDate,
         DicomTag.SeriesTime,
-    };
+    });
 
-    internal static readonly HashSet<DicomTag> DefaultInstancesTags = new HashSet<DicomTag>()
+    internal static readonly ImmutableHashSet<DicomTag> DefaultInstancesTags = ImmutableHashSet.CreateRange(new DicomTag[]
     {
         DicomTag.SpecificCharacterSet,
         DicomTag.SOPClassUID,
@@ -100,14 +101,14 @@ internal class QueryResponseBuilder
         DicomTag.Columns,
         DicomTag.BitsAllocated,
         DicomTag.NumberOfFrames,
-    };
+    });
 
-    internal static readonly HashSet<DicomTag> V2DefaultInstancesTags = new HashSet<DicomTag>()
+    internal static readonly ImmutableHashSet<DicomTag> V2DefaultInstancesTags = ImmutableHashSet.CreateRange(new DicomTag[]
     {
         DicomTag.SOPInstanceUID
-    };
+    });
 
-    private static readonly HashSet<DicomTag> AllInstancesTags = DefaultInstancesTags;
+    private static readonly ImmutableHashSet<DicomTag> AllInstancesTags = DefaultInstancesTags;
 
     private HashSet<DicomTag> _tagsToReturn;
 
@@ -130,13 +131,7 @@ internal class QueryResponseBuilder
         return dicomDataset;
     }
 
-    public IReadOnlyCollection<DicomTag> ReturnTags
-    {
-        get
-        {
-            return _tagsToReturn;
-        }
-    }
+    public IReadOnlyCollection<DicomTag> ReturnTags => _tagsToReturn;
 
     // If the target resource is All Series, then Study level attributes are also returned.
     // If the target resource is All Instances, then Study and Series level attributes are also returned.

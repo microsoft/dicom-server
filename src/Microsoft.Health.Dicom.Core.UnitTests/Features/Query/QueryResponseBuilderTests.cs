@@ -152,27 +152,27 @@ public class QueryResponseBuilderTests
         var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
         bool useNewDefaults = false;
         var responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.DefaultStudyTags, responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.DefaultStudyTags);
 
         query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags), responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags));
 
         query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags).Union(QueryResponseBuilder.DefaultInstancesTags), responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags).Union(QueryResponseBuilder.DefaultInstancesTags));
 
         query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.DefaultSeriesTags, responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.DefaultSeriesTags);
 
         query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.DefaultInstancesTags, responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.DefaultInstancesTags);
 
         query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.DefaultSeriesTags.Union(QueryResponseBuilder.DefaultInstancesTags), responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.DefaultSeriesTags.Union(QueryResponseBuilder.DefaultInstancesTags));
     }
 
     [Fact]
@@ -184,27 +184,27 @@ public class QueryResponseBuilderTests
         var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
         bool useNewDefaults = true;
         var responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags, responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.V2DefaultStudyTags);
 
         query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags), responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags));
 
         query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags).Union(QueryResponseBuilder.V2DefaultInstancesTags), responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags).Union(QueryResponseBuilder.V2DefaultInstancesTags));
 
         query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.V2DefaultSeriesTags, responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.V2DefaultSeriesTags);
 
         query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.V2DefaultInstancesTags, responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.V2DefaultInstancesTags);
 
         query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
         responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
-        Assert.Equal(QueryResponseBuilder.V2DefaultSeriesTags.Union(QueryResponseBuilder.V2DefaultInstancesTags), responseBuilder.ReturnTags);
+        XAssert.ContainsExactlyAll(responseBuilder.ReturnTags, QueryResponseBuilder.V2DefaultSeriesTags.Union(QueryResponseBuilder.V2DefaultInstancesTags));
     }
 
     private static DicomDataset GenerateTestDataSet()
