@@ -47,7 +47,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     public async Task GivenV1DicomClient_WhenUpdateStudy_TheItShouldReturnNotFound()
     {
         string studyInstanceUid1 = TestUidGenerator.Generate();
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _v1Client.UpdateStudyAsync([studyInstanceUid1], new DicomDataset()));
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _v1Client.UpdateStudyAsync(new[] { studyInstanceUid1 }, new DicomDataset()));
 
         Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
     }
