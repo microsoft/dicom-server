@@ -24,7 +24,6 @@ public static class RetrieveRequestValidator
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
         ValidateInstanceIdentifiersAreValid(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        ValidateInstanceIdentifiersAreNotDuplicate(resourceType, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
     }
 
     private static void ValidateInstanceIdentifiersAreValid(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
@@ -40,30 +39,6 @@ public static class RetrieveRequestValidator
             case ResourceType.Frames:
                 UidValidation.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
                 UidValidation.Validate(sopInstanceUid, nameof(SopInstanceUid));
-                break;
-        }
-    }
-
-    private static void ValidateInstanceIdentifiersAreNotDuplicate(ResourceType resourceType, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null)
-    {
-        switch (resourceType)
-        {
-            case ResourceType.Series:
-                if (studyInstanceUid == seriesInstanceUid)
-                {
-                    throw new BadRequestException(DicomCoreResource.DuplicatedUidsNotAllowed);
-                }
-
-                break;
-            case ResourceType.Frames:
-            case ResourceType.Instance:
-                if ((studyInstanceUid == seriesInstanceUid) ||
-                    (studyInstanceUid == sopInstanceUid) ||
-                    (seriesInstanceUid == sopInstanceUid))
-                {
-                    throw new BadRequestException(DicomCoreResource.DuplicatedUidsNotAllowed);
-                }
-
                 break;
         }
     }

@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
@@ -15,9 +14,8 @@ using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-internal static class ObservationParser
+public static class ObservationParser
 {
-    [SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance", Justification = "Preserve read-only semantics")]
     public static IReadOnlyCollection<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));

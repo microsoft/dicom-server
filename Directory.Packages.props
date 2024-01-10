@@ -10,9 +10,10 @@
     <PackageVersion Include="Azure.Storage.Queues" Version="12.17.1" />
     <PackageVersion Include="Azure.Storage.Common" Version="12.18.1" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
-    <PackageVersion Include="fo-dicom" Version="5.1.2" />
+    <PackageVersion Include="fo-dicom" Version="5.1.1" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.11.0" />
-    <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.2" />
+    <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.25.1" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="4.3.0" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="4.3.0" />
@@ -20,7 +21,7 @@
     <PackageVersion Include="IdentityServer4" Version="4.1.2" />
     <PackageVersion Include="IdentityServer4.Storage" Version="4.1.2" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
-    <PackageVersion Include="MediatR" Version="$(MediatRVersion)" />
+    <PackageVersion Include="MediatR" Version="12.1.1" />
     <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.22.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" />
@@ -29,7 +30,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(WebUtilitiesVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Azure.ServiceBus" Version="5.2.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.39" />
@@ -82,7 +83,7 @@
     <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.1.10" />
     <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.1.10" />
     <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.1.10" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.33.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.0" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
@@ -91,10 +92,10 @@
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.1.167" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.8.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="OpenTelemetry" Version="$(OTelVersion)" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="$(OTelVersion)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="$(OTelVersion)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="$(OTelVersion)" />
+    <PackageVersion Include="OpenTelemetry" Version="1.6.0" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.6.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.6.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="1.6.0" />
     <PackageVersion Include="NSubstitute" Version="5.1.0" />
     <PackageVersion Include="Polly" Version="8.2.0" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
@@ -104,13 +105,13 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.33.0" />
     <PackageVersion Include="System.IO.Hashing" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Text.Json" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="xunit" Version="2.6.4" />
-    <PackageVersion Include="xunit.assert" Version="2.6.4" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.6" />
+    <PackageVersion Include="xunit" Version="2.6.1" />
+    <PackageVersion Include="xunit.assert" Version="2.6.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 </Project>

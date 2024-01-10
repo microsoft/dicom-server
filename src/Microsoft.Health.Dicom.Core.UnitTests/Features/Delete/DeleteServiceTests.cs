@@ -12,13 +12,8 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-#if NET8_0_OR_GREATER
-using Microsoft.Extensions.Time.Testing;
-#endif
 using Microsoft.Health.Abstractions.Features.Transactions;
-#if !NET8_0_OR_GREATER
 using Microsoft.Health.Core.Internal;
-#endif
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -52,10 +47,6 @@ public class DeleteServiceTests
         ContentLength = 123
     };
 
-#if NET8_0_OR_GREATER
-    private readonly FakeTimeProvider _timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
-#endif
-
     public DeleteServiceTests()
     {
         _telemetryClient = new TelemetryClient(new TelemetryConfiguration());
@@ -81,39 +72,11 @@ public class DeleteServiceTests
 
         IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
         _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false });
-        _deleteService = new DeleteService(
-            _indexDataStore,
-            _metadataStore,
-            _fileDataStore,
-            deletedInstanceCleanupConfigurationOptions,
-            transactionHandler,
-            NullLogger<DeleteService>.Instance,
-            _dicomRequestContextAccessor,
-            _options,
-#if NET8_0_OR_GREATER
-            _telemetryClient,
-            _timeProvider);
-#else
-            _telemetryClient);
-#endif
+        _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _options, _telemetryClient);
 
         IOptions<FeatureConfiguration> _optionsExternalStoreEnabled = Substitute.For<IOptions<FeatureConfiguration>>();
         _optionsExternalStoreEnabled.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
-        _deleteServiceWithExternalStore = new DeleteService(
-            _indexDataStore,
-            _metadataStore,
-            _fileDataStore,
-            deletedInstanceCleanupConfigurationOptions,
-            transactionHandler,
-            NullLogger<DeleteService>.Instance,
-            _dicomRequestContextAccessor,
-            _optionsExternalStoreEnabled,
-#if NET8_0_OR_GREATER
-            _telemetryClient,
-            _timeProvider);
-#else
-            _telemetryClient);
-#endif
+        _deleteServiceWithExternalStore = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _optionsExternalStoreEnabled, _telemetryClient);
     }
 
     [Fact]
@@ -122,15 +85,13 @@ public class DeleteServiceTests
         string studyInstanceUid = TestUidGenerator.Generate();
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        await _deleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
-        await _indexDataStore
-            .Received(1)
-            .DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            await _deleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
+        }
     }
 
     [Fact]
@@ -139,15 +100,13 @@ public class DeleteServiceTests
         string studyInstanceUid = TestUidGenerator.Generate();
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        await _deleteServiceWithExternalStore.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
-        await _indexDataStore
-            .Received(1)
-            .DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, now);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            await _deleteServiceWithExternalStore.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, now);
+        }
     }
 
     [Fact]
@@ -157,15 +116,13 @@ public class DeleteServiceTests
         string seriesInstanceUid = TestUidGenerator.Generate();
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
-        await _indexDataStore
-            .Received(1)
-            .DeleteSeriesIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .DeleteSeriesIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
+        }
     }
 
     [Fact]
@@ -175,15 +132,13 @@ public class DeleteServiceTests
         string seriesInstanceUid = TestUidGenerator.Generate();
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        await _deleteServiceWithExternalStore.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
-        await _indexDataStore
-            .Received(1)
-            .DeleteSeriesIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, now);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            await _deleteServiceWithExternalStore.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .DeleteSeriesIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, now);
+        }
     }
 
     [Fact]
@@ -194,15 +149,13 @@ public class DeleteServiceTests
         string sopInstanceUid = TestUidGenerator.Generate();
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
-        await _indexDataStore
-            .Received(1)
-            .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
+        }
     }
 
     [Fact]
@@ -228,15 +181,13 @@ public class DeleteServiceTests
         string sopInstanceUid = TestUidGenerator.Generate();
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        await _deleteServiceWithExternalStore.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
-        await _indexDataStore
-            .Received(1)
-            .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            await _deleteServiceWithExternalStore.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now);
+        }
     }
 
     [Fact]
@@ -292,59 +243,54 @@ public class DeleteServiceTests
     public async Task GivenADeletedInstance_WhenFileStoreThrows_ThenIncrementRetryIsCalled()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
-        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
 
-        _indexDataStore
-            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .ReturnsForAnyArgs(responseList);
+            _indexDataStore
+                .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .ReturnsForAnyArgs(responseList);
 
-        _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
-            .ThrowsForAnyArgs(new Exception("Generic exception"));
+            _fileDataStore
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
+                .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-        (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+            (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        Assert.True(success);
-        Assert.Equal(1, retrievedInstanceCount);
+            Assert.True(success);
+            Assert.Equal(1, retrievedInstanceCount);
 
-        await _indexDataStore
-            .Received(1)
-            .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, now + _deleteConfiguration.RetryBackOff, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, now + _deleteConfiguration.RetryBackOff, CancellationToken.None);
+        }
     }
 
     [Fact]
     public async Task GivenADeletedInstanceWithExternalStore_WhenFileStoreThrows_ThenIncrementRetryIsCalled()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
-#if NET8_0_OR_GREATER
-        _timeProvider.SetUtcNow(now);
-#else
-        IDisposable replacement = Mock.Property(() => ClockResolver.UtcNowFunc, () => now);
-#endif
+        using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
+        {
+            List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
 
-        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
+            _indexDataStore
+                .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .ReturnsForAnyArgs(responseList);
 
-        _indexDataStore
-            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .ReturnsForAnyArgs(responseList);
+            _fileDataStore
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
+                .ThrowsForAnyArgs(new Exception("Generic exception"));
 
-        _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
-            .ThrowsForAnyArgs(new Exception("Generic exception"));
+            (bool success, int retrievedInstanceCount) = await _deleteServiceWithExternalStore.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        (bool success, int retrievedInstanceCount) = await _deleteServiceWithExternalStore.CleanupDeletedInstancesAsync(CancellationToken.None);
+            Assert.True(success);
+            Assert.Equal(1, retrievedInstanceCount);
 
-        Assert.True(success);
-        Assert.Equal(1, retrievedInstanceCount);
-
-        await _indexDataStore
-            .Received(1)
-            .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, now + _deleteConfiguration.RetryBackOff, CancellationToken.None);
+            await _indexDataStore
+                .Received(1)
+                .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, now + _deleteConfiguration.RetryBackOff, CancellationToken.None);
+        }
     }
 
     [Fact]

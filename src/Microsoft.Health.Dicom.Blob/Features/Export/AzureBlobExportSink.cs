@@ -18,6 +18,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
@@ -175,6 +176,6 @@ internal sealed class AzureBlobExportSink : IExportSink
             {
                 Error = message,
                 Identifier = identifier,
-                Timestamp = DateTimeOffset.UtcNow,
+                Timestamp = Clock.UtcNow,
             });
 }

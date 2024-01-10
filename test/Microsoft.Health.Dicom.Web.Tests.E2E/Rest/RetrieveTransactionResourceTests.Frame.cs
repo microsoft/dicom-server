@@ -198,6 +198,7 @@ public partial class RetrieveTransactionResourceTests
         Stream frameStream = await response.GetValueAsync();
         Assert.NotNull(frameStream);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(KnownContentTypes.ApplicationOctetStream, response.ContentHeaders.ContentType.MediaType);
     }
 
     [Fact]
