@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -11,4 +12,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities"/>
   </ItemGroup>
+
 </Project>

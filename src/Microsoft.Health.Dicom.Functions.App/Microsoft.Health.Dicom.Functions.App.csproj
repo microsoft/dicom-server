@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="Ensure.That" />
-    <PackageReference Include="Google.Protobuf" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" />
     <PackageReference Include="Microsoft.Azure.WebJobs" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" />

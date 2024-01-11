@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ public class AcceptContentFilterAttributeTests
     [Fact]
     public void GivenARequestWithNoAcceptHeader_ThenNotAcceptableStatusCodeShouldBeReturned()
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicom, KnownContentTypes.ApplicationOctetStream });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicom, KnownContentTypes.ApplicationOctetStream]);
 
         _filter.OnActionExecuting(_context);
 
@@ -53,7 +53,7 @@ public class AcceptContentFilterAttributeTests
     [InlineData("application/dicom+json; transfer-syntax=\"*\"")]
     public void GivenARequestWithAValidAcceptHeader_WhenMediaTypeMatches_ThenSuccess(string acceptHeaderMediaType)
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicomJson, "application/dicom+xml" });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicomJson, "application/dicom+xml"]);
 
         _context.HttpContext.Request.Headers.TryAdd(HeaderNames.Accept, acceptHeaderMediaType);
 
@@ -69,9 +69,9 @@ public class AcceptContentFilterAttributeTests
     [InlineData(null)]
     public void GivenARequestWithAValidAcceptHeader_WhenMediaTypeDoesntMatch_ThenFailure(string acceptHeaderMediaType)
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicomJson, "application/dicom+xml" });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicomJson, "application/dicom+xml"]);
 
-        _context.HttpContext.Request.Headers.Add(HeaderNames.Accept, acceptHeaderMediaType);
+        _context.HttpContext.Request.Headers.Append(HeaderNames.Accept, acceptHeaderMediaType);
 
         _filter.OnActionExecuting(_context);
 
@@ -86,9 +86,9 @@ public class AcceptContentFilterAttributeTests
     [InlineData("application/dicom", "application/xml")]
     public void GivenARequestWithMultipleAcceptHeaders_WhenAnyMediaTypeMatches_ThenSuccess(params string[] acceptHeaderMediaType)
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicomJson, "application/dicom+xml" });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicomJson, "application/dicom+xml"]);
 
-        _context.HttpContext.Request.Headers.Add(HeaderNames.Accept, acceptHeaderMediaType);
+        _context.HttpContext.Request.Headers.Append(HeaderNames.Accept, acceptHeaderMediaType);
 
         _filter.OnActionExecuting(_context);
 
@@ -100,9 +100,9 @@ public class AcceptContentFilterAttributeTests
     [InlineData("application/dicom", "image/png")]
     public void GivenARequestWithMultipleAcceptHeaders_WhenNoMediaTypeMatches_ThenFailure(params string[] acceptHeaderMediaType)
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicomJson, "application/dicom+xml" });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicomJson, "application/dicom+xml"]);
 
-        _context.HttpContext.Request.Headers.Add(HeaderNames.Accept, acceptHeaderMediaType);
+        _context.HttpContext.Request.Headers.Append(HeaderNames.Accept, acceptHeaderMediaType);
 
         _filter.OnActionExecuting(_context);
 
@@ -114,9 +114,9 @@ public class AcceptContentFilterAttributeTests
     [InlineData("application/dicom+json, application/xml")]
     public void GivenARequestWithOneAcceptHeaderWithMultipleTypes_WhenAnyMediaTypeMatches_ThenSuccess(string acceptHeaderMediaType)
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicomJson, "application/dicom+xml" });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicomJson, "application/dicom+xml"]);
 
-        _context.HttpContext.Request.Headers.Add(HeaderNames.Accept, acceptHeaderMediaType);
+        _context.HttpContext.Request.Headers.Append(HeaderNames.Accept, acceptHeaderMediaType);
 
         _filter.OnActionExecuting(_context);
 
@@ -128,9 +128,9 @@ public class AcceptContentFilterAttributeTests
     [InlineData("application/dicom, application/pdf")]
     public void GivenARequestWithOneAcceptHeaderWithMultipleTypes_WhenNoMediaTypeMatches_ThenFailure(string acceptHeaderMediaType)
     {
-        _filter = CreateFilter(new[] { KnownContentTypes.ApplicationDicomJson, "application/dicom+xml" });
+        _filter = CreateFilter([KnownContentTypes.ApplicationDicomJson, "application/dicom+xml"]);
 
-        _context.HttpContext.Request.Headers.Add(HeaderNames.Accept, acceptHeaderMediaType);
+        _context.HttpContext.Request.Headers.Append(HeaderNames.Accept, acceptHeaderMediaType);
 
         _filter.OnActionExecuting(_context);
 

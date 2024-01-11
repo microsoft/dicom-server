@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>A fork of Fellow Oak's Dicom library with changes included from the next release.</Description>
-    <TargetFrameworks>$(LtsVersion);$(StsVersion);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(LibraryFrameworks);netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

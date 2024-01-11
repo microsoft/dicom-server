@@ -68,7 +68,7 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private IActionResult MapExceptionToResult(Exception exception)
+    private ContentResult MapExceptionToResult(Exception exception)
     {
         HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
         string message = exception.Message;
@@ -173,7 +173,7 @@ public class ExceptionHandlingMiddleware
             (ex is AggregateException aggEx && aggEx.InnerExceptions.Any(x => x is SqlException sqlEx && sqlEx.IsCMKError() || x is RequestFailedException rfEx && rfEx.IsCMKError()));
     }
 
-    private static IActionResult GetContentResult(HttpStatusCode statusCode, string message)
+    private static ContentResult GetContentResult(HttpStatusCode statusCode, string message)
     {
         return new ContentResult
         {
