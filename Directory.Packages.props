@@ -65,7 +65,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.1.0" />
     <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.1.12" />
     <PackageVersion Include="Microsoft.Health.Api" Version="7.1.12" />
     <PackageVersion Include="Microsoft.Health.Blob" Version="7.1.12" />
