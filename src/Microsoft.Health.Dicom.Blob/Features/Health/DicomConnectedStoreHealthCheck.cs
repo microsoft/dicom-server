@@ -27,10 +27,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Health;
 internal class DicomConnectedStoreHealthCheck : IHealthCheck
 {
     private readonly string _degradedDescription = "The health of the connected store has degraded.";
-
     private readonly string _testContent = "Test content.";
-    private readonly string _testDirectoryName = "healthCheck/";
-    private readonly string _testFileName = "health.txt";
 
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IBlobClient _blobClient;
@@ -52,7 +49,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
-        BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_testDirectoryName}{_testFileName}");
+        BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFileName}");
 
         // start trying to delete the blob, in case delete failed on the previous run
         await TryDeleteBlob(blockBlobClient, cancellationToken);
