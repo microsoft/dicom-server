@@ -105,7 +105,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -226,7 +226,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunctionWithExternalStore.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunctionWithExternalStore.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -347,7 +347,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -444,7 +444,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -520,7 +520,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
 
         // Invoke the orchestration
-        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance));
+        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance));
 
         // Assert behavior
         context
@@ -629,7 +629,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         await context
@@ -718,7 +718,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         await context
@@ -804,7 +804,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesV5Async(context, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesV6Async(context, NullLogger.Instance);
 
         // Assert behavior
         context

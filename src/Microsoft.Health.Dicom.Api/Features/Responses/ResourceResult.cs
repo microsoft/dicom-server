@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ internal class ResourceResult : IActionResult
 
     public async Task ExecuteResultAsync(ActionContext context)
     {
-        ObjectResult objectResult = null;
+        ObjectResult objectResult;
         if (_response.IsSinglePart)
         {
             objectResult = await GetSinglePartResult(context.HttpContext, context.HttpContext.RequestAborted);
@@ -61,7 +61,7 @@ internal class ResourceResult : IActionResult
             StatusCode = (int)HttpStatusCode.OK,
         };
 
-        var singlePartMediaType = new MediaTypeHeaderValue(KnownContentTypes.ApplicationDicom);
+        var singlePartMediaType = new MediaTypeHeaderValue(_response.ContentType);
         singlePartMediaType.Parameters.Add(new NameValueHeaderValue(KnownContentTypes.TransferSyntax, transferSyntax));
 
         objectResult.ContentTypes.Add(singlePartMediaType);

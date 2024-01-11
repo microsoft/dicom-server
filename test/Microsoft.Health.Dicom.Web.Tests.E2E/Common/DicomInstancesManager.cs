@@ -131,7 +131,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         { }
     }
 
-    public async Task<OperationStatus> UpdateStudyAsync(
+    public async Task<IOperationState<DicomOperation>> UpdateStudyAsync(
         List<string> studyInstanceUids,
         DicomDataset dicomDataset,
         Partition partition = null,
@@ -151,7 +151,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         Assert.Equal(result.OperationId, actual.OperationId);
         Assert.Equal(result.Status, actual.Status);
 
-        return result.Status;
+        return result;
     }
 
     public async Task<DicomWebResponse> AddWorkitemAsync(
