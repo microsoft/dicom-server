@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ public class UrlResolverTests
     private readonly IUrlHelper _urlHelper = Substitute.For<IUrlHelper>();
     private readonly DefaultHttpContext _httpContext = new DefaultHttpContext();
     private readonly ActionContext _actionContext = new ActionContext();
+    private readonly LinkGenerator _linkGenerator = Substitute.For<LinkGenerator>();
 
     private UrlRouteContext _capturedUrlRouteContext;
 
@@ -54,7 +55,8 @@ public class UrlResolverTests
         _urlResolver = new UrlResolver(
                _urlHelperFactory,
                _httpContextAccessor,
-               _actionContextAccessor);
+               _actionContextAccessor,
+               _linkGenerator);
     }
 
     [Theory]

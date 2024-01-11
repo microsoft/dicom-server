@@ -121,9 +121,9 @@ public static class DicomServerServiceCollectionExtensions
         services.AddOptions();
 
         services
-            .AddMvc(options =>
+            .AddControllers(options =>
             {
-                options.EnableEndpointRouting = false;
+                options.EnableEndpointRouting = true;
                 options.RespectBrowserAcceptHeader = true;
             })
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());

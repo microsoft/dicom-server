@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -22,11 +22,13 @@ public sealed class UrlResolver : IUrlResolver
 
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IActionContextAccessor _actionContextAccessor;
+    private readonly LinkGenerator _linkGenerator;
 
     public UrlResolver(
         IUrlHelperFactory urlHelperFactory,
         IHttpContextAccessor httpContextAccessor,
-        IActionContextAccessor actionContextAccessor)
+        IActionContextAccessor actionContextAccessor,
+        LinkGenerator linkGenerator)
     {
         EnsureArg.IsNotNull(urlHelperFactory, nameof(urlHelperFactory));
         EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
@@ -35,6 +37,7 @@ public sealed class UrlResolver : IUrlResolver
         _urlHelperFactory = urlHelperFactory;
         _httpContextAccessor = httpContextAccessor;
         _actionContextAccessor = actionContextAccessor;
+        _linkGenerator = linkGenerator;
     }
 
     private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
@@ -146,11 +149,45 @@ public sealed class UrlResolver : IUrlResolver
     {
         HttpRequest request = _httpContextAccessor.HttpContext.Request;
 
-        return new Uri(
-            UrlHelper.RouteUrl(
+        return GerRouteUri(
+                _httpContextAccessor.HttpContext,
                 routeName,
                 routeValues,
                 request.Scheme,
-                request.Host.Value));
+                request.Host.Value);
+    }
+
+    private Uri GerRouteUri(HttpContext httpContext, string routeName, RouteValueDictionary routeValues, string scheme, string host)
+    {
+        var uriString = string.Empty;
+
+        if (httpContext == null)
+        {
+            uriString = UrlHelper.RouteUrl(
+                routeName,
+                routeValues,
+                scheme,
+                host);
+        }
+        else
+        {
+            // NOTE: Append "/" to the end of the path base to workaround a known bug in UrlHelper.RouteUrl for endpoint routing.
+            //       Remove the workaround when we pick up the fix. (https://github.com/dotnet/aspnetcore/issues/53177)
+            var pathBase = httpContext.Request?.PathBase.ToString();
+            if (!string.IsNullOrEmpty(pathBase) && (string.IsNullOrEmpty(httpContext.Request?.Path) || string.Equals(httpContext.Request?.Path, "/", StringComparison.Ordinal)))
+            {
+                pathBase += "/";
+            }
+
+            uriString = _linkGenerator.GetUriByRouteValues(
+                httpContext,
+                routeName,
+                routeValues,
+                scheme,
+                new HostString(host),
+                pathBase);
+        }
+
+        return new Uri(uriString);
     }
 }

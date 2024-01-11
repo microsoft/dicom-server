@@ -57,9 +57,7 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public virtual void Configure(IApplicationBuilder app)
     {
-        app.UseDicomServer();
-
-        app.UseDevelopmentIdentityProviderIfConfigured();
+        app.UseDicomServer(DevelopmentIdentityProviderRegistrationExtensions.UseDevelopmentIdentityProviderIfConfigured);
     }
 
     /// <summary>
