@@ -55,6 +55,10 @@ public static class DicomServerBuilderBlobRegistrationExtensions
 
             serverBuilder.Services
                 .AddPersistence<IFileStore, BlobFileStore>();
+
+            serverBuilder.Services
+                .AddHealthChecks()
+                .AddCheck<DicomConnectedStoreHealthCheck>("DcmHealthCheck");
         }
         else
         {
