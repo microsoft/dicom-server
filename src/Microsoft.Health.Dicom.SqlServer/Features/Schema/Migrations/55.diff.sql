@@ -7,11 +7,11 @@ IF NOT EXISTS
 (
     SELECT *
     FROM    sys.indexes
-    WHERE   NAME = 'IXC_FileProperty_ContentLength'
+    WHERE   NAME = 'IXC_FileProperty_InstanceKey_Watermark_ContentLength'
         AND Object_id = OBJECT_ID('dbo.FileProperty')
 )
 BEGIN
-    CREATE INDEX IXC_FileProperty_ContentLength ON dbo.FileProperty
+    CREATE INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength ON dbo.FileProperty
     (
     InstanceKey,
     Watermark,
