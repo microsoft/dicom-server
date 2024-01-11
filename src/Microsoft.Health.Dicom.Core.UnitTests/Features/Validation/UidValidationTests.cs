@@ -23,14 +23,14 @@ public class UidValidationTests
     [InlineData("123.0.45.6345.16765.0")]
     [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020")]
     [InlineData("12.0.0.678.324.145.123106.141.4905702.123480.9500026724.0.1.4020    ")]
+    [InlineData("007")]
+    [InlineData("12.003.456")]
     public void GivenValidString_WhenValidatingAsUid_ThenShouldPass(string value)
         => Assert.True(UidValidation.IsValid(value));
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    [InlineData("007")]
-    [InlineData("12.003.456")]
     [InlineData("hello.world")]
     [InlineData("987.in.valid.654")]
     [InlineData("24.foo.bar.baz")]
