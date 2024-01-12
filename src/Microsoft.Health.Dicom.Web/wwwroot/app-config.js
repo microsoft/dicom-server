@@ -1,4 +1,4 @@
-var rootUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/v1`;
+var rootUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/v2`;
 window.config = {
   routerBasename: '/',
   // whiteLabeling: {},
@@ -53,6 +53,7 @@ window.config = {
         supportsFuzzyMatching: true,
         supportsWildcard: false,
         staticWado: true,
+        requestTransferSyntaxUID: '*',
         singlepart: 'bulkdata,video',
         // whether the data source should use retrieveBulkData to grab metadata,
         // and in case of relative path, what would it be relative to, options
