@@ -59,8 +59,8 @@ Example requests can be sent in the [Postman collection](../resources/Conformanc
 Bulk update endpoint starts a long running operation that updates all the instances in the study with the specified attributes.
 
 ```http
-POST ...v1/studies/$bulkUpdate
-POST ...v1/partitions/{PartitionName}/studies/$bulkUpdate
+POST ...v2/studies/$bulkUpdate
+POST ...v2/partitions/{PartitionName}/studies/$bulkUpdate
 ```
 
 #### Request Header
@@ -98,7 +98,7 @@ HTTP/1.1 202 Accepted
 Content-Type: application/json
 {
     "id": "1323c079a1b64efcb8943ef7707b5438",
-    "href": "../v1/operations/1323c079a1b64efcb8943ef7707b5438"
+    "href": "../v2/operations/1323c079a1b64efcb8943ef7707b5438"
 }
 ```
 
