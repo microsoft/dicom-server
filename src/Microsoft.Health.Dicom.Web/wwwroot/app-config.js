@@ -5,6 +5,8 @@ window.config = {
   extensions: [],
   modes: [],
   customizationService: {
+    dicomUploadComponent:
+      '@ohif/extension-cornerstone.customizationModule.cornerstoneDicomUploadComponent',
     // Shows a custom route -access via http://localhost:3000/custom
     // helloPage: '@ohif/extension-default.customizationModule.helloPage',
   },
@@ -42,6 +44,7 @@ window.config = {
       configuration: {
         friendlyName: 'Azure Dicom Web',
         name: 'AzureDicomWeb',
+        dicomUploadEnabled: true,
         wadoUriRoot: rootUrl,
         qidoRoot: rootUrl,
         wadoRoot: rootUrl,
