@@ -251,7 +251,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
             DicomFile originalFile = await instanceRetrieve1.GetValueAsync();
             Assert.NotNull(originalFile);
 
-            VerifyPixelData(updatedFile, originalFile);
+            VerifyPixelData(originalFile, updatedFile);
         }
     }
 
