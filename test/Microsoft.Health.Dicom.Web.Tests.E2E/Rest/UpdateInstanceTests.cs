@@ -91,7 +91,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
         // Verify study
         await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 2).ToArray());
-        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName", true);
 
         // Update again to ensure DICOM file is not corrupted after update
         await UpdateStudyAsync(2, studyInstanceUid1, "New^PatientName1");
@@ -119,7 +119,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
         // Verify study
         await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 1).ToArray());
-        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName", true);
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
 
         // Update again to ensure DICOM file is not corrupted after update
@@ -235,9 +235,9 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
             dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             dicomTransferSyntax: "*");
 
-        DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
+        DicomFile updatedFile = await instanceRetrieve.GetValueAsync();
 
-        Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
+        Assert.Equal(expectedPatientName, updatedFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
 
         if (requestOriginalVersion)
         {
@@ -248,8 +248,10 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
                 dicomTransferSyntax: "*",
                 requestOriginalVersion: true);
 
-            DicomFile retrievedDicomFile1 = await instanceRetrieve1.GetValueAsync();
-            Assert.NotNull(retrievedDicomFile);
+            DicomFile originalFile = await instanceRetrieve1.GetValueAsync();
+            Assert.NotNull(originalFile);
+
+            VerifyPixelData(updatedFile, originalFile);
         }
     }
 
@@ -334,6 +336,19 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
             () => _client.RetrieveStudyMetadataAsync(studyInstanceUid, requestOriginalVersion: requestOriginalVersion));
         await Assert.ThrowsAsync<DicomWebException>(
             () => _client.RetrieveStudyMetadataAsync(studyInstanceUid));
+    }
+
+    private static void VerifyPixelData(DicomFile originalFile, DicomFile updateFile)
+    {
+        var originalPixelData = DicomPixelData.Create(originalFile.Dataset);
+        var updatePixelData = DicomPixelData.Create(updateFile.Dataset);
+
+        Assert.Equal(originalPixelData.NumberOfFrames, updatePixelData.NumberOfFrames);
+
+        for (int i = 0; i < originalPixelData.NumberOfFrames; i++)
+        {
+            Assert.Equal(originalPixelData.GetFrame(i).Data, updatePixelData.GetFrame(i).Data, BinaryComparer.Instance);
+        }
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
