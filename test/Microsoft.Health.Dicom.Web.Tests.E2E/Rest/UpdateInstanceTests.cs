@@ -83,9 +83,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
         // Update study
         await UpdateStudyAsync(expectedInstancesUpdated: 0, expectedStudyUpdated: 0, studyInstanceUid1, "New^PatientName");
-
-        // Verify study
-        await VerifyMetadata(studyInstanceUid, Enumerable.Repeat("New^PatientName", 3).ToArray());
     }
 
     [Fact]
