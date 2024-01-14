@@ -248,9 +248,9 @@ public partial class UpdateDurableFunction
             null,
             null);
 
-        if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
+        if (input.NumberOfStudyProcessed < input.TotalNumberOfStudies)
         {
-            string studyInstanceUid = input.StudyInstanceUids[input.NumberOfStudyCompleted];
+            string studyInstanceUid = input.StudyInstanceUids[input.NumberOfStudyProcessed];
 
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
@@ -352,7 +352,8 @@ public partial class UpdateDurableFunction
 
             if (input.Errors?.Count > 0)
             {
-                logger.LogWarning("Update operation completed with errors. {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
+                logger.LogWarning("Update operation completed with errors. {NumberOfStudyProcessed}, {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
+                     input.NumberOfStudyProcessed,
                      input.NumberOfStudyCompleted,
                      input.NumberOfStudyFailed,
                      input.TotalNumberOfInstanceUpdated);
@@ -379,7 +380,8 @@ public partial class UpdateDurableFunction
             }
             else
             {
-                logger.LogInformation("Update operation completed successfully. {NumberOfStudyUpdated}, {TotalNumberOfInstanceUpdated}.",
+                logger.LogInformation("Update operation completed successfully. {NumberOfStudyProcessed}, {NumberOfStudyUpdated}, {TotalNumberOfInstanceUpdated}.",
+                     input.NumberOfStudyProcessed,
                      input.NumberOfStudyCompleted,
                      input.TotalNumberOfInstanceUpdated);
 
