@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 
@@ -45,7 +44,7 @@ public class StudyResult
                 _dicomDataset.AddValueIfNotNull(DicomTag.StudyDescription, StudyDescription);
                 _dicomDataset.AddValueIfNotNull(DicomTag.AccessionNumber, AccessionNumber);
 
-                if (ModalitiesInStudy != null && ModalitiesInStudy.Any())
+                if (ModalitiesInStudy?.Length > 0)
                 {
                     _dicomDataset.Add(DicomTag.ModalitiesInStudy, ModalitiesInStudy);
                 }

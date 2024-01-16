@@ -41,7 +41,7 @@ internal class TelemetryInitializer : ITelemetryInitializer
         string version = null;
         var feature = _httpContextAccessor.HttpContext?.Features.Get<IApiVersioningFeature>();
 
-        if (feature.RouteParameter != null)
+        if (feature?.RouteParameter != null)
         {
             version = feature.RawRequestedApiVersion;
         }

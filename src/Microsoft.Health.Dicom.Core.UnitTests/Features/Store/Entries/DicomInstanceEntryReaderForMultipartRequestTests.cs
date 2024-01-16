@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -61,13 +61,13 @@ public class DicomInstanceEntryReaderForMultipartRequestTests
     }
 
     [Fact]
-    public void GivenBodyPartWithInvalidContentType_WhenReading_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
+    public Task GivenBodyPartWithInvalidContentType_WhenReading_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
     {
         IMultipartReader multipartReader = SetupMultipartReader(
             _ => new MultipartBodyPart("application/dicom+json", _stream),
             _ => null);
 
-        Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _dicomInstanceEntryReader.ReadAsync(DefaultContentType, _stream, DefaultCancellationToken));
+        return Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _dicomInstanceEntryReader.ReadAsync(DefaultContentType, _stream, DefaultCancellationToken));
     }
 
     [Fact]

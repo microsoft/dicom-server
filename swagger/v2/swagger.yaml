@@ -2438,6 +2438,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DicomItem'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
   /v2/studies/$bulkUpdate:
     post:
       tags:
@@ -2470,6 +2476,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DicomItem'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
   '/v2/partitions/{partitionName}/workitems':
     post:
       tags:

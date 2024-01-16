@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models;
@@ -36,19 +37,22 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public class StoreController : ControllerBase
 {
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly IMediator _mediator;
     private readonly ILogger<StoreController> _logger;
     private readonly bool _asyncOperationDisabled;
 
-    public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
+    public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration, IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
         _mediator = mediator;
         _logger = logger;
         _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -94,6 +98,7 @@ public class StoreController : ControllerBase
     [Consumes(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [VersionedPartitionRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.PartitionedUpdateInstance)]
     [VersionedRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.UpdateInstance)]
     [AuditEventType(AuditEventSubType.UpdateStudy)]
@@ -102,6 +107,12 @@ public class StoreController : ControllerBase
         if (_asyncOperationDisabled)
         {
             throw new DicomAsyncOperationDisabledException();
+        }
+
+        // DICOM update only supported in API version 2 and above
+        if (_dicomRequestContextAccessor.RequestContext.Version < ApiVersionsConvention.MinimumSupportedVersionForDicomUpdate)
+        {
+            return StatusCode((int)HttpStatusCode.NotFound);
         }
 
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);

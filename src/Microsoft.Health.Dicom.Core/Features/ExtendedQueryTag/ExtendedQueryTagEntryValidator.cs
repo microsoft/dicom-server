@@ -34,7 +34,7 @@ public class ExtendedQueryTagEntryValidator : IExtendedQueryTagEntryValidator
      * UC (Unlimited Characters), UN (Unknown), UR (URI), UT (Unlimited Text), UV (Unsigned Very long)
      * Note: we dont' find definition for UR, UV and SV in DICOM standard (http://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
      */
-    public static IImmutableSet<string> SupportedVRCodes { get; } = ImmutableHashSet.Create(
+    public static ImmutableHashSet<string> SupportedVRCodes { get; } = ImmutableHashSet.Create(
         DicomVRCode.AE,
         DicomVRCode.AS,
         DicomVRCode.CS,
