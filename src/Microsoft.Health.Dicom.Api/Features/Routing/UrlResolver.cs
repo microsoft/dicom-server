@@ -40,7 +40,9 @@ public sealed class UrlResolver : IUrlResolver
         _linkGenerator = linkGenerator;
     }
 
-    private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+    private ActionContext ActionContext => _actionContextAccessor.ActionContext;
+
+    private IUrlHelper UrlHelper => _urlHelperFactory.GetUrlHelper(ActionContext);
 
     /// <inheritdoc />
     public Uri ResolveOperationStatusUri(Guid operationId)
@@ -149,15 +151,15 @@ public sealed class UrlResolver : IUrlResolver
     {
         HttpRequest request = _httpContextAccessor.HttpContext.Request;
 
-        return GerRouteUri(
-                _httpContextAccessor.HttpContext,
+        return GetRouteUri(
+                ActionContext.HttpContext,
                 routeName,
                 routeValues,
                 request.Scheme,
                 request.Host.Value);
     }
 
-    private Uri GerRouteUri(HttpContext httpContext, string routeName, RouteValueDictionary routeValues, string scheme, string host)
+    private Uri GetRouteUri(HttpContext httpContext, string routeName, RouteValueDictionary routeValues, string scheme, string host)
     {
         var uriString = string.Empty;
 
