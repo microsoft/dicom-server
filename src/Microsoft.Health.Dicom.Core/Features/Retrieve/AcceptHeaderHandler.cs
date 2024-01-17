@@ -79,7 +79,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 {
                     selectedHeader = new AcceptHeader(
                         GetMediaTypesString(header.MediaType, resourceType),
-                        header.PayloadType,
+                        GetPayloadType(header),
                         descriptor.GetTransferSyntax(header),
                         header.Quality);
 
@@ -103,6 +103,16 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     {
         bool isQualityGreater = (header.Quality ?? AcceptHeader.DefaultQuality) >= (selectedHeader.Quality ?? AcceptHeader.DefaultQuality);
         return (header.TransferSyntax.Value == DicomTransferSyntaxUids.Original && isQualityGreater);
+    }
+
+    private static PayloadTypes GetPayloadType(AcceptHeader header)
+    {
+        if (header.MediaType != KnownContentTypes.AnyMediaType)
+        {
+            return header.PayloadType;
+        }
+
+        return PayloadTypes.MultipartRelated;
     }
 
     // If the media type is */* then we need to return the default media type for the resource type

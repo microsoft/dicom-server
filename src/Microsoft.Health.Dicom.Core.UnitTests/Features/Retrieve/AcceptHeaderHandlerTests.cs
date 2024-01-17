@@ -77,7 +77,8 @@ public class AcceptHeaderHandlerTests
                     ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing)
             },
             ResourceType.Study,
-            KnownContentTypes.ApplicationDicom
+            KnownContentTypes.ApplicationDicom,
+            PayloadTypes.MultipartRelated,
         };
         yield return new object[]
         {
@@ -88,7 +89,8 @@ public class AcceptHeaderHandlerTests
                     ValidStudyAcceptHeaderDescriptor.PayloadType)
             },
             ResourceType.Series,
-            KnownContentTypes.ApplicationDicom
+            KnownContentTypes.ApplicationDicom,
+            PayloadTypes.MultipartRelated,
         };
         yield return new object[]
         {
@@ -99,7 +101,8 @@ public class AcceptHeaderHandlerTests
                     ValidStudyAcceptHeaderDescriptor.PayloadType)
             },
             ResourceType.Frames,
-            KnownContentTypes.ApplicationOctetStream
+            KnownContentTypes.ApplicationOctetStream,
+            PayloadTypes.MultipartRelated,
         };
     }
 
@@ -227,15 +230,14 @@ public class AcceptHeaderHandlerTests
         Assert.Equivalent(requestedAcceptHeader2, matchedAcceptHeader, strict: true);
     }
 
-
-
     [Theory]
     [MemberData(nameof(AnyMediaTypeHeadersList))]
     public void
         GivenASingleRequestedAcceptHeaderWithAnyMediaType_WhenRequestedMatchesHeadersWeAccept_ThenShouldReturnAcceptedHeaderWithTransferSyntaxAndDescriptorThatMatched(
             List<AcceptHeader> requestedAcceptHeaders,
             ResourceType requestedResourceType,
-            string mediaType)
+            string mediaType,
+            PayloadTypes payloadType)
     {
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             requestedResourceType,
@@ -247,6 +249,7 @@ public class AcceptHeaderHandlerTests
             requestedAcceptHeaders.First().TransferSyntax.Value;
 
         Assert.Equal(mediaType, matchedAcceptHeader.MediaType);
+        Assert.Equal(payloadType, matchedAcceptHeader.PayloadType);
         Assert.Equal(expectedTransferSyntax, matchedAcceptHeader.TransferSyntax);
     }
 }

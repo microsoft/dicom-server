@@ -1,10 +1,12 @@
-var rootUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/v1`;
+var rootUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port}/v2`;
 window.config = {
   routerBasename: '/',
   // whiteLabeling: {},
   extensions: [],
   modes: [],
   customizationService: {
+    dicomUploadComponent:
+      '@ohif/extension-cornerstone.customizationModule.cornerstoneDicomUploadComponent',
     // Shows a custom route -access via http://localhost:3000/custom
     // helloPage: '@ohif/extension-default.customizationModule.helloPage',
   },
@@ -42,6 +44,7 @@ window.config = {
       configuration: {
         friendlyName: 'Azure Dicom Web',
         name: 'AzureDicomWeb',
+        dicomUploadEnabled: true,
         wadoUriRoot: rootUrl,
         qidoRoot: rootUrl,
         wadoRoot: rootUrl,
@@ -53,6 +56,7 @@ window.config = {
         supportsFuzzyMatching: true,
         supportsWildcard: false,
         staticWado: true,
+        requestTransferSyntaxUID: '*',
         singlepart: 'bulkdata,video',
         // whether the data source should use retrieveBulkData to grab metadata,
         // and in case of relative path, what would it be relative to, options
