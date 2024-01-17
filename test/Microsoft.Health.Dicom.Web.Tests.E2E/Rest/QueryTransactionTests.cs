@@ -229,7 +229,7 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
 
         DicomDataset[] datasets = await response.ToArrayAsync();
 
-        Assert.NotEmpty(datasets);
+        Assert.Equal(2, datasets.Length);
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
         Assert.NotNull(testDataResponse);
     }
