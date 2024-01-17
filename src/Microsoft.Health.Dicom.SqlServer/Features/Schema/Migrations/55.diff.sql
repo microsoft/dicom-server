@@ -11,7 +11,7 @@ IF NOT EXISTS
         AND Object_id = OBJECT_ID('dbo.FileProperty')
 )
 BEGIN
-    CREATE INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength ON dbo.FileProperty
+    CREATE NONCLUSTERED INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength ON dbo.FileProperty
     (
     InstanceKey,
     Watermark,
