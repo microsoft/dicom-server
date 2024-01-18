@@ -1,24 +1,7 @@
 ﻿SET XACT_ABORT ON
     
-IF NOT EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IXC_FileProperty_InstanceKey_Watermark_ContentLength'
-        AND Object_id = OBJECT_ID('dbo.FileProperty')
-)
-BEGIN
-    CREATE NONCLUSTERED INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength ON dbo.FileProperty
-    (
-    InstanceKey,
-    Watermark,
-    ContentLength
-    ) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
-END
-
 BEGIN TRANSACTION
 GO
-
 /*************************************************************
     Stored procedures for updating content length of a file property
 **************************************************************/
@@ -130,3 +113,21 @@ END
 GO
 
 COMMIT TRANSACTION
+
+
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IXC_FileProperty_InstanceKey_Watermark_ContentLength'
+        AND Object_id = OBJECT_ID('dbo.FileProperty')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength ON dbo.FileProperty
+    (
+    InstanceKey,
+    Watermark,
+    ContentLength
+    ) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
+END
+GO
