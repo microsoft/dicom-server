@@ -13,10 +13,13 @@ internal class DicomFunctionOptions
     public const string SectionName = "DicomFunctions";
 
     [Required]
-    public DurableClientOptions DurableTask { get; set; }
+    public FanOutFunctionOptions ContentLengthBackFill { get; set; }
 
     [Required]
     public FanOutFunctionOptions DataCleanup { get; set; }
+
+    [Required]
+    public DurableClientOptions DurableTask { get; set; }
 
     [Required]
     public FanOutFunctionOptions Export { get; set; }

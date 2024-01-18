@@ -3,10 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-public static class SchemaVersionConstants
+using System;
+
+namespace Microsoft.Health.Dicom.Core.Configs;
+
+public class ContentLengthBackFillConfiguration
 {
-    public const int Min = (int)SchemaVersion.V51;
-    public const int Max = (int)SchemaVersion.V55;
+    /// <summary>
+    /// Gets or sets the operation id
+    /// </summary>
+    public Guid OperationId { get; set; } = Guid.Parse("1d7f8475-dea6-4ffb-be39-9ee7f7b89810");
 }

@@ -371,4 +371,11 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
+
+    public virtual Task UpdateFilePropertiesContentLengthAsync(
+        IReadOnlyDictionary<long, FileProperties> filePropertiesByWatermark,
+        CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
 }

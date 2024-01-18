@@ -130,4 +130,15 @@ public interface IDicomOperationsClient
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task StartInstanceDataCleanupOperationAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously begins the backfill of content length for DICOM instances.
+    /// </summary>
+    /// <param name="operationId">The desired ID for the operation.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>
+    /// A task representing the <see cref="StartContentLengthBackFillOperationAsync"/> operation.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task StartContentLengthBackFillOperationAsync(Guid operationId, CancellationToken cancellationToken = default);
 }

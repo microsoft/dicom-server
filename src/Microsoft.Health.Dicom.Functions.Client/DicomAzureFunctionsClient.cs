@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
+using Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 using Microsoft.Health.Dicom.Functions.DataCleanup;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
@@ -225,6 +226,19 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         _logger.LogInformation("Successfully started data cleanup operation with ID '{InstanceId}'.", instanceId);
     }
 
+    /// <inheritdoc/>
+    public async Task StartContentLengthBackFillOperationAsync(Guid operationId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.ContentLengthBackFill.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new ContentLengthBackFillCheckPoint() { Batching = _options.ContentLengthBackFill.Batching });
+
+        _logger.LogInformation("Successfully started content length backfill operation with ID '{InstanceId}'.", instanceId);
+    }
+
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
         Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,
@@ -264,6 +278,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         {
             case DicomOperation.Export:
             case DicomOperation.DataCleanup:
+            case DicomOperation.ContentLengthBackFill:
                 return null;
             case DicomOperation.Reindex:
                 IReadOnlyList<Uri> tagPaths = Array.Empty<Uri>();
@@ -291,6 +306,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         => type switch
         {
             DicomOperation.DataCleanup => status.Input?.ToObject<DataCleanupCheckPoint>() ?? new DataCleanupCheckPoint(),
+            DicomOperation.ContentLengthBackFill => status.Input?.ToObject<ContentLengthBackFillCheckPoint>() ?? new ContentLengthBackFillCheckPoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             DicomOperation.Update => status.Input?.ToObject<UpdateCheckpoint>() ?? new UpdateCheckpoint(),

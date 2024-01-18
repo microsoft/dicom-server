@@ -3096,9 +3096,9 @@ components:
       additionalProperties: false
     DicomOperation:
       enum:
-        - unknown
-        - reindex
         - export
+        - reindex
+        - unknown
         - update
       type: string
     DicomOperationIOperationState:

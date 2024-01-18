@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V54
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -63,8 +63,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
         internal readonly static GetChangeFeedV39Procedure GetChangeFeedV39 = new GetChangeFeedV39Procedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
-        internal readonly static GetContentLengthBackFillInstanceBatchesProcedure GetContentLengthBackFillInstanceBatches = new GetContentLengthBackFillInstanceBatchesProcedure();
-        internal readonly static GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeProcedure GetContentLengthBackFillInstanceIdentifiersByWatermarkRange = new GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeProcedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
@@ -99,7 +97,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static RetrieveDeletedInstanceV42Procedure RetrieveDeletedInstanceV42 = new RetrieveDeletedInstanceV42Procedure();
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
-        internal readonly static UpdateFilePropertiesContentLengthProcedure UpdateFilePropertiesContentLength = new UpdateFilePropertiesContentLengthProcedure();
         internal readonly static UpdateFrameMetadataProcedure UpdateFrameMetadata = new UpdateFrameMetadataProcedure();
         internal readonly static UpdateIndexWorkitemInstanceCoreProcedure UpdateIndexWorkitemInstanceCore = new UpdateIndexWorkitemInstanceCoreProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
@@ -309,7 +306,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NVarCharColumn ETag = new NVarCharColumn("ETag", 4000);
             internal readonly BigIntColumn ContentLength = new BigIntColumn("ContentLength");
             internal readonly Index IXC_FileProperty = new Index("IXC_FileProperty");
-            internal readonly Index IXC_FileProperty_InstanceKey_Watermark_ContentLength = new Index("IXC_FileProperty_InstanceKey_Watermark_ContentLength");
         }
 
         internal class InstanceTable : Table
@@ -1596,42 +1592,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetContentLengthBackFillInstanceBatchesProcedure : StoredProcedure
-        {
-            internal GetContentLengthBackFillInstanceBatchesProcedure() : base("dbo.GetContentLengthBackFillInstanceBatches")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetContentLengthBackFillInstanceBatches";
-                _batchSize.AddParameter(command.Parameters, batchSize);
-                _batchCount.AddParameter(command.Parameters, batchCount);
-            }
-        }
-
-        internal class GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeProcedure : StoredProcedure
-        {
-            internal GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeProcedure() : base("dbo.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int64> _startWatermark = new ParameterDefinition<System.Int64>("@startWatermark", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.Int64> _endWatermark = new ParameterDefinition<System.Int64>("@endWatermark", global::System.Data.SqlDbType.BigInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int64 startWatermark, System.Int64 endWatermark)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetContentLengthBackFillInstanceIdentifiersByWatermarkRange";
-                _startWatermark.AddParameter(command.Parameters, startWatermark);
-                _endWatermark.AddParameter(command.Parameters, endWatermark);
-            }
-        }
-
         internal class GetCurrentAndNextWorkitemWatermarkProcedure : StoredProcedure
         {
             internal GetCurrentAndNextWorkitemWatermarkProcedure() : base("dbo.GetCurrentAndNextWorkitemWatermark")
@@ -2533,52 +2493,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _queryStatus.AddParameter(command.Parameters, queryStatus);
             }
-        }
-
-        internal class UpdateFilePropertiesContentLengthProcedure : StoredProcedure
-        {
-            internal UpdateFilePropertiesContentLengthProcedure() : base("dbo.UpdateFilePropertiesContentLength")
-            {
-            }
-
-            private readonly FilePropertyTableTypeV2TableValuedParameterDefinition _filePropertiesToUpdate = new FilePropertyTableTypeV2TableValuedParameterDefinition("@filePropertiesToUpdate");
-
-            public void PopulateCommand(SqlCommandWrapper command, global::System.Collections.Generic.IEnumerable<FilePropertyTableTypeV2Row> filePropertiesToUpdate)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpdateFilePropertiesContentLength";
-                _filePropertiesToUpdate.AddParameter(command.Parameters, filePropertiesToUpdate);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, UpdateFilePropertiesContentLengthTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, filePropertiesToUpdate: tableValuedParameters.FilePropertiesToUpdate);
-            }
-        }
-
-        internal class UpdateFilePropertiesContentLengthTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, UpdateFilePropertiesContentLengthTableValuedParameters>
-        {
-            public UpdateFilePropertiesContentLengthTvpGenerator(ITableValuedParameterRowGenerator<TInput, FilePropertyTableTypeV2Row> FilePropertyTableTypeV2RowGenerator)
-            {
-                this.FilePropertyTableTypeV2RowGenerator = FilePropertyTableTypeV2RowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, FilePropertyTableTypeV2Row> FilePropertyTableTypeV2RowGenerator;
-
-            public UpdateFilePropertiesContentLengthTableValuedParameters Generate(TInput input)
-            {
-                return new UpdateFilePropertiesContentLengthTableValuedParameters(FilePropertyTableTypeV2RowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct UpdateFilePropertiesContentLengthTableValuedParameters
-        {
-            internal UpdateFilePropertiesContentLengthTableValuedParameters(global::System.Collections.Generic.IEnumerable<FilePropertyTableTypeV2Row> FilePropertiesToUpdate)
-            {
-                this.FilePropertiesToUpdate = FilePropertiesToUpdate;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<FilePropertyTableTypeV2Row> FilePropertiesToUpdate { get; }
         }
 
         internal class UpdateFrameMetadataProcedure : StoredProcedure

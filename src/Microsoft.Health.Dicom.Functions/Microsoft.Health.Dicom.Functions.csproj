@@ -46,6 +46,9 @@
     <None Include="DataCleanup\DataCleanupDurableFunction.*.cs">
       <DependentUpon>DataCleanupDurableFunction.cs</DependentUpon>
     </None>
+    <None Include="ContentLengthBackFill\ContentLengthBackFillDurableFunction.*.cs">
+      <DependentUpon>ContentLengthBackFillDurableFunction.cs</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>

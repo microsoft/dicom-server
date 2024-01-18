@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
+using Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 using Microsoft.Health.Dicom.Functions.DataCleanup;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
@@ -60,6 +61,7 @@ public static class ServiceCollectionExtensions
             .AddRecyclableMemoryStreamManager(configuration)
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<DataCleanupOptions>(configuration, DataCleanupOptions.SectionName)
+            .AddFunctionsOptions<ContentLengthBackFillOptions>(configuration, ContentLengthBackFillOptions.SectionName)
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
