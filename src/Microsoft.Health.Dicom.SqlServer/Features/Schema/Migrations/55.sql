@@ -2697,12 +2697,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT DISTINCT i.StudyInstanceUid,
-                    sv.SeriesInstanceUid,
-                    sv.Modality,
-                    sv.PerformedProcedureStepStartDate,
-                    sv.ManufacturerModelName,
-                    sv.NumberofSeriesRelatedInstances
+    SELECT i.StudyInstanceUid,
+           sv.SeriesInstanceUid,
+           sv.Modality,
+           sv.PerformedProcedureStepStartDate,
+           sv.ManufacturerModelName,
+           sv.NumberofSeriesRelatedInstances
     FROM   dbo.Instance AS i
            INNER JOIN
            @watermarkTableType AS input
@@ -2722,16 +2722,16 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT DISTINCT sv.StudyInstanceUid,
-                    sv.PatientId,
-                    sv.PatientName,
-                    sv.ReferringPhysicianName,
-                    sv.StudyDate,
-                    sv.StudyDescription,
-                    sv.AccessionNumber,
-                    sv.PatientBirthDate,
-                    sv.ModalitiesInStudy,
-                    sv.NumberofStudyRelatedInstances
+    SELECT sv.StudyInstanceUid,
+           sv.PatientId,
+           sv.PatientName,
+           sv.ReferringPhysicianName,
+           sv.StudyDate,
+           sv.StudyDescription,
+           sv.AccessionNumber,
+           sv.PatientBirthDate,
+           sv.ModalitiesInStudy,
+           sv.NumberofStudyRelatedInstances
     FROM   dbo.Instance AS i
            INNER JOIN
            @watermarkTableType AS input
