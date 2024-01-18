@@ -24,4 +24,6 @@ public class ServicesConfiguration
     public UpdateConfiguration UpdateServiceSettings { get; } = new UpdateConfiguration();
 
     public InstanceDataCleanupConfiguration DataCleanupConfiguration { get; } = new InstanceDataCleanupConfiguration();
+
+    public ContentLengthBackFillConfiguration ContentLengthBackFillConfiguration { get; } = new ContentLengthBackFillConfiguration();
 }

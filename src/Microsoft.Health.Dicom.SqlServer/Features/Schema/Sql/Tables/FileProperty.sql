@@ -22,3 +22,11 @@ CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty ON dbo.FileProperty(
     Watermark
 )
 WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
+
+-- Used in ContentLengthBackfill activity
+CREATE NONCLUSTERED INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength ON dbo.FileProperty(
+    InstanceKey,
+    Watermark,
+    ContentLength
+)
+WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)

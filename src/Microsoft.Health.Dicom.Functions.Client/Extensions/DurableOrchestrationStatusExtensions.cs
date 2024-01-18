@@ -18,6 +18,9 @@ internal static class DurableOrchestrationStatusExtensions
 
         if (status?.Name != null)
         {
+            if (status.Name.StartsWith(FunctionNames.ContentLengthBackFill, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.ContentLengthBackFill;
+
             if (status.Name.StartsWith(FunctionNames.DataCleanup, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.DataCleanup;
 

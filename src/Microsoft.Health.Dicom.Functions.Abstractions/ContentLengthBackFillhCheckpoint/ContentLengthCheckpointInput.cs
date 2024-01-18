@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
+namespace Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 
-public static class SchemaVersionConstants
+public class ContentLengthBackFillInput
 {
-    public const int Min = (int)SchemaVersion.V51;
-    public const int Max = (int)SchemaVersion.V56;
+    public BatchingOptions Batching { get; set; }
 }
