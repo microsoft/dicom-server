@@ -209,6 +209,19 @@ Examples of the request and response of change feed action can be found [here](.
 
 There is no change in other APIs. All the other APIs supports only latest version of instances.
 
+### What changed in DICOM file
+
+As part of bulk update, only DICOM metadata is updated. The pixel data is not updated. Pixel data will be same as the original version.
+
+Other than updating the metadata, the file meta information of the DICOM file is updated with the below infomration.
+
+| Tag           | Attribute name        | Description           | Value
+| --------------| --------------------- | --------------------- | --------------|
+| (0002,0012)   | Implementation Class UID | Uniquely identifies the implementation that wrote this file and its content. | 1.3.6.1.4.1.311.129 |
+| (0002,0013)   | Implementation Version Name | Identifies a version for an Implementation Class UID (0002,0012) | Assembly version of the DICOM service ( e.g. 0.1.4785) |
+
+Here, the UID `1.3.6.1.4.1.311.129` is a registered under [Microsoft OID arc](https://oidref.com/1.3.6.1.4.1.311) in IANA.
+
 #### Limitations
 
 > Only Patient identificaton and demographic attributes are supported for bulk update.
