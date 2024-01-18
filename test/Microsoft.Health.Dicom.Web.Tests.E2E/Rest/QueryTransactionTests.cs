@@ -219,7 +219,6 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
              { DicomTag.Modality, "CT" },
         });
         var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-        var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
         await PostDicomFileAsync(new DicomDataset()
         {
              { DicomTag.StudyInstanceUID, studyId },
@@ -229,9 +228,9 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
 
         DicomDataset[] datasets = await response.ToArrayAsync();
 
+        // Ensure 2 series are returned
         Assert.Equal(2, datasets.Length);
-        DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
-        Assert.NotNull(testDataResponse);
+        Assert.All(datasets, d => Assert.True(d.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId));
     }
 
     [Fact]
