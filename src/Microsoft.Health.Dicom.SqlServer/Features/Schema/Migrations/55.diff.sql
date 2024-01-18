@@ -1,8 +1,5 @@
 ﻿SET XACT_ABORT ON
-
-BEGIN TRANSACTION
-GO
-
+    
 IF NOT EXISTS 
 (
     SELECT *
@@ -18,6 +15,8 @@ BEGIN
     ContentLength
     ) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
 END
+
+BEGIN TRANSACTION
 GO
 
 /*************************************************************
