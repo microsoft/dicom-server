@@ -165,22 +165,12 @@ public sealed class UrlResolver : IUrlResolver
 
         if (httpContext == null)
         {
-            uriString = UrlHelper.RouteUrl(
-                routeName,
-                routeValues,
-                scheme,
-                host);
+            uriString = UrlHelper.RouteUrl(routeName, routeValues, scheme, host);
         }
         else
         {
             var pathBase = httpContext.Request?.PathBase.ToString();
-            uriString = _linkGenerator.GetUriByRouteValues(
-                httpContext,
-                routeName,
-                routeValues,
-                scheme,
-                new HostString(host),
-                pathBase);
+            uriString = _linkGenerator.GetUriByRouteValues(httpContext, routeName, routeValues, scheme, new HostString(host), pathBase);
         }
 
         return new Uri(uriString);

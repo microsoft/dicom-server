@@ -8,7 +8,6 @@ using FellowOakDicom;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Registration;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Api.Registration;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -29,8 +29,6 @@ namespace Microsoft.Health.Dicom.Web;
 public class Startup
 {
     private readonly IWebHostEnvironment _environment;
-
-    private const string OhifViewerIndexPagePath = "index.html";
 
     public Startup(IConfiguration configuration, IWebHostEnvironment environment)
     {
@@ -81,28 +79,12 @@ public class Startup
         IOptions<FeatureConfiguration> featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
         if (featureConfiguration.Value.EnableOhifViewer)
         {
-            // In order to make OHIF viewer work with direct link to studies, we need to rewrite any path under viewer
-            // back to the index page so the viewer can display accordingly.
-            RewriteOptions rewriteOptions = new RewriteOptions()
-                .AddRewrite("^viewer/(.*?)", OhifViewerIndexPagePath, true);
-
-            app.UseRewriter(rewriteOptions);
-
-            var options = new DefaultFilesOptions();
-
-            options.DefaultFileNames.Clear();
-            options.DefaultFileNames.Add(OhifViewerIndexPagePath);
-
-            app.UseDefaultFiles(options);
-            app.UseStaticFiles();
+            app.UseOhifViewer();
         }
 
         app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
     }
 
     /// <summary>
