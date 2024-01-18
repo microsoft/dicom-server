@@ -48,6 +48,8 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Checking the health of the connected store.");
+
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
         BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFileName}");
 
