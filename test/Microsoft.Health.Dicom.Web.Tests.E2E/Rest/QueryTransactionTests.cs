@@ -211,6 +211,29 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
     }
 
     [Fact]
+    public async Task GivenSearchRequestWith2Instances_StudySeriesLevel_MatchResult()
+    {
+        // 2 instances in the same study, 2 series with 1 instance each CT and MRI
+        DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.Modality, "CT" },
+        });
+        var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+        await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.StudyInstanceUID, studyId },
+             { DicomTag.Modality, "MRI" }
+        });
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesAsync(studyId, string.Empty);
+
+        DicomDataset[] datasets = await response.ToArrayAsync();
+
+        // Ensure 2 series are returned
+        Assert.Equal(2, datasets.Length);
+        Assert.All(datasets, d => Assert.True(d.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId));
+    }
+
+    [Fact]
     public async Task GivenSearchRequest_StudyInstancesLevel_MatchResult()
     {
         DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()

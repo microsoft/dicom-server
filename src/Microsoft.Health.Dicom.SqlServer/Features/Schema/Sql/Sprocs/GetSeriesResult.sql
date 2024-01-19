@@ -11,7 +11,8 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT  i.StudyInstanceUid,
+    SELECT  DISTINCT
+            i.StudyInstanceUid,
             sv.SeriesInstanceUid,
             sv.Modality,
             sv.PerformedProcedureStepStartDate,

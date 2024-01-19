@@ -75,7 +75,7 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
 
         var result = await _queryStore.GetStudyResultAsync(1, versions);
 
-        Assert.Equal(count, result.Count);
+        Assert.Single(result);
     }
 
     public Task InitializeAsync()
