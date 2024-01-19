@@ -218,7 +218,7 @@ Other than updating the metadata, the file meta information of the DICOM file is
 | Tag           | Attribute name        | Description           | Value
 | --------------| --------------------- | --------------------- | --------------|
 | (0002,0012)   | Implementation Class UID | Uniquely identifies the implementation that wrote this file and its content. | 1.3.6.1.4.1.311.129 |
-| (0002,0013)   | Implementation Version Name | Identifies a version for an Implementation Class UID (0002,0012) | Assembly version of the DICOM service ( e.g. 0.1.4785) |
+| (0002,0013)   | Implementation Version Name | Identifies a version for an Implementation Class UID (0002,0012) | Assembly version of the DICOM service (e.g. 0.1.4785) |
 
 Here, the UID `1.3.6.1.4.1.311.129` is a registered under [Microsoft OID arc](https://oidref.com/1.3.6.1.4.1.311) in IANA.
 
