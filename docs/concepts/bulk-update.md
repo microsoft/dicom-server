@@ -213,7 +213,7 @@ There is no change in other APIs. All the other APIs supports only latest versio
 
 As part of bulk update, only DICOM metadata is updated. The pixel data is not updated. Pixel data will be same as the original version.
 
-Other than updating the metadata, the file meta information of the DICOM file is updated with the below infomration.
+Other than updating the metadata, the file meta information of the DICOM file is updated with the below information.
 
 | Tag           | Attribute name        | Description           | Value
 | --------------| --------------------- | --------------------- | --------------|
