@@ -46,6 +46,8 @@ internal static class AzureStorageErrorExtensions
     public static bool IsStorageAccountUnknownHostError(this Exception exception)
     {
         return exception.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase) ||
-            (exception is AggregateException ag && ag.InnerExceptions.All(e => e.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase)));
+            exception.Message.Contains("Name or service not known", StringComparison.OrdinalIgnoreCase) ||
+            (exception is AggregateException ag && ag.InnerExceptions.All(e => e.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase)) ||
+            (exception is AggregateException agex && agex.InnerExceptions.All(e => e.Message.Contains("Name or service not known", StringComparison.OrdinalIgnoreCase)));
     }
 }

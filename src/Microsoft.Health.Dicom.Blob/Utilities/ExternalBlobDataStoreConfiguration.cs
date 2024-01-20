@@ -22,6 +22,8 @@ internal class ExternalBlobDataStoreConfiguration
 
     public string HealthCheckFileName { get; set; }
 
+    public string HealthCheckLeaseFileName { get; set; }
+
     /// <summary>
     /// A path which is used to store blobs along a specific path in a container, serving as a prefix to the
     /// full blob name and providing a logical hierarchy when segments used though use of forward slashes (/).
