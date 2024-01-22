@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V56
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -310,7 +310,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn ContentLength = new BigIntColumn("ContentLength");
             internal readonly Index IXC_FileProperty = new Index("IXC_FileProperty");
             internal readonly Index IXC_FileProperty_InstanceKey_Watermark_ContentLength = new Index("IXC_FileProperty_InstanceKey_Watermark_ContentLength");
-            internal readonly Index IXC_FileProperty_ContentLength = new Index("IXC_FileProperty_ContentLength");
         }
 
         internal class InstanceTable : Table
