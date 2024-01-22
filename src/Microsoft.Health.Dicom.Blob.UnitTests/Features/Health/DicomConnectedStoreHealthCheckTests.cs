@@ -29,6 +29,7 @@ public class DicomConnectedStoreHealthCheckTests
 {
     private readonly BlobContainerClient _blobContainerClient = Substitute.For<BlobContainerClient>();
     private readonly BlockBlobClient _blockBlobClient = Substitute.For<BlockBlobClient>();
+    private readonly BlobLeaseClient _blobLeaseClient = Substitute.For<BlobLeaseClient>();
     private readonly IBlobClient _blobClient = Substitute.For<IBlobClient>();
     private readonly IOptions<ExternalBlobDataStoreConfiguration> _externalBlobOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
 
@@ -38,6 +39,7 @@ public class DicomConnectedStoreHealthCheckTests
     {
         _blobClient.BlobContainerClient.Returns(_blobContainerClient);
         _blobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(_blockBlobClient);
+        _blockBlobClient.GetBlobLeaseClient().Returns(_blobLeaseClient);
 
         _externalBlobOptions.Value.Returns(new ExternalBlobDataStoreConfiguration()
         {
@@ -69,7 +71,8 @@ public class DicomConnectedStoreHealthCheckTests
     [InlineData(404, "FilesystemNotFound")]
     [InlineData(409, "ContainerBeingDeleted")]
     [InlineData(409, "ContainerDisabled")]
-    public async Task GivenRequestFailedExceptionForCustomerError_RunHealthCheck_ReturnsDegradedAndDeletesBlob(int statusCode, string blobErrorCode)
+    [InlineData(400, "BlobTypeNotSupported")]
+    public async Task GivenRequestFailedExceptionForCustomerError_RunHealthCheck_ReturnsDegraded(int statusCode, string blobErrorCode)
     {
         _blockBlobClient.DownloadContentAsync(Arg.Any<CancellationToken>())
             .Throws(new RequestFailedException(statusCode, "Error", blobErrorCode, new System.Exception()));
@@ -80,8 +83,6 @@ public class DicomConnectedStoreHealthCheckTests
 
         Assert.Equal(HealthStatus.Degraded, result.Status);
         Assert.Equal(HealthStatusReason.ConnectedStoreDegraded.ToString(), healthStatusReason.ToString());
-
-        await _blockBlobClient.Received(2).DeleteIfExistsAsync(Arg.Any<DeleteSnapshotsOption>(), Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>());
     }
 
     [Theory]
@@ -89,20 +90,18 @@ public class DicomConnectedStoreHealthCheckTests
     [InlineData(403, "AuthErrorFromDicomBug")]
     [InlineData(404, "NotFoundDueToDicomBug")]
     [InlineData(409, "ConflictDueToDicomBug")]
-    public async Task GivenRequestFailedExceptionForServiceError_RunHealthCheck_ThrowsExceptionAndCleansUpBlob(int statusCode, string blobErrorCode)
+    public async Task GivenRequestFailedExceptionForServiceError_RunHealthCheck_ThrowsException(int statusCode, string blobErrorCode)
     {
         _blockBlobClient.DownloadContentAsync(Arg.Any<CancellationToken>())
             .Throws(new RequestFailedException(statusCode, "Error", blobErrorCode, new System.Exception()));
 
         await Assert.ThrowsAsync<RequestFailedException>(async () => await _dicomConnectedStoreHealthCheck.CheckHealthAsync(null, CancellationToken.None));
-
-        await _blockBlobClient.Received(2).DeleteIfExistsAsync(Arg.Any<DeleteSnapshotsOption>(), Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task HostNotFound_RunHealthCheck_ReturnsDegraded()
     {
-        _blockBlobClient.StageBlockAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<BlockBlobStageBlockOptions>(), Arg.Any<CancellationToken>())
+        _blockBlobClient.UploadAsync(Arg.Any<Stream>(), cancellationToken: Arg.Any<CancellationToken>())
             .Throws(new AggregateException(new List<Exception>()
             {
                 new Exception("No such host is known."),
@@ -119,13 +118,15 @@ public class DicomConnectedStoreHealthCheckTests
     }
 
     [Fact]
-    public async Task AllDeleteFails_RunHealthCheck_ReturnsDegradedAndExceptionIsNotThrown()
+    public async Task NameOrServiceNotKnown_RunHealthCheck_ReturnsDegraded()
     {
-        _blockBlobClient.DeleteIfExistsAsync(Arg.Any<DeleteSnapshotsOption>(), Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>())
-            .Throws(new RequestFailedException(403, "Failure", BlobErrorCode.AuthorizationFailure.ToString(), new System.Exception()));
-
-        _blockBlobClient.DeleteAsync(Arg.Any<DeleteSnapshotsOption>(), Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>())
-            .Throws(new RequestFailedException(403, "Failure", BlobErrorCode.AuthorizationFailure.ToString(), new System.Exception()));
+        _blockBlobClient.UploadAsync(Arg.Any<Stream>(), cancellationToken: Arg.Any<CancellationToken>())
+            .Throws(new AggregateException(new List<Exception>()
+            {
+                new Exception("Name or service not known."),
+                new Exception("Name or service not known."),
+                new Exception("Name or service not known."),
+            }));
 
         HealthCheckResult result = await _dicomConnectedStoreHealthCheck.CheckHealthAsync(null, CancellationToken.None);
 
@@ -136,14 +137,16 @@ public class DicomConnectedStoreHealthCheckTests
     }
 
     [Fact]
-    public async Task DeleteBeforeAndAfterFails_RunHealthCheck_ReturnsHealthyAndExceptionIsNotThrown()
+    public async Task DeleteFails_RunHealthCheck_ReturnsDegradedAndExceptionIsNotThrown()
     {
-        // the extra deletes before and after the checks fail, but everything else successfully finishes
-        _blockBlobClient.DeleteIfExistsAsync(Arg.Any<DeleteSnapshotsOption>(), Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>())
+        _blockBlobClient.DeleteAsync(Arg.Any<DeleteSnapshotsOption>(), Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>())
             .Throws(new RequestFailedException(403, "Failure", BlobErrorCode.AuthorizationFailure.ToString(), new System.Exception()));
 
         HealthCheckResult result = await _dicomConnectedStoreHealthCheck.CheckHealthAsync(null, CancellationToken.None);
 
-        Assert.Equal(HealthStatus.Healthy, result.Status);
+        result.Data.TryGetValue("Reason", out object healthStatusReason);
+
+        Assert.Equal(HealthStatus.Degraded, result.Status);
+        Assert.Equal(HealthStatusReason.ConnectedStoreDegraded.ToString(), healthStatusReason.ToString());
     }
 }
