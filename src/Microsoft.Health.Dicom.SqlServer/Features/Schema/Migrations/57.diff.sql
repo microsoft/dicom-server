@@ -4,7 +4,7 @@ IF NOT EXISTS
 (
     SELECT *
     FROM    sys.indexes
-    WHERE   NAME = 'IXC_FileProperty_InstanceKey_Watermark_ContentLength'
+    WHERE   NAME = 'IXC_FileProperty_ContentLength'
         AND Object_id = OBJECT_ID('dbo.FileProperty')
 )
 BEGIN
