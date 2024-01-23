@@ -9,7 +9,7 @@ using System.Linq;
 using Azure;
 using Azure.Storage.Blobs.Models;
 
-namespace Microsoft.Health.Dicom.Blob.Extensions;
+namespace Microsoft.Health.Dicom.Core.Extensions;
 
 internal static class AzureStorageErrorExtensions
 {
