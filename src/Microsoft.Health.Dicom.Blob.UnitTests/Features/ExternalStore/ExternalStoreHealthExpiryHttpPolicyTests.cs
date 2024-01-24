@@ -29,7 +29,7 @@ public class ExternalStoreHealthExpiryHttpPolicyTests
             BlobContainerUri = new Uri("https://myBlobStore.blob.core.net/myContainer"),
             StorageDirectory = "DICOM",
             HealthCheckFilePath = "healthCheck/health",
-            HealthCheckFileExpiryInMs = 1000,
+            HealthCheckFileExpiry = TimeSpan.FromMinutes(1),
         };
 
         _request = new MockRequest();
@@ -51,7 +51,7 @@ public class ExternalStoreHealthExpiryHttpPolicyTests
 
         _externalStoreHealthExpiryPolicy.Process(httpMessage, new ReadOnlyMemory<HttpPipelinePolicy>(new HttpPipelinePolicy[] { _mockPipeline }));
 
-        _request.MockHeaders.Single(h => h.Name == "x-ms-expiry-time" && h.Value == $"{_blobDataStoreConfiguration.HealthCheckFileExpiryInMs}");
+        _request.MockHeaders.Single(h => h.Name == "x-ms-expiry-time" && h.Value == $"{_blobDataStoreConfiguration.HealthCheckFileExpiry.TotalMilliseconds}");
         _request.MockHeaders.Single(h => h.Name == "x-ms-expiry-option" && h.Value == "RelativeToNow");
     }
 
@@ -61,13 +61,34 @@ public class ExternalStoreHealthExpiryHttpPolicyTests
     [InlineData("PATCH")]
     [InlineData("GET")]
     [InlineData("DELETE")]
-    public void GivenNonHealthCheckBlob_Proccess_NoHeadersAdded(string requestMethod)
+    public void GivenNonHealthCheckBlob_ProccessForAllRequestTypes_NoHeadersAdded(string requestMethod)
     {
         RequestUriBuilder requestUriBuilder = new RequestUriBuilder();
         requestUriBuilder.Reset(new Uri($"https://myBlobStore.blob.core.net/myContainer/DICOM/healthCheck/health{Guid.NewGuid()}.txt/anotherBlob"));
 
         _request.Uri = requestUriBuilder;
         _request.Method = RequestMethod.Parse(requestMethod);
+        HttpMessage httpMessage = new HttpMessage(_request, new ResponseClassifier());
+
+        _externalStoreHealthExpiryPolicy.Process(httpMessage, new ReadOnlyMemory<HttpPipelinePolicy>(new HttpPipelinePolicy[] { _mockPipeline }));
+
+        Assert.Empty(_request.MockHeaders);
+    }
+
+    [Theory]
+    [InlineData("https://blob.com")]
+    [InlineData("https://myBlobStore.blob.core.net/myContainer/DICOM/anotherDirectory/healthCheck/health00000000-0000-0000-0000-000000000000/anotherBlob")]
+    [InlineData("https://myBlobStore.blob.core.net/myContainer/DICOM/anotherDirectory/healthCheck/health00000000-0000-0000-0000-000000000000.txt")]
+    [InlineData("https://myBlobStore.blob.core.net/myContainer/DICOM/healthCheck/health00000000-0000-0000-0000-000000000000")]
+    [InlineData("https://myBlobStore.blob.core.net/myContainer/DICOM/healthCheck/health")]
+    [InlineData("https://myBlobStore.blob.core.net/myContainer/DICOM/healthCheck")]
+    public void GivenNonHealthCheckBlob_ProccessDifferentBlobUris_NoHeadersAdded(string nonHealthCheckBlob)
+    {
+        RequestUriBuilder requestUriBuilder = new RequestUriBuilder();
+        requestUriBuilder.Reset(new Uri(nonHealthCheckBlob));
+
+        _request.Uri = requestUriBuilder;
+        _request.Method = RequestMethod.Put;
         HttpMessage httpMessage = new HttpMessage(_request, new ResponseClassifier());
 
         _externalStoreHealthExpiryPolicy.Process(httpMessage, new ReadOnlyMemory<HttpPipelinePolicy>(new HttpPipelinePolicy[] { _mockPipeline }));

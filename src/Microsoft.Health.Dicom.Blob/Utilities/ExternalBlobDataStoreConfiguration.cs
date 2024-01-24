@@ -22,7 +22,8 @@ internal class ExternalBlobDataStoreConfiguration
 
     public string HealthCheckFilePath { get; set; }
 
-    public int HealthCheckFileExpiryInMs { get; set; }
+    [Range(typeof(TimeSpan), "00:01:00", "1.00:00:00", ConvertValueInInvariantCulture = true, ParseLimitsInInvariantCulture = true)]
+    public TimeSpan HealthCheckFileExpiry { get; set; }
 
     /// <summary>
     /// A path which is used to store blobs along a specific path in a container, serving as a prefix to the

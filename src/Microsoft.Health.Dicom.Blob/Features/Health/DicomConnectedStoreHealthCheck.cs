@@ -18,6 +18,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Core.Features.Health;
+using Microsoft.Health.Dicom.Blob.Extensions;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -77,24 +78,6 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         catch (Exception ex) when (ex.IsStorageAccountUnknownHostError())
         {
             return GetConnectedStoreDegradedResult(ex);
-        }
-        finally
-        {
-            await TryDeleteAsync(healthCheckBlobClient, cancellationToken);
-        }
-    }
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not fail on delete.")]
-    public static async Task TryDeleteAsync(BlockBlobClient blockBlobClient, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await blockBlobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
-        }
-        catch (Exception)
-        {
-            // do not thrown an error if this fails since this is not part of what the health check is validation
-            // If it fails to delete, the file will get cleaned up by the ExternalStoreHealthExpiryHttpPipelinePolicy set on the blob client, which sets an expiry on all health check files
         }
     }
 

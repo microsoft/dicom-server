@@ -59,7 +59,7 @@ public class BlobFileStoreTests
     [InlineData("a%b")]
     public void GivenInvalidStorageDirectory_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty(string storageDirectory)
     {
-        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = storageDirectory, HealthCheckFilePath = HealthCheckFilePath };
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = storageDirectory, HealthCheckFilePath = HealthCheckFilePath, HealthCheckFileExpiry = TimeSpan.FromMinutes(1) };
         var results = new List<ValidationResult>();
 
         Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
@@ -76,7 +76,7 @@ public class BlobFileStoreTests
     [InlineData("a-b/c-d/")]
     public void GivenValidStorageDirectory_WhenExternalStoreInitialized_ThenDoNotThrowException(string storageDirectory)
     {
-        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = storageDirectory, HealthCheckFilePath = HealthCheckFilePath };
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = storageDirectory, HealthCheckFilePath = HealthCheckFilePath, HealthCheckFileExpiry = TimeSpan.FromMinutes(1) };
         var results = new List<ValidationResult>();
 
         Assert.True(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
@@ -85,7 +85,7 @@ public class BlobFileStoreTests
     [Fact]
     public void GivenInvalidStorageDirectorySegments_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
     {
-        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = string.Join("", Enumerable.Repeat("a/b", 255)), HealthCheckFilePath = HealthCheckFilePath };
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = string.Join("", Enumerable.Repeat("a/b", 255)), HealthCheckFilePath = HealthCheckFilePath, HealthCheckFileExpiry = TimeSpan.FromMinutes(1) };
         var results = new List<ValidationResult>();
 
         Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
@@ -97,7 +97,7 @@ public class BlobFileStoreTests
     [Fact]
     public void GivenInvalidStorageDirectoryLength_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
     {
-        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = string.Join("", Enumerable.Repeat("a", 1025)), HealthCheckFilePath = HealthCheckFilePath };
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { BlobContainerUri = BlobContainerUrl, StorageDirectory = string.Join("", Enumerable.Repeat("a", 1025)), HealthCheckFilePath = HealthCheckFilePath, HealthCheckFileExpiry = TimeSpan.FromMinutes(1) };
         var results = new List<ValidationResult>();
 
         Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
@@ -505,6 +505,7 @@ public class BlobFileStoreTests
             StorageDirectory = DefaultStorageDirectory,
             BlobContainerUri = BlobContainerUrl,
             HealthCheckFilePath = HealthCheckFilePath,
+            HealthCheckFileExpiry = TimeSpan.FromMinutes(1),
         });
         var clientOptions = Substitute.For<IOptions<BlobServiceClientOptions>>();
         clientOptions.Value.Returns(Substitute.For<BlobServiceClientOptions>());

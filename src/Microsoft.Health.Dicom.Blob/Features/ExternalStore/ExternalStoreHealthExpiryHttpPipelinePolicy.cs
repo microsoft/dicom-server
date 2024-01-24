@@ -17,8 +17,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
 {
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
-    private readonly string _healthCheckPathRegex;
-    private readonly string _txtRegex;
+    private readonly Regex _healthCheckRegex;
     private const string GuidRegex = @"[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}";
 
     public ExternalStoreHealthExpiryHttpPipelinePolicy(ExternalBlobDataStoreConfiguration externalStoreOptions)
@@ -31,35 +30,30 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
         UriBuilder uriBuilder = new UriBuilder(_externalStoreOptions.BlobContainerUri);
         uriBuilder.Path = Path.Combine(uriBuilder.Path, _externalStoreOptions.StorageDirectory, _externalStoreOptions.HealthCheckFilePath);
 
-        _healthCheckPathRegex = Regex.Escape(uriBuilder.Uri.ToString());
-        _txtRegex = Regex.Escape(".txt");
+        string healthCheckPathRegex = Regex.Escape(uriBuilder.Uri.AbsoluteUri);
+        string txtRegex = Regex.Escape(".txt");
+        _healthCheckRegex = new Regex($"^{healthCheckPathRegex}{GuidRegex}{txtRegex}$", RegexOptions.Compiled);
     }
 
     public override void Process(HttpMessage message, ReadOnlyMemory<HttpPipelinePolicy> pipeline)
     {
-        if (IsHealthCheckFileUpload(message.Request))
-        {
-            message.Request.Headers.Add("x-ms-expiry-time", $"{_externalStoreOptions.HealthCheckFileExpiryInMs}");
-            message.Request.Headers.Add("x-ms-expiry-option", "RelativeToNow");
-        }
-
+        AddExpiryHeaderToHealthCheckFileUploadRequest(message);
         ProcessNext(message, pipeline);
     }
 
     public override ValueTask ProcessAsync(HttpMessage message, ReadOnlyMemory<HttpPipelinePolicy> pipeline)
     {
-        if (IsHealthCheckFileUpload(message.Request))
-        {
-            message.Request.Headers.Add("x-ms-expiry-time", $"{_externalStoreOptions.HealthCheckFileExpiryInMs}");
-            message.Request.Headers.Add("x-ms-expiry-option", "RelativeToNow");
-        }
-
+        AddExpiryHeaderToHealthCheckFileUploadRequest(message);
         return ProcessNextAsync(message, pipeline);
     }
 
-    private bool IsHealthCheckFileUpload(Request request)
+    private void AddExpiryHeaderToHealthCheckFileUploadRequest(HttpMessage message)
     {
-        return Regex.IsMatch(request.Uri.ToString(), $"^{_healthCheckPathRegex}{GuidRegex}{_txtRegex}$") &&
-            (request.Method == RequestMethod.Put || request.Method == RequestMethod.Post || request.Method == RequestMethod.Patch);
+        if (_healthCheckRegex.IsMatch(message.Request.Uri.ToUri().AbsoluteUri) &&
+        (message.Request.Method == RequestMethod.Put || message.Request.Method == RequestMethod.Post || message.Request.Method == RequestMethod.Patch))
+        {
+            message.Request.Headers.Add("x-ms-expiry-time", $"{_externalStoreOptions.HealthCheckFileExpiry.TotalMilliseconds}");
+            message.Request.Headers.Add("x-ms-expiry-option", "RelativeToNow");
+        }
     }
 }

@@ -8,7 +8,6 @@
   <ItemGroup>
     <PackageReference Include="Azure.Core" />
     <PackageReference Include="Azure.Identity" />
-    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="fo-dicom" />
     <PackageReference Include="fo-dicom.Codecs" />
