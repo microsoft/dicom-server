@@ -51,7 +51,7 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         _logger.LogInformation("Checking the health of the connected store.");
 
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
-        BlockBlobClient healthCheckBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFilePath}{Guid.NewGuid()}.txt");
+        BlockBlobClient healthCheckBlobClient = containerClient.GetBlockBlobClient(Path.Combine(_externalStoreOptions.StorageDirectory, $"{_externalStoreOptions.HealthCheckFilePath}{Guid.NewGuid()}.txt"));
 
         _logger.LogInformation("Attempting to write, read, and delete file {FileName}.", healthCheckBlobClient.Name);
 

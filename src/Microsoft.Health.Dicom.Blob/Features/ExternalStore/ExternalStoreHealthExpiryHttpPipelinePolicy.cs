@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure.Core;
@@ -24,8 +25,10 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
     {
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions, nameof(externalStoreOptions));
 
-        Uri healthCheckPathUri = new Uri(_externalStoreOptions.BlobContainerUri, $"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFilePath}");
-        _healthCheckPathRegex = Regex.Escape(healthCheckPathUri.ToString());
+        UriBuilder uriBuilder = new UriBuilder(_externalStoreOptions.BlobContainerUri);
+        uriBuilder.Path = Path.Combine(uriBuilder.Path, _externalStoreOptions.StorageDirectory, _externalStoreOptions.HealthCheckFilePath);
+
+        _healthCheckPathRegex = Regex.Escape(uriBuilder.Uri.ToString());
         _txtRegex = Regex.Escape(".txt");
     }
 
