@@ -24,6 +24,9 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
     public ExternalStoreHealthExpiryHttpPipelinePolicy(ExternalBlobDataStoreConfiguration externalStoreOptions)
     {
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions, nameof(externalStoreOptions));
+        EnsureArg.IsNotNull(externalStoreOptions.BlobContainerUri, nameof(externalStoreOptions.BlobContainerUri));
+        EnsureArg.IsNotNull(externalStoreOptions.StorageDirectory, nameof(externalStoreOptions.StorageDirectory));
+        EnsureArg.IsNotNull(externalStoreOptions.HealthCheckFilePath, nameof(externalStoreOptions.HealthCheckFilePath));
 
         UriBuilder uriBuilder = new UriBuilder(_externalStoreOptions.BlobContainerUri);
         uriBuilder.Path = Path.Combine(uriBuilder.Path, _externalStoreOptions.StorageDirectory, _externalStoreOptions.HealthCheckFilePath);
