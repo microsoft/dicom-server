@@ -20,9 +20,9 @@ internal class ExternalBlobDataStoreConfiguration
     // use for local testing with Azurite
     public string ContainerName { get; set; }
 
-    public string HealthCheckFileName { get; set; }
+    public string HealthCheckFilePath { get; set; }
 
-    public string HealthCheckLeaseFileName { get; set; }
+    public int HealthCheckFileExpiryInMs { get; set; }
 
     /// <summary>
     /// A path which is used to store blobs along a specific path in a container, serving as a prefix to the

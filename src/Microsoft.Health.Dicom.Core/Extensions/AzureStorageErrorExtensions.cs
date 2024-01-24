@@ -36,17 +36,11 @@ internal static class AzureStorageErrorExtensions
         BlobErrorCode.ContainerDisabled,
     };
 
-    private static readonly List<BlobErrorCode> Customer400ErrorCodes = new List<BlobErrorCode>
-    {
-        "BlobTypeNotSupported"
-    };
-
     public static bool IsConnectedStoreCustomerError(this RequestFailedException rfe)
     {
         return (rfe.Status == 403 && Customer403ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
             (rfe.Status == 404 && Customer404ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
-            (rfe.Status == 409 && Customer409ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase)) ||
-            (rfe.Status == 400 && Customer400ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))));
+            (rfe.Status == 409 && Customer409ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase)));
     }
 
     public static bool IsStorageAccountUnknownHostError(this Exception exception)

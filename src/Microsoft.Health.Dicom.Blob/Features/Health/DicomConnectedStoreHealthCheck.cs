@@ -28,7 +28,6 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
 {
     private readonly string _degradedDescription = "The health of the connected store has degraded.";
     private readonly string _testContent = "Test content.";
-    private readonly string _leaseBlobContent = "lease";
 
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IBlobClient _blobClient;
@@ -52,23 +51,12 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         _logger.LogInformation("Checking the health of the connected store.");
 
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
+        BlockBlobClient healthCheckBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFilePath}{Guid.NewGuid()}.txt");
 
-        BlockBlobClient healthCheckBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFileName}");
-        BlockBlobClient leaseBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckLeaseFileName}");
-        BlobLeaseClient leaseBlobLeaseClient = leaseBlobClient.GetBlobLeaseClient();
+        _logger.LogInformation("Attempting to write, read, and delete file {FileName}.", healthCheckBlobClient.Name);
 
         try
         {
-            if (!await leaseBlobClient.ExistsAsync(cancellationToken))
-            {
-                // create the blob to get a lease on if it does not exist
-                using Stream leaseStream = new MemoryStream(Encoding.UTF8.GetBytes(_leaseBlobContent));
-                await leaseBlobClient.UploadAsync(leaseStream, cancellationToken: cancellationToken);
-            }
-
-            // acquire lease on lease blob to ensure there is no conflict writing/reading/deleting the blob
-            await TryAcquireLease(leaseBlobLeaseClient, cancellationToken);
-
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(_testContent));
 
             // test blob/write
@@ -92,42 +80,21 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         }
         finally
         {
-            await TryReleaseLease(leaseBlobLeaseClient, cancellationToken);
+            await TryDeleteAsync(healthCheckBlobClient, cancellationToken);
         }
     }
 
-    public static async Task TryReleaseLease(BlobLeaseClient leaseBlobLeaseClient, CancellationToken cancellationToken)
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not fail on delete.")]
+    public static async Task TryDeleteAsync(BlockBlobClient blockBlobClient, CancellationToken cancellationToken)
     {
         try
         {
-            await leaseBlobLeaseClient.ReleaseAsync(cancellationToken: cancellationToken);
+            await blockBlobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
         }
-        catch (RequestFailedException)
+        catch (Exception)
         {
             // do not thrown an error if this fails since this is not part of what the health check is validation
-            // If it fails to release the lease, it will expire after 15 seconds regardless.
-        }
-    }
-
-    public static async Task TryAcquireLease(BlobLeaseClient blobLeaseClient, CancellationToken cancellationToken)
-    {
-        int retry = 0;
-
-        while (retry < 15)
-        {
-            try
-            {
-                await blobLeaseClient.AcquireAsync(TimeSpan.FromSeconds(15), cancellationToken: cancellationToken);
-                break;
-            }
-            catch (RequestFailedException rfe) when (
-                rfe.ErrorCode == BlobErrorCode.LeaseAlreadyPresent ||
-                rfe.ErrorCode == BlobErrorCode.LeaseIsBreakingAndCannotBeAcquired)
-            {
-                // retry and wait for lease to be available
-                retry++;
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
+            // If it fails to delete, the file will get cleaned up by the ExternalStoreHealthExpiryHttpPipelinePolicy set on the blob client, which sets an expiry on all health check files
         }
     }
 
