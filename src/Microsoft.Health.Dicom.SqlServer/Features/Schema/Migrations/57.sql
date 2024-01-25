@@ -2747,6 +2747,17 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetTotalAndSumContentLengthIndexedAsyncV57
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT count(*),
+           SUM(ContentLength)
+    FROM   dbo.FileProperty;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetWorkitemMetadata
 @partitionKey INT, @workitemUid VARCHAR (64), @procedureStepStateTagPath VARCHAR (64)
 AS

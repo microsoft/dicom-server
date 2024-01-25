@@ -185,4 +185,11 @@ public interface IIndexDataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that with list of instance metadata with new watermark.</returns>
     Task UpdateFilePropertiesContentLengthAsync(IReadOnlyDictionary<long, FileProperties> filePropertiesByWatermark, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves total count in FileProperty table and summation of all content length values across FileProperty table.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that gets the count</returns>
+    Task<IndexedFileProperties> GetIndexedFilePropertiesAsync(CancellationToken cancellationToken = default);
 }
