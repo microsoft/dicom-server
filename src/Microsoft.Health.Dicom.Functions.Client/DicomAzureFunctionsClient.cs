@@ -239,6 +239,23 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         _logger.LogInformation("Successfully started content length backfill operation with ID '{InstanceId}'.", instanceId);
     }
 
+    /// <inheritdoc/>
+    public async Task<OperationReference> StartDeleteExtendedQueryTagOperationAsync(Guid operationId, string tagPath, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Indexing.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            tagPath);
+
+        _logger.LogInformation("Successfully started new delete extended query tag orchestration instance with ID '{InstanceId}'.", instanceId);
+
+        return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
+    }
+
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
         Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,

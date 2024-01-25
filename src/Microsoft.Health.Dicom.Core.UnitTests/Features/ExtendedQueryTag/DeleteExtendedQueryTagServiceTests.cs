@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using NSubstitute;
 using Xunit;
@@ -19,11 +20,13 @@ public class DeleteExtendedQueryTagServiceTests
 {
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IDeleteExtendedQueryTagService _extendedQueryTagService;
+    private readonly IGuidFactory _guidFactory = Substitute.For<IGuidFactory>();
+    private readonly IDicomOperationsClient _dicomOperationsClient = Substitute.For<IDicomOperationsClient>();
 
     public DeleteExtendedQueryTagServiceTests()
     {
         _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-        _extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser());
+        _extendedQueryTagService = new DeleteExtendedQueryTagService(_extendedQueryTagStore, new DicomTagParser(), _guidFactory, _dicomOperationsClient);
     }
 
     [Fact]

@@ -105,6 +105,33 @@ public interface IExtendedQueryTagStore
     Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Deletes the extended query tag entry
+    /// </summary>
+    /// <param name="tagKey"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a batch of the extended query tag index
+    /// </summary>
+    /// <param name="tagKey"></param>
+    /// <param name="vr"></param>
+    /// <param name="batchSize"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<int> DeleteExtendedQueryTagIndexBatchAsync(int tagKey, string vr, int batchSize, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the status of the extended query tag
+    /// </summary>
+    /// <param name="tagKey"></param>
+    /// <param name="status"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task UpdateExtendedQueryTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously assigns the given <paramref name="operationId"/> to the given tag keys.
     /// </summary>
     /// <param name="queryTagKeys">The keys for the extended query tags.</param>

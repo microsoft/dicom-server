@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>56</LatestSchemaVersion>
+    <LatestSchemaVersion>57</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -68,6 +68,10 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
+    <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryEntry.sql" />
+    <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryTagErrorBatch.sql" />
+    <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryTagIndexBatch.sql" />
+    <None Remove="features\schema\sql\sprocs\UpdateExtendedQueryTagStatus.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 

@@ -141,4 +141,13 @@ public interface IDicomOperationsClient
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task StartContentLengthBackFillOperationAsync(Guid operationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Begin delete extended query tags
+    /// </summary>
+    /// <param name="operationId"></param>
+    /// <param name="tagPath"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<OperationReference> StartDeleteExtendedQueryTagOperationAsync(Guid operationId, string tagPath, CancellationToken cancellationToken = default);
 }

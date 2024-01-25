@@ -49,6 +49,8 @@
     <None Include="ContentLengthBackFill\ContentLengthBackFillDurableFunction.*.cs">
       <DependentUpon>ContentLengthBackFillDurableFunction.cs</DependentUpon>
     </None>
+    <None Include="DeleteExtendedQueryTag\DeleteExtendedQueryTagFunction.*.cs">
+      <DependentUpon>DeleteExtendedQueryTagFunction.cs</DependentUpon>
+    </None>
   </ItemGroup>
-
 </Project>

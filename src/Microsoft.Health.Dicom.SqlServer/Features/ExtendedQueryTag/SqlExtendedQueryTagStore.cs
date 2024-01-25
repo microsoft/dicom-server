@@ -44,6 +44,18 @@ internal sealed class SqlExtendedQueryTagStore : IExtendedQueryTagStore
         await store.DeleteExtendedQueryTagAsync(tagPath, vr, cancellationToken);
     }
 
+    public async Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default)
+    {
+        ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        await store.DeleteExtendedQueryTagEntryAsync(tagKey, cancellationToken);
+    }
+
+    public async Task<int> DeleteExtendedQueryTagIndexBatchAsync(int tagKey, string vr, int batchSize, CancellationToken cancellationToken = default)
+    {
+        ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.DeleteExtendedQueryTagIndexBatchAsync(tagKey, vr, batchSize, cancellationToken);
+    }
+
     public async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
     {
         ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
@@ -66,6 +78,12 @@ internal sealed class SqlExtendedQueryTagStore : IExtendedQueryTagStore
     {
         ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetExtendedQueryTagsAsync(operationId, cancellationToken);
+    }
+
+    public async Task UpdateExtendedQueryTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default)
+    {
+        ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        await store.UpdateExtendedQueryTagStatusAsync(tagKey, status, cancellationToken);
     }
 
     ///<inheritdoc/>

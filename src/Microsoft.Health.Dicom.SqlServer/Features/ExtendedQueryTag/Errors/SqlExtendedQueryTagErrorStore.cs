@@ -34,6 +34,12 @@ internal sealed class SqlExtendedQueryTagErrorStore : IExtendedQueryTagErrorStor
             cancellationToken);
     }
 
+    public async Task<int> DeleteExtendedQueryTagErrorBatch(int tagKey, int batchSize, CancellationToken cancellationToken = default)
+    {
+        ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
+        return await store.DeleteExtendedQueryTagErrorBatch(tagKey, batchSize, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
