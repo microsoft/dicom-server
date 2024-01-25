@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -53,6 +54,19 @@ public class DeleteExtendedQueryTagService : IDeleteExtendedQueryTagService
 
         OperationReference operation = await _client.StartDeleteExtendedQueryTagOperationAsync(_guidFactory.Create(), normalizedPath, cancellationToken);
 
-        // TODO: get operation and wait for it to be done
+        OperationStatus currentStatus;
+        do
+        {
+            await Task.Delay(1000, cancellationToken);
+            IOperationState<DicomOperation> state = await _client.GetStateAsync(operation.Id, cancellationToken);
+            currentStatus = state.Status;
+        }
+        while (currentStatus is not OperationStatus.Succeeded and not OperationStatus.Canceled and not OperationStatus.Failed);
+
+        if (currentStatus is OperationStatus.Canceled or OperationStatus.Failed)
+        {
+            // TODO: Is this the correct exception to throw here?
+            throw new DataStoreException("The operation to delete extended query tags were failed or canceled.");
+        }
     }
 }
