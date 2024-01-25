@@ -16,13 +16,10 @@ namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 public partial class DeleteExtendedQueryTagFunction
 {
     [FunctionName(nameof(GetExtendedQueryTagAsync))]
-    public Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync([ActivityTrigger] IDurableOrchestrationContext context, ILogger logger)
+    public Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync([ActivityTrigger] string tagPath, ILogger logger)
     {
-        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
         EnsureArg.IsNotNull(logger, nameof(logger));
-
-        // TODO: is this the right way to get input?
-        string tagPath = context.GetInput<string>();
 
         return _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath);
     }
