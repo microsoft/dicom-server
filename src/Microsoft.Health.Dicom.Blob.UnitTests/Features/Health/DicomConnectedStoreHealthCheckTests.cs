@@ -58,6 +58,8 @@ public class DicomConnectedStoreHealthCheckTests
     }
 
     [Theory]
+    [InlineData(401, "InvalidAuthenticationInfo")]
+    [InlineData(403, "InvalidAuthenticationInfo")]
     [InlineData(403, "AuthorizationFailure")]
     [InlineData(403, "AuthorizationPermissionMismatch")]
     [InlineData(403, "InsufficientAccountPermissions")]
@@ -84,6 +86,7 @@ public class DicomConnectedStoreHealthCheckTests
 
     [Theory]
     [InlineData(400, "SomeErrorFromDicomBug")]
+    [InlineData(401, "AuthErrorFromDicomBug")]
     [InlineData(403, "AuthErrorFromDicomBug")]
     [InlineData(404, "NotFoundDueToDicomBug")]
     [InlineData(409, "ConflictDueToDicomBug")]
