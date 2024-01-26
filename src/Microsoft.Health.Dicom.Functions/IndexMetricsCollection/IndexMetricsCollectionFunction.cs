@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Functions.IndexMetricsCollection.Telemetry;
+using Microsoft.Health.Functions.Extensions;
 
 namespace Microsoft.Health.Dicom.Functions.IndexMetricsCollection;
 
@@ -26,6 +27,7 @@ public class IndexMetricsCollectionFunction
     private readonly IndexMetricsCollectionMeter _meter;
     private readonly bool _externalStoreEnabled;
     private readonly bool _enableDataPartitions;
+    private const string RunFrequencyVariable = $"%{AzureFunctionsJobHost.RootSectionName}:DicomFunctions:{IndexMetricsCollectionOptions.SectionName}:{nameof(IndexMetricsCollectionOptions.Frequency)}%";
 
     public IndexMetricsCollectionFunction(
         IIndexDataStore indexDataStore,
@@ -48,7 +50,7 @@ public class IndexMetricsCollectionFunction
     /// <returns>A task that represents the asynchronous metrics collection operation.</returns>
     [FunctionName(nameof(IndexMetricsCollectionFunction))]
     public async Task Run(
-        [TimerTrigger(IndexMetricsCollectionOptions.Frequency)] TimerInfo invocationTimer,
+        [TimerTrigger(RunFrequencyVariable)] TimerInfo invocationTimer,
         ILogger log)
     {
         EnsureArg.IsNotNull(invocationTimer, nameof(invocationTimer));

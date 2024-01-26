@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Functions.IndexMetricsCollection;
 /// <summary>
 /// 
 /// </summary>
-public static class IndexMetricsCollectionOptions
+public class IndexMetricsCollectionOptions
 {
     /// <summary>
     /// The default section name for <see cref="IndexMetricsCollectionOptions"/> in a configuration.
@@ -23,6 +23,5 @@ public static class IndexMetricsCollectionOptions
     /// </summary>
     /// <value>A value cron expression</value>
     [Required]
-    public const string Frequency = "* * * * *"; // Every day at midnight
-    // public const string Frequency = "0 0 * * *"; // Every day at midnight
+    public string Frequency { get; set; }
 }
