@@ -28,8 +28,8 @@ public class IndexMetricsCollectionFunctionTests
     private readonly IndexMetricsCollectionFunction _collectionFunction;
     private readonly IIndexDataStore _indexStore;
     private readonly IndexMetricsCollectionMeter _meter;
-    private List<Metric> _exportedItems;
-    private MeterProvider _meterProvider;
+    private readonly List<Metric> _exportedItems;
+    private readonly MeterProvider _meterProvider;
     private readonly TimerInfo _timer;
 
     public IndexMetricsCollectionFunctionTests()
@@ -41,10 +41,6 @@ public class IndexMetricsCollectionFunctionTests
             Options.Create(new FeatureConfiguration { EnableExternalStore = true, }),
             _meter);
         _timer = Substitute.For<TimerInfo>(default, default, default);
-    }
-
-    private void InitializeMetricExporter()
-    {
         _exportedItems = new List<Metric>();
         _meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.{IndexMetricsCollectionMeter.MeterName}")
@@ -55,7 +51,6 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRun_ThenIndexMetricsCollectionsCompletedCounterIsIncremented()
     {
-        InitializeMetricExporter();
         _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
 
         await _collectionFunction.Run(_timer, NullLogger.Instance);
@@ -68,7 +63,6 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRunException_ThenIndexMetricsCollectionsCompletedCounterIsNotIncremented()
     {
-        InitializeMetricExporter();
         _indexStore.GetIndexedFilePropertiesAsync().ThrowsForAnyArgs(new Exception());
 
         await Assert.ThrowsAsync<Exception>(async () => await _collectionFunction.Run(_timer, NullLogger.Instance));
@@ -80,7 +74,6 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRun_CollectionExecutedWhenExternalStoreEnabled()
     {
-        InitializeMetricExporter();
         _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
 
         await _collectionFunction.Run(_timer, NullLogger.Instance);
@@ -91,7 +84,6 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRun_CollectionNotExecutedWhenExternalStoreNotEnabled()
     {
-        InitializeMetricExporter();
         _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
         var collectionFunctionWihtoutExternalStore = new IndexMetricsCollectionFunction(
             _indexStore,
