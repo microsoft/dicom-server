@@ -15,9 +15,13 @@ public sealed class IndexMetricsCollectionMeter : IDisposable
     private readonly Meter _meter;
     internal const string MeterName = "IndexMetricsCollection";
 
-    public IndexMetricsCollectionMeter()
+    internal IndexMetricsCollectionMeter() : this($"{OpenTelemetryLabels.BaseMeterName}.{MeterName}")
     {
-        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.{MeterName}", "1.0");
+    }
+
+    internal IndexMetricsCollectionMeter(string name)
+    {
+        _meter = new Meter(name, "1.0");
 
         IndexMetricsCollectionsCompletedCounter =
             _meter.CreateCounter<long>(

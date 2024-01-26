@@ -12,7 +12,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Functions.IndexMetricsCollection;
 using Microsoft.Health.Dicom.Functions.IndexMetricsCollection.Telemetry;
 using NSubstitute;
@@ -34,18 +33,19 @@ public class IndexMetricsCollectionFunctionTests
 
     public IndexMetricsCollectionFunctionTests()
     {
-        _meter = new IndexMetricsCollectionMeter();
+        string meterName = Guid.NewGuid().ToString();
+        _meter = new IndexMetricsCollectionMeter(meterName);
+        _exportedItems = new List<Metric>();
+        _meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(meterName)
+            .AddInMemoryExporter(_exportedItems)
+            .Build();
         _indexStore = Substitute.For<IIndexDataStore>();
         _collectionFunction = new IndexMetricsCollectionFunction(
             _indexStore,
             Options.Create(new FeatureConfiguration { EnableExternalStore = true, }),
             _meter);
         _timer = Substitute.For<TimerInfo>(default, default, default);
-        _exportedItems = new List<Metric>();
-        _meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.{IndexMetricsCollectionMeter.MeterName}")
-            .AddInMemoryExporter(_exportedItems)
-            .Build();
     }
 
     [Fact]
