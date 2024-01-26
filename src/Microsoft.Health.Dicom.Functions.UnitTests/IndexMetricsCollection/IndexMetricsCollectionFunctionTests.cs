@@ -76,4 +76,30 @@ public class IndexMetricsCollectionFunctionTests
         _meterProvider.ForceFlush();
         Assert.Empty(_exportedItems);
     }
+
+    [Fact]
+    public async Task GivenIndexMetricsCollectionFunction_WhenRun_CollectionExecutedWhenExternalStoreEnabled()
+    {
+        InitializeMetricExporter();
+        _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
+
+        await _collectionFunction.Run(_timer, NullLogger.Instance);
+
+        await _indexStore.ReceivedWithAnyArgs(1).GetIndexedFilePropertiesAsync();
+    }
+
+    [Fact]
+    public async Task GivenIndexMetricsCollectionFunction_WhenRun_CollectionNotExecutedWhenExternalStoreNotEnabled()
+    {
+        InitializeMetricExporter();
+        _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
+        var collectionFunctionWihtoutExternalStore = new IndexMetricsCollectionFunction(
+            _indexStore,
+            Options.Create(new FeatureConfiguration { EnableExternalStore = false, }),
+            _meter);
+
+        await collectionFunctionWihtoutExternalStore.Run(_timer, NullLogger.Instance);
+
+        await _indexStore.DidNotReceiveWithAnyArgs().GetIndexedFilePropertiesAsync();
+    }
 }

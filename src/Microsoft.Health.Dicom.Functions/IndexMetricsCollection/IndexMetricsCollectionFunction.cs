@@ -55,6 +55,11 @@ public class IndexMetricsCollectionFunction
     {
         EnsureArg.IsNotNull(invocationTimer, nameof(invocationTimer));
         EnsureArg.IsNotNull(log, nameof(log));
+        if (!_externalStoreEnabled)
+        {
+            log.LogInformation("External store is not enabled. Skipping index metrics collection.");
+            return;
+        }
 
         log.LogInformation("Collecting a daily summation starting. At: {Timestamp}", Clock.UtcNow);
         if (invocationTimer.IsPastDue)
