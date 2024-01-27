@@ -15,5 +15,5 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-SELECT count(*), SUM(ContentLength) FROM dbo.FileProperty
+SELECT COUNT(*), SUM(ContentLength) FROM dbo.FileProperty
 END

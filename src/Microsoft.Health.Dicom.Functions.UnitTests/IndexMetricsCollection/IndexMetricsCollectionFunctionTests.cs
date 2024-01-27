@@ -65,7 +65,7 @@ public class IndexMetricsCollectionFunctionTests
     {
         _indexStore.GetIndexedFilePropertiesAsync().ThrowsForAnyArgs(new Exception());
 
-        await Assert.ThrowsAsync<Exception>(async () => await _collectionFunction.Run(_timer, NullLogger.Instance));
+        await Assert.ThrowsAsync<Exception>(() => _collectionFunction.Run(_timer, NullLogger.Instance));
 
         _meterProvider.ForceFlush();
         Assert.Empty(_exportedItems);

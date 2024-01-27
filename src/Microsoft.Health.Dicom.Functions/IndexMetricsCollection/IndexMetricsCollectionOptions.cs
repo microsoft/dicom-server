@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-
 using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Functions.IndexMetricsCollection;
 
 /// <summary>
-/// 
+/// Options on collecting indexing metrics
 /// </summary>
 public class IndexMetricsCollectionOptions
 {

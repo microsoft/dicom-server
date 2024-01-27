@@ -2752,7 +2752,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT count(*),
+    SELECT COUNT(*),
            SUM(ContentLength)
     FROM   dbo.FileProperty;
 END

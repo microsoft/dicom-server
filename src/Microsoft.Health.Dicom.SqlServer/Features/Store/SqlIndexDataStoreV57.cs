@@ -25,27 +25,23 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
 
     public override async Task<IndexedFileProperties> GetIndexedFilePropertiesAsync(CancellationToken cancellationToken = default)
     {
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
-        {
-            VLatest.GetTotalAndSumContentLengthIndexedAsyncV57.PopulateCommand(sqlCommandWrapper);
+        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+        VLatest.GetTotalAndSumContentLengthIndexedAsyncV57.PopulateCommand(sqlCommandWrapper);
 
-            try
+        try
+        {
+            using SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+            await sqlDataReader.ReadAsync(cancellationToken);
+            return new IndexedFileProperties
             {
-                using (SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken))
-                {
-                    await sqlDataReader.ReadAsync(cancellationToken);
-                    return new IndexedFileProperties
-                    {
-                        TotalIndexed = (int)sqlDataReader[0],
-                        TotalSum = await sqlDataReader.IsDBNullAsync(1, cancellationToken) ? 0 : (long)sqlDataReader[1],
-                    };
-                }
-            }
-            catch (SqlException ex)
-            {
-                throw new DataStoreException(ex);
-            }
+                TotalIndexed = (int)sqlDataReader[0],
+                TotalSum = await sqlDataReader.IsDBNullAsync(1, cancellationToken) ? 0 : (long)sqlDataReader[1],
+            };
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
     }
 }

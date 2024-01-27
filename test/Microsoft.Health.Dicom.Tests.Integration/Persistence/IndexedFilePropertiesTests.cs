@@ -90,5 +90,4 @@ public class IndexedFilePropertiesTests : IClassFixture<SqlDataStoreTestsFixture
 
         return fileProperties;
     }
-
 }

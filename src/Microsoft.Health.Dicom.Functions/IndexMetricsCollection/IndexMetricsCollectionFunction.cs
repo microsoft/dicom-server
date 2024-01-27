@@ -41,7 +41,6 @@ public class IndexMetricsCollectionFunction
         _enableDataPartitions = featureConfiguration.Value.EnableDataPartitions;
     }
 
-
     /// <summary>
     /// Asynchronously collects index metrics.
     /// </summary>
@@ -76,9 +75,9 @@ public class IndexMetricsCollectionFunction
 
         log.LogInformation("Collecting a daily summation time taken: {ElapsedTime} ms with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", stopwatch.ElapsedMilliseconds, _externalStoreEnabled, _enableDataPartitions);
 
-        log.LogInformation("DICOM telemetry - total files indexed: {0} with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", indexedFileProperties.TotalIndexed, _externalStoreEnabled, _enableDataPartitions);
+        log.LogInformation("DICOM telemetry - total files indexed: {TotalFilesIndexed} with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", indexedFileProperties.TotalIndexed, _externalStoreEnabled, _enableDataPartitions);
 
-        log.LogInformation("DICOM telemetry - total content length indexed: {0} with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", indexedFileProperties.TotalSum, _externalStoreEnabled, _enableDataPartitions);
+        log.LogInformation("DICOM telemetry - total content length indexed: {TotalContentLengthIndexed} with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", indexedFileProperties.TotalSum, _externalStoreEnabled, _enableDataPartitions);
 
         log.LogInformation("Collecting a daily summation completed. with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", _externalStoreEnabled, _enableDataPartitions);
 
