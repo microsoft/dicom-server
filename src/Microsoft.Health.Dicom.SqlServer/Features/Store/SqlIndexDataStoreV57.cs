@@ -23,7 +23,7 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
 
     public override SchemaVersion Version => SchemaVersion.V57;
 
-    public override async Task<IndexedFileProperties> GetIndexedFilePropertiesAsync(CancellationToken cancellationToken = default)
+    public override async Task<IndexedFileProperties> GetIndexedFileMetricsAsync(CancellationToken cancellationToken = default)
     {
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();

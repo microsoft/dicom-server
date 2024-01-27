@@ -36,16 +36,16 @@ public class IndexedFilePropertiesTests : IClassFixture<SqlDataStoreTestsFixture
     }
 
     [Fact]
-    public async Task GivenNoFilePropertiesIndexed_WhenGetIndexedFilePropertiesAsync_ExpectCorrectTotalsRetrieved()
+    public async Task GivenNoFilePropertiesIndexed_WhenGetIndexedFileMetricsAsync_ExpectCorrectTotalsRetrieved()
     {
-        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFilePropertiesAsync();
+        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFileMetricsAsync();
 
         Assert.Equal(0, indexedFileProperties.TotalSum);
         Assert.Equal(0, indexedFileProperties.TotalIndexed);
     }
 
     [Fact]
-    public async Task GivenFilePropertiesIndexed_WhenGetIndexedFilePropertiesAsync_ExpectCorrectTotalsRetrieved()
+    public async Task GivenFilePropertiesIndexed_WhenGetIndexedFileMetricsAsync_ExpectCorrectTotalsRetrieved()
     {
         var properties = new List<FileProperties>
         {
@@ -55,14 +55,14 @@ public class IndexedFilePropertiesTests : IClassFixture<SqlDataStoreTestsFixture
             await CreateRandomInstanceAsync(fileProperties: _fileProperties),
         };
 
-        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFilePropertiesAsync();
+        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFileMetricsAsync();
 
         Assert.Equal(properties.Sum(x => x.ContentLength), indexedFileProperties.TotalSum);
         Assert.Equal(properties.Count, indexedFileProperties.TotalIndexed);
     }
 
     [Fact]
-    public async Task GivenFilePropertiesIndexedWithZeroes_WhenGetIndexedFilePropertiesAsync_ExpectCorrectTotalsRetrieved()
+    public async Task GivenFilePropertiesIndexedWithZeroes_WhenGetIndexedFileMetricsAsync_ExpectCorrectTotalsRetrieved()
     {
         FileProperties zeroLengthFileProperties = new FileProperties { Path = "zeroLength.dcm", ETag = "E1230", ContentLength = 0 };
 
@@ -73,7 +73,7 @@ public class IndexedFilePropertiesTests : IClassFixture<SqlDataStoreTestsFixture
             await CreateRandomInstanceAsync(fileProperties: _fileProperties),
         };
 
-        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFilePropertiesAsync();
+        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFileMetricsAsync();
 
         Assert.Equal(properties.Sum(x => x.ContentLength), indexedFileProperties.TotalSum);
         Assert.Equal(properties.Count, indexedFileProperties.TotalIndexed);

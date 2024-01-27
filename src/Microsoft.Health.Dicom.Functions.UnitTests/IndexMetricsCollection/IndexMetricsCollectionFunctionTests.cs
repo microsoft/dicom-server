@@ -51,7 +51,7 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRun_ThenIndexMetricsCollectionsCompletedCounterIsIncremented()
     {
-        _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
+        _indexStore.GetIndexedFileMetricsAsync().ReturnsForAnyArgs(new IndexedFileProperties());
 
         await _collectionFunction.Run(_timer, NullLogger.Instance);
 
@@ -63,7 +63,7 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRunException_ThenIndexMetricsCollectionsCompletedCounterIsNotIncremented()
     {
-        _indexStore.GetIndexedFilePropertiesAsync().ThrowsForAnyArgs(new Exception());
+        _indexStore.GetIndexedFileMetricsAsync().ThrowsForAnyArgs(new Exception());
 
         await Assert.ThrowsAsync<Exception>(() => _collectionFunction.Run(_timer, NullLogger.Instance));
 
@@ -74,17 +74,17 @@ public class IndexMetricsCollectionFunctionTests
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRun_CollectionExecutedWhenExternalStoreEnabled()
     {
-        _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
+        _indexStore.GetIndexedFileMetricsAsync().ReturnsForAnyArgs(new IndexedFileProperties());
 
         await _collectionFunction.Run(_timer, NullLogger.Instance);
 
-        await _indexStore.ReceivedWithAnyArgs(1).GetIndexedFilePropertiesAsync();
+        await _indexStore.ReceivedWithAnyArgs(1).GetIndexedFileMetricsAsync();
     }
 
     [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRun_CollectionNotExecutedWhenExternalStoreNotEnabled()
     {
-        _indexStore.GetIndexedFilePropertiesAsync().ReturnsForAnyArgs(new IndexedFileProperties());
+        _indexStore.GetIndexedFileMetricsAsync().ReturnsForAnyArgs(new IndexedFileProperties());
         var collectionFunctionWihtoutExternalStore = new IndexMetricsCollectionFunction(
             _indexStore,
             Options.Create(new FeatureConfiguration { EnableExternalStore = false, }),
@@ -92,6 +92,6 @@ public class IndexMetricsCollectionFunctionTests
 
         await collectionFunctionWihtoutExternalStore.Run(_timer, NullLogger.Instance);
 
-        await _indexStore.DidNotReceiveWithAnyArgs().GetIndexedFilePropertiesAsync();
+        await _indexStore.DidNotReceiveWithAnyArgs().GetIndexedFileMetricsAsync();
     }
 }

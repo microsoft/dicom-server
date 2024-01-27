@@ -191,5 +191,5 @@ public interface IIndexDataStore
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that gets the count</returns>
-    Task<IndexedFileProperties> GetIndexedFilePropertiesAsync(CancellationToken cancellationToken = default);
+    Task<IndexedFileProperties> GetIndexedFileMetricsAsync(CancellationToken cancellationToken = default);
 }

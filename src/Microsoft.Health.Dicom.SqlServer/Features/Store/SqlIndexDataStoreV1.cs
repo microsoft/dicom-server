@@ -379,7 +379,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task<IndexedFileProperties> GetIndexedFilePropertiesAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IndexedFileProperties> GetIndexedFileMetricsAsync(CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

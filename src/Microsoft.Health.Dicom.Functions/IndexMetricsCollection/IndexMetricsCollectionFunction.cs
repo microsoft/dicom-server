@@ -69,7 +69,7 @@ public class IndexMetricsCollectionFunction
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFilePropertiesAsync();
+        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFileMetricsAsync();
 
         stopwatch.Stop();
 
