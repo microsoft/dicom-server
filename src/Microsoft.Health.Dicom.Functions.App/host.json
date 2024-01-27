@@ -77,7 +77,7 @@
       }
     },
     "IndexMetricsCollection": {
-      "Frequency": "* * * * *"
+      "Frequency": "0 0 * * *"
     }
   },
   "Extensions": {
