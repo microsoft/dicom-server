@@ -79,6 +79,25 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         {
             return GetConnectedStoreDegradedResult(ex);
         }
+        finally
+        {
+            // Remove in WI #114591
+            await TryDeleteOldBlob(containerClient);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not fail on clean up")]
+    private async Task TryDeleteOldBlob(BlobContainerClient blobContainerClient)
+    {
+        try
+        {
+            BlockBlobClient blockBlobClient = blobContainerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}healthCheck/health.txt");
+            await blockBlobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+        }
+        catch (Exception)
+        {
+            // do not throw if cleaning up the previous blob fails
+        }
     }
 
     private HealthCheckResult GetConnectedStoreDegradedResult(Exception exception)

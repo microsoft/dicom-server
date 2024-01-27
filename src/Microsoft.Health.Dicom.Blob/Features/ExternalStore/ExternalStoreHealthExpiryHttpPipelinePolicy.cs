@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -31,8 +32,7 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
         uriBuilder.Path = Path.Combine(uriBuilder.Path, _externalStoreOptions.StorageDirectory, _externalStoreOptions.HealthCheckFilePath);
 
         string healthCheckPathRegex = Regex.Escape(uriBuilder.Uri.AbsoluteUri);
-        string txtRegex = Regex.Escape(".txt");
-        _healthCheckRegex = new Regex($"^{healthCheckPathRegex}{GuidRegex}{txtRegex}$", RegexOptions.Compiled);
+        _healthCheckRegex = new Regex($"^{healthCheckPathRegex}{GuidRegex}\\.txt$", RegexOptions.CultureInvariant);
     }
 
     public override void Process(HttpMessage message, ReadOnlyMemory<HttpPipelinePolicy> pipeline)
@@ -52,7 +52,7 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
         if (_healthCheckRegex.IsMatch(message.Request.Uri.ToUri().AbsoluteUri) &&
         (message.Request.Method == RequestMethod.Put || message.Request.Method == RequestMethod.Post || message.Request.Method == RequestMethod.Patch))
         {
-            message.Request.Headers.Add("x-ms-expiry-time", $"{_externalStoreOptions.HealthCheckFileExpiry.TotalMilliseconds}");
+            message.Request.Headers.Add("x-ms-expiry-time", _externalStoreOptions.HealthCheckFileExpiry.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
             message.Request.Headers.Add("x-ms-expiry-option", "RelativeToNow");
         }
     }
