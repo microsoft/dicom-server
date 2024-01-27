@@ -3,13 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -60,7 +60,7 @@ public class IndexMetricsCollectionFunction
             return;
         }
 
-        log.LogInformation("Collecting a daily summation starting. At: {Timestamp}", Clock.UtcNow);
+        log.LogInformation("Collecting a daily summation starting. At: {Timestamp}", DateTime.UtcNow);
         if (invocationTimer.IsPastDue)
         {
             log.LogWarning("Current function invocation is running late.");
@@ -73,14 +73,19 @@ public class IndexMetricsCollectionFunction
 
         stopwatch.Stop();
 
-        log.LogInformation("Collecting a daily summation time taken: {ElapsedTime} ms with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", stopwatch.ElapsedMilliseconds, _externalStoreEnabled, _enableDataPartitions);
-
-        log.LogInformation("DICOM telemetry - total files indexed: {TotalFilesIndexed} with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", indexedFileProperties.TotalIndexed, _externalStoreEnabled, _enableDataPartitions);
-
-        log.LogInformation("DICOM telemetry - total content length indexed: {TotalContentLengthIndexed} with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", indexedFileProperties.TotalSum, _externalStoreEnabled, _enableDataPartitions);
-
-        log.LogInformation("Collecting a daily summation completed. with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}", _externalStoreEnabled, _enableDataPartitions);
+        log.LogInformation(
+            "DICOM telemetry - TotalFilesIndexed: {TotalFilesIndexed} , TotalByesIndexed: {TotalContentLengthIndexed} ,  with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}",
+            indexedFileProperties.TotalIndexed,
+            indexedFileProperties.TotalSum,
+            _externalStoreEnabled,
+            _enableDataPartitions);
 
         _meter.IndexMetricsCollectionsCompletedCounter.Add(1, IndexMetricsCollectionMeter.CreateTelemetryDimension(_externalStoreEnabled, _enableDataPartitions));
+
+        log.LogInformation(
+            "Collecting a daily summation time taken: {ElapsedTime} ms with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}",
+            stopwatch.ElapsedMilliseconds,
+            _externalStoreEnabled,
+            _enableDataPartitions);
     }
 }
