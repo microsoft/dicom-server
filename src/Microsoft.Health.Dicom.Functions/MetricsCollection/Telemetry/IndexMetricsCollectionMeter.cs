@@ -8,12 +8,12 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
-namespace Microsoft.Health.Dicom.Functions.IndexMetricsCollection.Telemetry;
+namespace Microsoft.Health.Dicom.Functions.MetricsCollection.Telemetry;
 
 public sealed class IndexMetricsCollectionMeter : IDisposable
 {
     private readonly Meter _meter;
-    internal const string MeterName = "IndexMetricsCollection";
+    internal const string MeterName = "MetricsCollection";
 
     internal IndexMetricsCollectionMeter() : this($"{OpenTelemetryLabels.BaseMeterName}.{MeterName}")
     {

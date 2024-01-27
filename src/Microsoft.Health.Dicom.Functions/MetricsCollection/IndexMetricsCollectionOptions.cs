@@ -5,7 +5,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Functions.IndexMetricsCollection;
+namespace Microsoft.Health.Dicom.Functions.MetricsCollection;
 
 /// <summary>
 /// Options on collecting indexing metrics
@@ -15,7 +15,7 @@ public class IndexMetricsCollectionOptions
     /// <summary>
     /// The default section name for <see cref="IndexMetricsCollectionOptions"/> in a configuration.
     /// </summary>
-    public const string SectionName = "IndexMetricsCollection";
+    public const string SectionName = "MetricsCollection";
 
     /// <summary>
     /// Gets or sets the cron expression that indicates how frequently to run the index metrics collection function.
