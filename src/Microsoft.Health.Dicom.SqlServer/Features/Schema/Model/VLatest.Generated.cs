@@ -73,6 +73,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagErrorsV36Procedure GetExtendedQueryTagErrorsV36 = new GetExtendedQueryTagErrorsV36Procedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
+        internal readonly static GetExtendedQueryTagIndexBatchesProcedure GetExtendedQueryTagIndexBatches = new GetExtendedQueryTagIndexBatchesProcedure();
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
@@ -1779,6 +1780,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _limit.AddParameter(command.Parameters, limit);
                 _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
+        internal class GetExtendedQueryTagIndexBatchesProcedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagIndexBatchesProcedure() : base("dbo.GetExtendedQueryTagIndexBatches")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Int32 tagKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagIndexBatches";
+                _batchSize.AddParameter(command.Parameters, batchSize);
+                _batchCount.AddParameter(command.Parameters, batchCount);
+                _tagKey.AddParameter(command.Parameters, tagKey);
             }
         }
 

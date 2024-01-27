@@ -2459,6 +2459,22 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagIndexBatches
+@batchSize INT, @batchCount INT, @tagKey INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT   MIN(Watermark) AS MinWatermark,
+             MAX(Watermark) AS MaxWatermark
+    FROM     (SELECT TOP (@batchSize * @batchCount) I.Watermark,
+                                                    (ROW_NUMBER() OVER (ORDER BY I.Watermark DESC) - 1) / @batchSize AS Batch
+              FROM   dbo.ExtendedQueryTagString
+              WHERE  TagKey = @tagKey) AS I
+    GROUP BY Batch
+    ORDER BY Batch ASC;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTags
 @limit INT, @offset INT
 AS
