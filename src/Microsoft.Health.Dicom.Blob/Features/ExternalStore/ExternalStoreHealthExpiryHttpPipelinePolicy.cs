@@ -32,7 +32,7 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
         uriBuilder.Path = Path.Combine(uriBuilder.Path, _externalStoreOptions.StorageDirectory, _externalStoreOptions.HealthCheckFilePath);
 
         string healthCheckPathRegex = Regex.Escape(uriBuilder.Uri.AbsoluteUri);
-        _healthCheckRegex = new Regex($"^{healthCheckPathRegex}{GuidRegex}\\.txt$", RegexOptions.CultureInvariant);
+        _healthCheckRegex = new Regex($"^{healthCheckPathRegex}{GuidRegex}\\.txt$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
     }
 
     public override void Process(HttpMessage message, ReadOnlyMemory<HttpPipelinePolicy> pipeline)
