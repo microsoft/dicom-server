@@ -111,8 +111,7 @@
   },
   "ExternalBlobStore": {
     "BlobContainerUri": null,
-    "StorageDirectory": "DICOM/",
-    "Region": null
+    "StorageDirectory": "DICOM/"
   },
   "DicomServer": {
     "Features": {
