@@ -86,4 +86,6 @@ public class DicomRequestContext : IDicomRequestContext
     public IDictionary<string, StringValues> RequestHeaders { get; }
 
     public IDictionary<string, StringValues> ResponseHeaders { get; }
+
+    public long BlobBytesEgress { get; set; }
 }
