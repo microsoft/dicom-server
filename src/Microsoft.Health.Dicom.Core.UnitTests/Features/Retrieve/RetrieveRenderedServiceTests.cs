@@ -111,6 +111,7 @@ public class RetrieveRenderedServiceTests
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
             new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() }),
             DefaultCancellationToken));
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Theory]
@@ -128,6 +129,7 @@ public class RetrieveRenderedServiceTests
         RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, quality, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(request, CancellationToken.None));
         Assert.Equal(expectedErrorMessage, ex.Message);
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Fact]
@@ -141,6 +143,7 @@ public class RetrieveRenderedServiceTests
         _retrieveRenderedService.RetrieveRenderedImageAsync(
               new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() }),
               DefaultCancellationToken));
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
     }
 
@@ -152,13 +155,15 @@ public class RetrieveRenderedServiceTests
         // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
         Stream streamOfStoredFiles = (await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3)).Value;
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamOfStoredFiles);
-        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamOfStoredFiles.Length });
+        var expectedLength = streamOfStoredFiles.Length;
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedLength });
 
         var retrieveRenderRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
         await Assert.ThrowsAsync<FrameNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderRequest,
                DefaultCancellationToken));
+        Assert.Equal(expectedLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         // Dispose the stream.
         streamOfStoredFiles.Dispose();
@@ -171,7 +176,8 @@ public class RetrieveRenderedServiceTests
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
+        var expectedLength = streamAndStoredFile.Value.Length;
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedLength });
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
         await streamAndStoredFile.Value.CopyToAsync(copyStream);
@@ -182,6 +188,7 @@ public class RetrieveRenderedServiceTests
         await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
         streamAndStoredFileForFrame2.Position = 0;
         streamAndStoredFile.Value.Position = 0;
+        var expectedLength2 = streamAndStoredFileForFrame2.Length;
 
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -200,6 +207,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/jpeg", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -218,6 +226,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/jpeg", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength2, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -233,7 +242,8 @@ public class RetrieveRenderedServiceTests
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
+        var expectedLength = streamAndStoredFile.Value.Length;
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedLength });
 
         JpegEncoder jpegEncoder = new JpegEncoder();
         jpegEncoder.Quality = 50;
@@ -248,6 +258,7 @@ public class RetrieveRenderedServiceTests
         await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
         streamAndStoredFileForFrame2.Position = 0;
         streamAndStoredFile.Value.Position = 0;
+        var expectedLength2 = streamAndStoredFileForFrame2.Length;
 
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 50, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -266,6 +277,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/jpeg", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 20, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -285,6 +297,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/jpeg", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength2, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -299,7 +312,8 @@ public class RetrieveRenderedServiceTests
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
+        var expectedLength = streamAndStoredFile.Value.Length;
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedLength });
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
         await streamAndStoredFile.Value.CopyToAsync(copyStream);
@@ -310,6 +324,7 @@ public class RetrieveRenderedServiceTests
         await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
         streamAndStoredFileForFrame2.Position = 0;
         streamAndStoredFile.Value.Position = 0;
+        var expectedLength2 = streamAndStoredFileForFrame2.Length;
 
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(mediaType: KnownContentTypes.ImagePng) });
 
@@ -328,6 +343,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/png", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(mediaType: KnownContentTypes.ImagePng) });
 
@@ -346,6 +362,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/png", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength2, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -368,7 +385,8 @@ public class RetrieveRenderedServiceTests
         streamAndStoredFile.Value.Position = 0;
 
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
+        var expectedLength = streamAndStoredFile.Value.Length;
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedLength });
 
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 1, 75, new List<AcceptHeader>());
 
@@ -387,6 +405,7 @@ public class RetrieveRenderedServiceTests
         Assert.Equal("image/jpeg", response.ContentType);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
         Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
+        Assert.Equal(expectedLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
 
         response.ResponseStream.Dispose();
         copyStream.Dispose();

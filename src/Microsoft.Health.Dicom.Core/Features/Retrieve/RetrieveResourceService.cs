@@ -132,7 +132,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
                 using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.FileProperties, cancellationToken);
-                _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = stream.Length;
+                _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = stream?.Length ?? 0;
                 Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
@@ -225,6 +225,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
         Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, cancellationToken);
+        _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = stream?.Length ?? 0;
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,
@@ -307,14 +308,16 @@ public class RetrieveResourceService : IRetrieveResourceService
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartition(), instanceMetadata.InstanceProperties.FileProperties, cancellationToken);
             Stream stream = await _blobDataStore.GetStreamingFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartition(), instanceMetadata.InstanceProperties.FileProperties, cancellationToken);
-            streamTotalLength += fileProperties.ContentLength;
+            streamTotalLength += stream?.Length ?? 0;
+            // keep resetting to latest total as the next loop may cause an exception, but we still want to track successful
+            // retrieved so far
+            _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = streamTotalLength;
             yield return
                 new RetrieveResourceInstance(
                     stream,
                     GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
                     fileProperties.ContentLength);
         }
-        _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = streamTotalLength;
         LogFileSize(streamTotalLength, requestedVersion, needsTranscoding: false, hasFrameMetadata: hasFrameMetadata);
     }
 

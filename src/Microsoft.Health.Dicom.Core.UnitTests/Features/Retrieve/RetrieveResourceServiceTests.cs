@@ -100,22 +100,28 @@ public class RetrieveResourceServiceTests
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
             new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
             DefaultCancellationToken));
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Fact]
     public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
     {
         List<InstanceMetadata> instances = SetupInstanceIdentifiersList(ResourceType.Study);
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
-        // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
+        var streamTotalLength = 0L;
         for (int i = 0; i < instances.Count - 1; i++)
         {
             InstanceMetadata instance = instances[i];
             KeyValuePair<DicomFile, Stream> stream = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instance.VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 0, disposeStreams: false);
             _fileStore.GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, null, DefaultCancellationToken).Returns(stream.Value);
             _retrieveTranscoder.TranscodeFileAsync(stream.Value, "*").Returns(stream.Value);
+            _fileStore.GetFilePropertiesAsync(
+                instance.VersionedInstanceIdentifier.Version,
+                Partition.Default,
+                null,
+                DefaultCancellationToken).Returns(new FileProperties { ContentLength = stream.Value.Length });
+            streamTotalLength += stream.Value.Length;
         }
 
         // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
@@ -125,6 +131,9 @@ public class RetrieveResourceServiceTests
                                 new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
                                 DefaultCancellationToken);
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.GetStreamsAsync());
+
+        // we still need to know total bytes that we succeeded in retrieving
+        Assert.Equal(streamTotalLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Fact]
@@ -137,12 +146,18 @@ public class RetrieveResourceServiceTests
         var streamsAndStoredFiles = await Task.WhenAll(versionedInstanceIdentifiers.Select(
             x => RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier), _recyclableMemoryStreamManager)));
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
         int count = 0;
+        var streamTotalLength = 0L;
         foreach (var file in streamsAndStoredFiles)
         {
             _fileStore.GetStreamingFileAsync(count, Partition.Default, null, DefaultCancellationToken).Returns(file.Value);
+            _fileStore.GetFilePropertiesAsync(
+                count,
+                Partition.Default,
+                null,
+                DefaultCancellationToken).Returns(new FileProperties { ContentLength = file.Value.Length });
             count++;
+            streamTotalLength += file.Value.Length;
         }
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -152,8 +167,8 @@ public class RetrieveResourceServiceTests
         // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
         ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), await response.GetStreamsAsync());
 
-        // Validate dicom request is populated with correct transcode values
-        ValidateDicomRequestIsPopulated();
+        // Validate dicom request is populated with correct transcode and bytes retrieved values
+        ValidateDicomRequestIsPopulated(streamTotalLength: streamTotalLength);
 
         // Dispose created streams.
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
@@ -261,7 +276,7 @@ public class RetrieveResourceServiceTests
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instanceMetadata.VersionedInstanceIdentifier), _recyclableMemoryStreamManager);
-
+        var expectedTotalLength = streamsAndStoredFile.Value.Length;
         _fileStore.GetFileAsync(0, _dicomRequestContextAccessor.RequestContext.DataPartition, null, DefaultCancellationToken).Returns(streamsAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, _dicomRequestContextAccessor.RequestContext.DataPartition, instanceMetadata.InstanceProperties.FileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFile.Value.Length });
         string transferSyntax = "1.2.840.10008.1.2.1";
@@ -276,7 +291,7 @@ public class RetrieveResourceServiceTests
 
         // Validate dicom request is populated with correct transcode values
         IEnumerable<Stream> streams = await response.GetStreamsAsync();
-        ValidateDicomRequestIsPopulated(true, streams.Sum(s => s.Length));
+        ValidateDicomRequestIsPopulated(true, streams.Sum(s => s.Length), streamTotalLength: expectedTotalLength);
 
         // Dispose created streams.
         streamsAndStoredFile.Value.Dispose();
@@ -290,6 +305,8 @@ public class RetrieveResourceServiceTests
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
             new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
             DefaultCancellationToken));
+        // no bytes retrieved
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Fact]
@@ -299,11 +316,13 @@ public class RetrieveResourceServiceTests
         _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
+        var streamTotalLength = 0L;
         for (int i = 0; i < versionedInstanceIdentifiers.Count - 1; i++)
         {
             InstanceMetadata instance = versionedInstanceIdentifiers[i];
             KeyValuePair<DicomFile, Stream> stream = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instance.VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 0, disposeStreams: false);
             _fileStore.GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, null, DefaultCancellationToken).Returns(stream.Value);
+            streamTotalLength += stream.Value.Length;
             _retrieveTranscoder.TranscodeFileAsync(stream.Value, "*").Returns(stream.Value);
         }
 
@@ -314,6 +333,9 @@ public class RetrieveResourceServiceTests
                                 new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
                                 DefaultCancellationToken);
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.GetStreamsAsync());
+
+        // we still need to know total bytes that we succeeded in retrieving
+        Assert.Equal(streamTotalLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Fact]
@@ -344,8 +366,8 @@ public class RetrieveResourceServiceTests
         // Validate response status code and ensure response streams have expected files - they should be equivalent to what the store was set up to return.
         ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), await response.GetStreamsAsync());
 
-        // Validate dicom request is populated with correct transcode values
-        ValidateDicomRequestIsPopulated();
+        // Validate dicom request is populated with correct transcode values and correct bytes retrieved
+        ValidateDicomRequestIsPopulated(streamTotalLength: streamsAndStoredFiles.Select(x => x.Value.Length).Sum());
 
         // Dispose created streams.
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
@@ -362,6 +384,8 @@ public class RetrieveResourceServiceTests
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
             new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
             DefaultCancellationToken));
+        // no bytes retrieved
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     [Fact]
@@ -412,8 +436,8 @@ public class RetrieveResourceServiceTests
         // Validate response status code and ensure response stream has expected file - it should be equivalent to what the store was set up to return.
         ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, await response.GetStreamsAsync());
 
-        // Validate dicom request is populated with correct transcode values
-        ValidateDicomRequestIsPopulated();
+        // Validate dicom request is populated with correct transcode values and correct bytes retrieved
+        ValidateDicomRequestIsPopulated(streamTotalLength: streamAndStoredFile.Value.Length);
 
         // Validate content type
         Assert.Equal(KnownContentTypes.ApplicationDicom, response.ContentType);
@@ -452,6 +476,9 @@ public class RetrieveResourceServiceTests
                retrieveResourceRequest,
                DefaultCancellationToken));
 
+        // we need to know total bytes that we succeeded in retrieving
+        Assert.Equal(streamOfStoredFiles.Length, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
+
         streamOfStoredFiles.Dispose();
     }
 
@@ -475,6 +502,9 @@ public class RetrieveResourceServiceTests
                retrieveResourceRequest,
                DefaultCancellationToken));
 
+        // we need to know total bytes that we succeeded in retrieving, even though some frames may not exist in that stream
+        Assert.Equal(streamOfStoredFiles.Length, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
+
         // Dispose the stream.
         streamOfStoredFiles.Dispose();
     }
@@ -489,7 +519,8 @@ public class RetrieveResourceServiceTests
         // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, null, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
+        var expectedLength = streamAndStoredFile.Value.Length;
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedLength });
 
         // Setup frame handler to return the frames as streams from the file.
         Stream[] frames = framesToRequest.Select(f => GetFrameFromFile(streamAndStoredFile.Key.Dataset, f)).ToArray();
@@ -507,7 +538,7 @@ public class RetrieveResourceServiceTests
         AssertPixelDataEqual(DicomPixelData.Create(streamAndStoredFile.Key.Dataset).GetFrame(framesToRequest[1]), streams.ToList()[1]);
 
         // Validate dicom request is populated with correct transcode values
-        ValidateDicomRequestIsPopulated();
+        ValidateDicomRequestIsPopulated(streamTotalLength: expectedLength);
 
         streamAndStoredFile.Value.Dispose();
 
@@ -861,10 +892,12 @@ public class RetrieveResourceServiceTests
         return dicomInstanceIdentifiersList;
     }
 
-    private void ValidateDicomRequestIsPopulated(bool isTranscodeRequested = false, long sizeOfTranscode = 0)
+    private void ValidateDicomRequestIsPopulated(bool isTranscodeRequested = false, long sizeOfTranscode = 0, long streamTotalLength = 0)
     {
         Assert.Equal(isTranscodeRequested, _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested);
         Assert.Equal(sizeOfTranscode, _dicomRequestContextAccessor.RequestContext.BytesTranscoded);
+        // we need to know total bytes that we succeeded in retrieving
+        Assert.Equal(streamTotalLength, _dicomRequestContextAccessor.RequestContext.BlobBytesEgress);
     }
 
     private void ValidateResponseStreams(
