@@ -22,6 +22,8 @@ public interface IDicomRequestContext : IRequestContext
 
     public long BytesRendered { get; set; }
 
+    long BlobBytesEgress { get; set; }
+
     int PartCount { get; set; }
 
     Partition DataPartition { get; set; }

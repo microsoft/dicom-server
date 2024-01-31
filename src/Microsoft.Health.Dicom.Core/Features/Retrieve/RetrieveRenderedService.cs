@@ -96,6 +96,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
                 RetrieveMeter.RetrieveInstanceCountTelemetryDimension(isRendered: true));
 
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.FileProperties, cancellationToken);
+            _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = stream.Length;
             sw.Start();
 
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);

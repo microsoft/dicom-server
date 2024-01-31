@@ -132,6 +132,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
                 using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.FileProperties, cancellationToken);
+                _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = stream.Length;
                 Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
@@ -313,6 +314,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                     GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
                     fileProperties.ContentLength);
         }
+        _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = streamTotalLength;
         LogFileSize(streamTotalLength, requestedVersion, needsTranscoding: false, hasFrameMetadata: hasFrameMetadata);
     }
 
