@@ -7,7 +7,7 @@ CREATE OR ALTER PROCEDURE dbo.GetTotalAndSumContentLengthIndexedAsync
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-SELECT TotalIndexedFilesCount=COUNT(*),
+SELECT TotalIndexedFileCount=COUNT(*),
        TotalIndexedBytes=SUM(ContentLength)
 FROM   dbo.FileProperty;
 END

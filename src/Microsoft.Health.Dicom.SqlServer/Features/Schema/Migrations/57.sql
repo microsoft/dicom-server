@@ -2752,7 +2752,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT COUNT(*) AS TotalIndexedFilesCount,
+    SELECT COUNT(*) AS TotalIndexedFileCount,
            SUM(ContentLength) AS TotalIndexedBytes
     FROM   dbo.FileProperty;
 END

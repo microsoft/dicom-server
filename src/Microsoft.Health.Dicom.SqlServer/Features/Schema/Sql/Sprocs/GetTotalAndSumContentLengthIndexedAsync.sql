@@ -15,5 +15,5 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-SELECT TotalIndexedFilesCount=COUNT(*), TotalIndexedBytes=SUM(ContentLength) FROM dbo.FileProperty
+SELECT TotalIndexedFileCount=COUNT(*), TotalIndexedBytes=SUM(ContentLength) FROM dbo.FileProperty
 END
