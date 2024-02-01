@@ -1,11 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Globalization;
 using Azure;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
@@ -38,7 +38,7 @@ public class DataStoreRequestFailedException : ConditionalExternalException
 
     private static string GetFormattedExternalStoreMessageWithoutErrorCode(RequestFailedException ex)
     {
-        if (ex.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase))
+        if (ex.IsStorageAccountUnknownHostError())
         {
             return DicomCoreResource.ExternalDataStoreHostIsUnknown;
         }
