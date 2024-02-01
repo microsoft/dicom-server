@@ -355,7 +355,7 @@ public class RetrieveResourceServiceTests
         foreach (var file in streamsAndStoredFiles)
         {
             var length = file.Value.Length;
-            _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = length });
+            _fileStore.GetFilePropertiesAsync(count, Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = length });
             _fileStore.GetStreamingFileAsync(count, Partition.Default, null, DefaultCancellationToken).Returns(file.Value);
             count++;
             expectedContentLength += length;
