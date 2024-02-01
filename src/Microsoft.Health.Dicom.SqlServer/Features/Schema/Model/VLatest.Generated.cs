@@ -87,7 +87,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static GetSeriesResultProcedure GetSeriesResult = new GetSeriesResultProcedure();
         internal readonly static GetStudyResultProcedure GetStudyResult = new GetStudyResultProcedure();
-        internal readonly static GetTotalAndSumContentLengthIndexedAsyncV57Procedure GetTotalAndSumContentLengthIndexedAsyncV57 = new GetTotalAndSumContentLengthIndexedAsyncV57Procedure();
+        internal readonly static GetTotalAndSumContentLengthIndexedAsyncProcedure GetTotalAndSumContentLengthIndexedAsync = new GetTotalAndSumContentLengthIndexedAsyncProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
@@ -2155,16 +2155,16 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
         }
 
-        internal class GetTotalAndSumContentLengthIndexedAsyncV57Procedure : StoredProcedure
+        internal class GetTotalAndSumContentLengthIndexedAsyncProcedure : StoredProcedure
         {
-            internal GetTotalAndSumContentLengthIndexedAsyncV57Procedure() : base("dbo.GetTotalAndSumContentLengthIndexedAsyncV57")
+            internal GetTotalAndSumContentLengthIndexedAsyncProcedure() : base("dbo.GetTotalAndSumContentLengthIndexedAsync")
             {
             }
 
             public void PopulateCommand(SqlCommandWrapper command)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetTotalAndSumContentLengthIndexedAsyncV57";
+                command.CommandText = "dbo.GetTotalAndSumContentLengthIndexedAsync";
             }
         }
 

@@ -2747,13 +2747,13 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetTotalAndSumContentLengthIndexedAsyncV57
+CREATE OR ALTER PROCEDURE dbo.GetTotalAndSumContentLengthIndexedAsync
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT TotalIndexedFilesCount=COUNT(*),
-           TotalIndexedBytes=SUM(ContentLength)
+    SELECT COUNT(*) AS TotalIndexedFilesCount,
+           SUM(ContentLength) AS TotalIndexedBytes
     FROM   dbo.FileProperty;
 END
 
