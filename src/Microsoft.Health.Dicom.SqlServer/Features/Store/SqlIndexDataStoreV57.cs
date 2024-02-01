@@ -16,6 +16,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
 internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
 {
+    protected static readonly Health.SqlServer.Features.Schema.Model.IntColumn TotalIndexedFileCount = new("TotalIndexedFileCount");
+    protected static readonly Health.SqlServer.Features.Schema.Model.NullableBigIntColumn TotalIndexedBytes = new("TotalIndexedBytes");
+
     public SqlIndexDataStoreV57(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
@@ -32,11 +35,14 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
         try
         {
             using SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+
             await sqlDataReader.ReadAsync(cancellationToken);
+            int totalIndexedBytesIndex = sqlDataReader.GetOrdinal(TotalIndexedBytes);
+
             return new IndexedFileProperties
             {
-                TotalIndexed = (int)sqlDataReader[0],
-                TotalSum = await sqlDataReader.IsDBNullAsync(1, cancellationToken) ? 0 : (long)sqlDataReader[1],
+                TotalIndexed = (int)sqlDataReader[TotalIndexedFileCount],
+                TotalSum = await sqlDataReader.IsDBNullAsync(totalIndexedBytesIndex, cancellationToken) ? 0 : (long)sqlDataReader[totalIndexedBytesIndex],
             };
         }
         catch (SqlException ex)
