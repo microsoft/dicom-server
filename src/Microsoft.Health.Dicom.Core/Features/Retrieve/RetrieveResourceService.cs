@@ -308,7 +308,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartition(), instanceMetadata.InstanceProperties.FileProperties, cancellationToken);
             Stream stream = await _blobDataStore.GetStreamingFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartition(), instanceMetadata.InstanceProperties.FileProperties, cancellationToken);
-            streamTotalLength += stream?.Length ?? 0;
+            streamTotalLength += fileProperties.ContentLength;
             // keep resetting to latest total as the next loop may cause an exception, but we still want to track successful
             // retrieved so far
             _dicomRequestContextAccessor.RequestContext.BlobBytesEgress = streamTotalLength;

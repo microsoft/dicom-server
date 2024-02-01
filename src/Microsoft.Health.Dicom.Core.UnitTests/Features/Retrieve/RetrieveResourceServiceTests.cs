@@ -321,8 +321,10 @@ public class RetrieveResourceServiceTests
         {
             InstanceMetadata instance = versionedInstanceIdentifiers[i];
             KeyValuePair<DicomFile, Stream> stream = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instance.VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 0, disposeStreams: false);
+            var length = stream.Value.Length;
+            _fileStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier.Version, Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = length });
             _fileStore.GetStreamingFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, null, DefaultCancellationToken).Returns(stream.Value);
-            streamTotalLength += stream.Value.Length;
+            streamTotalLength += length;
             _retrieveTranscoder.TranscodeFileAsync(stream.Value, "*").Returns(stream.Value);
         }
 
@@ -348,12 +350,15 @@ public class RetrieveResourceServiceTests
         var streamsAndStoredFiles = await Task.WhenAll(versionedInstanceIdentifiers
             .Select(x => RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier), _recyclableMemoryStreamManager)));
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
         int count = 0;
+        var expectedContentLength = 0L;
         foreach (var file in streamsAndStoredFiles)
         {
+            var length = file.Value.Length;
+            _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = length });
             _fileStore.GetStreamingFileAsync(count, Partition.Default, null, DefaultCancellationToken).Returns(file.Value);
             count++;
+            expectedContentLength += length;
         }
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -367,7 +372,7 @@ public class RetrieveResourceServiceTests
         ValidateResponseStreams(streamsAndStoredFiles.Select(x => x.Key), await response.GetStreamsAsync());
 
         // Validate dicom request is populated with correct transcode values and correct bytes retrieved
-        ValidateDicomRequestIsPopulated(streamTotalLength: streamsAndStoredFiles.Select(x => x.Value.Length).Sum());
+        ValidateDicomRequestIsPopulated(streamTotalLength: expectedContentLength);
 
         // Dispose created streams.
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
@@ -423,7 +428,8 @@ public class RetrieveResourceServiceTests
 
         _fileStore.GetStreamingFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, expectedFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, expectedFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        var expectedStreamLength = streamAndStoredFile.Value.Length;
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, expectedFileProperties, DefaultCancellationToken).Returns(new FileProperties { ContentLength = expectedStreamLength });
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                new RetrieveResourceRequest(
@@ -437,7 +443,7 @@ public class RetrieveResourceServiceTests
         ValidateResponseStreams(new List<DicomFile>() { streamAndStoredFile.Key }, await response.GetStreamsAsync());
 
         // Validate dicom request is populated with correct transcode values and correct bytes retrieved
-        ValidateDicomRequestIsPopulated(streamTotalLength: streamAndStoredFile.Value.Length);
+        ValidateDicomRequestIsPopulated(streamTotalLength: expectedStreamLength);
 
         // Validate content type
         Assert.Equal(KnownContentTypes.ApplicationDicom, response.ContentType);
