@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Functions.MetricsCollection;
 using Microsoft.Health.Dicom.Functions.MetricsCollection.Telemetry;
+using Microsoft.Health.Dicom.Tests.Common.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using OpenTelemetry;
@@ -51,18 +51,6 @@ public class IndexMetricsCollectionFunctionTests
     }
 
     [Fact]
-    public async Task GivenIndexMetricsCollectionFunction_WhenRun_ThenIndexMetricsCollectionsCompletedCounterIsIncremented()
-    {
-        _indexStore.GetIndexedFileMetricsAsync().ReturnsForAnyArgs(new IndexedFileProperties());
-
-        await _collectionFunction.Run(_timer, NullLogger.Instance);
-
-        _meterProvider.ForceFlush();
-        Assert.Single(_exportedItems);
-        Assert.Equal(nameof(_meter.IndexMetricsCollectionsCompletedCounter), _exportedItems[0].Name);
-    }
-
-    [Fact]
     public async Task GivenIndexMetricsCollectionFunction_WhenRunException_ThenIndexMetricsCollectionsCompletedCounterIsIncremented()
     {
         _indexStore.GetIndexedFileMetricsAsync().ThrowsForAnyArgs(new Exception());
@@ -70,12 +58,7 @@ public class IndexMetricsCollectionFunctionTests
         await Assert.ThrowsAsync<Exception>(() => _collectionFunction.Run(_timer, NullLogger.Instance));
 
         _meterProvider.ForceFlush();
-        Assert.NotEmpty(_exportedItems);
-        Collection<MetricPoint> points = GetMetricPoints(_meter.IndexMetricsCollectionsCompletedCounter.Name);
-        Assert.Single(points);
-
-        Dictionary<string, object> tags = GetTags(points[0]);
-        Assert.Equal(false, tags["CollectionSucceeded"]);
+        AssertMetricEmitted(_meter.IndexMetricsCollectionsCompletedCounter.Name, _exportedItems, expectedSucceededTagValue: false);
     }
 
     [Fact]
@@ -86,6 +69,9 @@ public class IndexMetricsCollectionFunctionTests
         await _collectionFunction.Run(_timer, NullLogger.Instance);
 
         await _indexStore.ReceivedWithAnyArgs(1).GetIndexedFileMetricsAsync();
+
+        _meterProvider.ForceFlush();
+        AssertMetricEmitted(_meter.IndexMetricsCollectionsCompletedCounter.Name, _exportedItems);
     }
 
     [Fact]
@@ -100,29 +86,20 @@ public class IndexMetricsCollectionFunctionTests
         await collectionFunctionWihtoutExternalStore.Run(_timer, NullLogger.Instance);
 
         await _indexStore.DidNotReceiveWithAnyArgs().GetIndexedFileMetricsAsync();
+        _meterProvider.ForceFlush();
+        Assert.Empty(_exportedItems);
     }
 
-    internal static Dictionary<string, object> GetTags(MetricPoint metricPoint)
+    private static void AssertMetricEmitted(
+        string metricName,
+        List<Metric> exportedItems,
+        bool expectedSucceededTagValue = true)
     {
-        var tags = new Dictionary<string, object>();
-        foreach (var pair in metricPoint.Tags)
-        {
-            tags.Add(pair.Key, pair.Value);
-        }
+        Assert.NotEmpty(exportedItems);
+        Collection<MetricPoint> points = MeterValidationHelper.GetMetricPoints(metricName, exportedItems);
+        Assert.Single(points);
 
-        return tags;
-    }
-
-    internal Collection<MetricPoint> GetMetricPoints(string metricName)
-    {
-        var metricItems = _exportedItems.Where(item => item.Name.Equals(metricName, StringComparison.Ordinal)).ToList();
-        MetricPointsAccessor accessor = metricItems.First().GetMetricPoints();
-        var metrics = new Collection<MetricPoint>();
-        foreach (MetricPoint metricPoint in accessor)
-        {
-            metrics.Add(metricPoint);
-        }
-
-        return metrics;
+        Dictionary<string, object> tags = MeterValidationHelper.GetTags(points[0]);
+        Assert.Equal(expectedSucceededTagValue, tags["CollectionSucceeded"]);
     }
 }

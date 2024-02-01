@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NSubstitute" />
+    <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="xunit.assert" />
   </ItemGroup>
