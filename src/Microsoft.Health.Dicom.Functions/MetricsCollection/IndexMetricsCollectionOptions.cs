@@ -15,7 +15,7 @@ public class IndexMetricsCollectionOptions
     /// <summary>
     /// The default section name for <see cref="IndexMetricsCollectionOptions"/> in a configuration.
     /// </summary>
-    public const string SectionName = "MetricsCollection";
+    public const string SectionName = "IndexMetricsCollection";
 
     /// <summary>
     /// Gets or sets the cron expression that indicates how frequently to run the index metrics collection function.
