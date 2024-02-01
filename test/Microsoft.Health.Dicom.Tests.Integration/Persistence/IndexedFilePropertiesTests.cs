@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
@@ -59,6 +61,9 @@ public class IndexedFilePropertiesTests : IClassFixture<SqlDataStoreTestsFixture
 
         Assert.Equal(properties.Sum(x => x.ContentLength), indexedFileProperties.TotalSum);
         Assert.Equal(properties.Count, indexedFileProperties.TotalIndexed);
+
+        // cleanup so other tests are not affected
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, StudyInstanceUid, DateTime.Now, CancellationToken.None);
     }
 
     [Fact]
@@ -77,6 +82,9 @@ public class IndexedFilePropertiesTests : IClassFixture<SqlDataStoreTestsFixture
 
         Assert.Equal(properties.Sum(x => x.ContentLength), indexedFileProperties.TotalSum);
         Assert.Equal(properties.Count, indexedFileProperties.TotalIndexed);
+
+        // cleanup so other tests are not affected
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, StudyInstanceUid, DateTime.Now, CancellationToken.None);
     }
 
     private async Task<FileProperties> CreateRandomInstanceAsync(FileProperties fileProperties, Partition partition = null)
