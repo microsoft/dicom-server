@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -61,14 +63,19 @@ public class IndexMetricsCollectionFunctionTests
     }
 
     [Fact]
-    public async Task GivenIndexMetricsCollectionFunction_WhenRunException_ThenIndexMetricsCollectionsCompletedCounterIsNotIncremented()
+    public async Task GivenIndexMetricsCollectionFunction_WhenRunException_ThenIndexMetricsCollectionsCompletedCounterIsIncremented()
     {
         _indexStore.GetIndexedFileMetricsAsync().ThrowsForAnyArgs(new Exception());
 
         await Assert.ThrowsAsync<Exception>(() => _collectionFunction.Run(_timer, NullLogger.Instance));
 
         _meterProvider.ForceFlush();
-        Assert.Empty(_exportedItems);
+        Assert.NotEmpty(_exportedItems);
+        Collection<MetricPoint> points = GetMetricPoints(_meter.IndexMetricsCollectionsCompletedCounter.Name);
+        Assert.Single(points);
+
+        Dictionary<string, object> tags = GetTags(points[0]);
+        Assert.Equal(false, tags["CollectionSucceeded"]);
     }
 
     [Fact]
@@ -93,5 +100,29 @@ public class IndexMetricsCollectionFunctionTests
         await collectionFunctionWihtoutExternalStore.Run(_timer, NullLogger.Instance);
 
         await _indexStore.DidNotReceiveWithAnyArgs().GetIndexedFileMetricsAsync();
+    }
+
+    internal static Dictionary<string, object> GetTags(MetricPoint metricPoint)
+    {
+        var tags = new Dictionary<string, object>();
+        foreach (var pair in metricPoint.Tags)
+        {
+            tags.Add(pair.Key, pair.Value);
+        }
+
+        return tags;
+    }
+
+    internal Collection<MetricPoint> GetMetricPoints(string metricName)
+    {
+        var metricItems = _exportedItems.Where(item => item.Name.Equals(metricName, StringComparison.Ordinal)).ToList();
+        MetricPointsAccessor accessor = metricItems.First().GetMetricPoints();
+        var metrics = new Collection<MetricPoint>();
+        foreach (MetricPoint metricPoint in accessor)
+        {
+            metrics.Add(metricPoint);
+        }
+
+        return metrics;
     }
 }
