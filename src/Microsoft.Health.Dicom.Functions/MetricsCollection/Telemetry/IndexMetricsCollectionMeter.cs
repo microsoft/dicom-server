@@ -30,9 +30,10 @@ public sealed class IndexMetricsCollectionMeter : IDisposable
     }
 
 
-    public static KeyValuePair<string, object>[] CreateTelemetryDimension(bool externalStoreEnabled, bool dataPartitionsEnabled) =>
+    public static KeyValuePair<string, object>[] CreateTelemetryDimension(bool succeeded, bool externalStoreEnabled, bool dataPartitionsEnabled) =>
         new[]
         {
+            new KeyValuePair<string, object>("CollectionSucceeded", succeeded),
             new KeyValuePair<string, object>("ExternalStoreEnabled", externalStoreEnabled),
             new KeyValuePair<string, object>("DataPartitionsEnabled", dataPartitionsEnabled),
         };

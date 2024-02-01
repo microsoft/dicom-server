@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Functions.MetricsCollection.Telemetry;
@@ -65,27 +66,34 @@ public class IndexMetricsCollectionFunction
         {
             log.LogWarning("Current function invocation is running late.");
         }
+        try
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFileMetricsAsync();
+            stopwatch.Stop();
 
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
+            log.LogInformation(
+                "DICOM telemetry - TotalFilesIndexed: {TotalFilesIndexed} , TotalByesIndexed: {TotalContentLengthIndexed} ,  with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}",
+                indexedFileProperties.TotalIndexed,
+                indexedFileProperties.TotalSum,
+                _externalStoreEnabled,
+                _enableDataPartitions);
 
-        IndexedFileProperties indexedFileProperties = await _indexDataStore.GetIndexedFileMetricsAsync();
+            _meter.IndexMetricsCollectionsCompletedCounter.Add(1,
+                IndexMetricsCollectionMeter.CreateTelemetryDimension(succeeded: true, _externalStoreEnabled, _enableDataPartitions));
 
-        stopwatch.Stop();
-
-        log.LogInformation(
-            "DICOM telemetry - TotalFilesIndexed: {TotalFilesIndexed} , TotalByesIndexed: {TotalContentLengthIndexed} ,  with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}",
-            indexedFileProperties.TotalIndexed,
-            indexedFileProperties.TotalSum,
-            _externalStoreEnabled,
-            _enableDataPartitions);
-
-        _meter.IndexMetricsCollectionsCompletedCounter.Add(1, IndexMetricsCollectionMeter.CreateTelemetryDimension(_externalStoreEnabled, _enableDataPartitions));
-
-        log.LogInformation(
-            "Collecting a daily summation time taken: {ElapsedTime} ms with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}",
-            stopwatch.ElapsedMilliseconds,
-            _externalStoreEnabled,
-            _enableDataPartitions);
+            log.LogInformation(
+                "Collecting a daily summation time taken: {ElapsedTime} ms with ExternalStoreEnabled: {ExternalStoreEnabled} and DataPartitionsEnabled: {PartitionsEnabled}",
+                stopwatch.ElapsedMilliseconds,
+                _externalStoreEnabled,
+                _enableDataPartitions);
+        }
+        catch (Exception)
+        {
+            _meter.IndexMetricsCollectionsCompletedCounter.Add(1,
+                IndexMetricsCollectionMeter.CreateTelemetryDimension(succeeded: false, _externalStoreEnabled, _enableDataPartitions));
+            throw;
+        }
     }
 }
