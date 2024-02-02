@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
 internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
 {
-    protected static readonly Health.SqlServer.Features.Schema.Model.IntColumn TotalIndexedFileCount = new("TotalIndexedFileCount");
+    protected static readonly Health.SqlServer.Features.Schema.Model.BigIntColumn TotalIndexedFileCount = new("TotalIndexedFileCount");
     protected static readonly Health.SqlServer.Features.Schema.Model.NullableBigIntColumn TotalIndexedBytes = new("TotalIndexedBytes");
 
     public SqlIndexDataStoreV57(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
