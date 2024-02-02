@@ -41,7 +41,7 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
 
             return new IndexedFileProperties
             {
-                TotalIndexed = (int)sqlDataReader[TotalIndexedFileCount],
+                TotalIndexed = (long)sqlDataReader[TotalIndexedFileCount],
                 TotalSum = await sqlDataReader.IsDBNullAsync(totalIndexedBytesIndex, cancellationToken) ? 0 : (long)sqlDataReader[totalIndexedBytesIndex],
             };
         }

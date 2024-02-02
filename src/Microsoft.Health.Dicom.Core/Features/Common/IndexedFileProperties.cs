@@ -15,7 +15,7 @@ public readonly struct IndexedFileProperties : IEquatable<IndexedFileProperties>
     /// <summary>
     /// Total indexed FileProperty in database
     /// </summary>
-    public int TotalIndexed { get; init; }
+    public long TotalIndexed { get; init; }
 
     /// <summary>
     /// Total sum of all ContentLength rows in FileProperty table

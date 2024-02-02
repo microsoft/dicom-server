@@ -2490,6 +2490,17 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetIndexedFileMetrics
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT COUNT_BIG(*) AS TotalIndexedFileCount,
+           SUM(ContentLength) AS TotalIndexedBytes
+    FROM   dbo.FileProperty;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetInstance
 @validStatus TINYINT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
 AS
@@ -2744,17 +2755,6 @@ BEGIN
            dbo.StudyResultView AS sv
            ON i.StudyKey = sv.StudyKey
               AND i.PartitionKey = sv.PartitionKey;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetIndexedFileMetrics
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT COUNT(*) AS TotalIndexedFileCount,
-           SUM(ContentLength) AS TotalIndexedBytes
-    FROM   dbo.FileProperty;
 END
 
 GO
