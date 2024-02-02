@@ -55,5 +55,5 @@ public class DefaultDicomRequestContext : IDicomRequestContext
     /// <summary>
     /// Egress bytes from Dicom server to other resources
     /// </summary>
-    public long TotalEgressBytes { get; set; }
+    public long TotalDicomEgressToStorageBytes { get; set; }
 }

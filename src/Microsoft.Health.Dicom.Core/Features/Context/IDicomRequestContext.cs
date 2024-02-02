@@ -32,5 +32,5 @@ public interface IDicomRequestContext : IRequestContext
     /// <summary>
     /// Egress bytes from Dicom server to other resources
     /// </summary>
-    long TotalEgressBytes { get; set; }
+    long TotalDicomEgressToStorageBytes { get; set; }
 }

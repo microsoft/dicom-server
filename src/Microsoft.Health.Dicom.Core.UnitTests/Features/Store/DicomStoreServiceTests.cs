@@ -163,7 +163,7 @@ public class DicomStoreServiceTests
         _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, DefaultStoreValidationResult, _dicomRequestContext.DataPartition);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
-        Assert.Equal(bytesStored, _dicomRequestContextAccessor.RequestContext.TotalEgressBytes);
+        Assert.Equal(bytesStored, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult, Partition.Default);
         _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ProcessingFailureReasonCode);
-        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.TotalEgressBytes);
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
         await _storeOrchestrator.DidNotReceiveWithAnyArgs().StoreDicomInstanceEntryAsync(Arg.Any<IDicomInstanceEntry>(), Arg.Any<CancellationToken>());
     }
 
@@ -192,7 +192,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult, Partition.Default);
         _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ValidationFailureReasonCode);
-        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.TotalEgressBytes);
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
         await _storeOrchestrator.DidNotReceiveWithAnyArgs().StoreDicomInstanceEntryAsync(Arg.Any<IDicomInstanceEntry>(), Arg.Any<CancellationToken>());
     }
 
@@ -245,7 +245,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        Assert.Equal(bytesStored, _dicomRequestContextAccessorLatestApi.RequestContext.TotalEgressBytes);
+        Assert.Equal(bytesStored, _dicomRequestContextAccessorLatestApi.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        Assert.Equal(bytesStored, _dicomRequestContextAccessorLatestApi.RequestContext.TotalEgressBytes);
+        Assert.Equal(bytesStored, _dicomRequestContextAccessorLatestApi.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -567,7 +567,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        Assert.Equal(bytesStored, _dicomRequestContextAccessor.RequestContext.TotalEgressBytes);
+        Assert.Equal(bytesStored, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -601,7 +601,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        Assert.Equal(totalExpectedBytesStored, _dicomRequestContextAccessor.RequestContext.TotalEgressBytes);
+        Assert.Equal(totalExpectedBytesStored, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
