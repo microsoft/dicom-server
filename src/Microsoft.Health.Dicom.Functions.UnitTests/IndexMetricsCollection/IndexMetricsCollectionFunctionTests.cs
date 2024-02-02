@@ -13,9 +13,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Functions.MetricsCollection;
 using Microsoft.Health.Dicom.Functions.MetricsCollection.Telemetry;
-using Microsoft.Health.Dicom.Tests.Common.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using OpenTelemetry;
@@ -96,10 +96,10 @@ public class IndexMetricsCollectionFunctionTests
         bool expectedSucceededTagValue = true)
     {
         Assert.NotEmpty(exportedItems);
-        Collection<MetricPoint> points = MeterValidationHelper.GetMetricPoints(metricName, exportedItems);
+        Collection<MetricPoint> points = exportedItems.GetMetricPoints(metricName);
         Assert.Single(points);
 
-        Dictionary<string, object> tags = MeterValidationHelper.GetTags(points[0]);
+        Dictionary<string, object> tags = points[0].GetTags();
         Assert.Equal(expectedSucceededTagValue, tags["CollectionSucceeded"]);
     }
 }

@@ -9,11 +9,18 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using OpenTelemetry.Metrics;
 
-namespace Microsoft.Health.Dicom.Tests.Common.Telemetry;
+namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
 
-public class MeterValidationHelper
+/// <summary>
+/// Since only enumerators are exposed publicly for working with tags or getting the collection of
+/// metrics, these extension facilitate getting both.
+/// </summary>
+public static class MetricPointExtensions
 {
-    public static Dictionary<string, object> GetTags(MetricPoint metricPoint)
+    /// <summary>
+    /// Get tags key value pairs from metric point.
+    /// </summary>
+    public static Dictionary<string, object> GetTags(this MetricPoint metricPoint)
     {
         var tags = new Dictionary<string, object>();
         foreach (var pair in metricPoint.Tags)
@@ -24,9 +31,12 @@ public class MeterValidationHelper
         return tags;
     }
 
-    public static Collection<MetricPoint> GetMetricPoints(string metricName, List<Metric> _exportedItems)
+    /// <summary>
+    /// Get all metrics emitted after flushing.
+    /// </summary>
+    public static Collection<MetricPoint> GetMetricPoints(this ICollection<Metric> exportedItems, string metricName)
     {
-        var metricItems = _exportedItems.Where(item => item.Name.Equals(metricName, StringComparison.Ordinal)).ToList();
+        var metricItems = exportedItems.Where(item => item.Name.Equals(metricName, StringComparison.Ordinal)).ToList();
         MetricPointsAccessor accessor = metricItems.First().GetMetricPoints();
         var metrics = new Collection<MetricPoint>();
         foreach (MetricPoint metricPoint in accessor)
