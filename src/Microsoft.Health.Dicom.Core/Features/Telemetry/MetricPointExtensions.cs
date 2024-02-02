@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using OpenTelemetry.Metrics;
 
@@ -34,14 +34,13 @@ public static class MetricPointExtensions
     /// <summary>
     /// Get all metrics emitted after flushing.
     /// </summary>
-#pragma warning disable CA1859 // Prefer using more specific types instead of 'Collection'
+    [SuppressMessage("Performance", "CA1859: Use concrete types when possible for improved performance", Justification = "Result should be read-only.")]
     public static IReadOnlyList<MetricPoint> GetMetricPoints(this ICollection<Metric> exportedItems, string metricName)
     {
-#pragma warning restore CA1859 // Prefer using more specific types instead of 'Collection'
         MetricPointsAccessor accessor = exportedItems
             .Single(item => item.Name.Equals(metricName, StringComparison.Ordinal))
             .GetMetricPoints();
-        var metrics = new Collection<MetricPoint>();
+        var metrics = new List<MetricPoint>();
         foreach (MetricPoint metricPoint in accessor)
         {
             metrics.Add(metricPoint);

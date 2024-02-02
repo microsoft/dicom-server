@@ -37,22 +37,19 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
         {
             using SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
 
-            if (await sqlDataReader.ReadAsync(cancellationToken))
-            {
-                (long count, long? sum) = sqlDataReader.ReadRow(TotalIndexedFileCount, TotalIndexedBytes);
+            await sqlDataReader.ReadAsync(cancellationToken);
 
-                return new IndexedFileProperties
-                {
-                    TotalIndexed = count,
-                    TotalSum = sum ?? 0,
-                };
-            }
+            (long count, long? sum) = sqlDataReader.ReadRow(TotalIndexedFileCount, TotalIndexedBytes);
+
+            return new IndexedFileProperties
+            {
+                TotalIndexed = count,
+                TotalSum = sum ?? 0,
+            };
         }
         catch (SqlException ex)
         {
             throw new DataStoreException(ex);
         }
-
-        return new IndexedFileProperties { TotalIndexed = 0, TotalSum = 0 };
     }
 }
