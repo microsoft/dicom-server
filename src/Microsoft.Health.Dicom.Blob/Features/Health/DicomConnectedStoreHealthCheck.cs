@@ -21,6 +21,7 @@ using Microsoft.Health.Core.Features.Health;
 using Microsoft.Health.Dicom.Blob.Extensions;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Health;
 
@@ -51,26 +52,22 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         _logger.LogInformation("Checking the health of the connected store.");
 
         BlobContainerClient containerClient = _blobClient.BlobContainerClient;
-        BlockBlobClient blockBlobClient = containerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}{_externalStoreOptions.HealthCheckFileName}");
+        BlockBlobClient healthCheckBlobClient = containerClient.GetBlockBlobClient(Path.Combine(_externalStoreOptions.StorageDirectory, $"{_externalStoreOptions.HealthCheckFilePath}{Guid.NewGuid()}.txt"));
 
-        // start trying to delete the blob, in case delete failed on the previous run
-        await TryDeleteBlob(blockBlobClient, cancellationToken);
+        _logger.LogInformation("Attempting to write, read, and delete file {FileName}.", healthCheckBlobClient.Name);
 
         try
         {
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(_testContent));
 
-            string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-
-            // test blob/write and that block blobs are supported
-            await blockBlobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
-            await blockBlobClient.CommitBlockListAsync(new List<string> { blockId }, new CommitBlockListOptions(), cancellationToken);
+            // test blob/write
+            await healthCheckBlobClient.UploadAsync(stream, cancellationToken: cancellationToken);
 
             // test blob/read and blob/metadata/read
-            await blockBlobClient.DownloadContentAsync(cancellationToken);
+            await healthCheckBlobClient.DownloadContentAsync(cancellationToken);
 
             // test blob/delete
-            await blockBlobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
+            await healthCheckBlobClient.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
 
             return HealthCheckResult.Healthy("Successfully connected.");
         }
@@ -84,21 +81,22 @@ internal class DicomConnectedStoreHealthCheck : IHealthCheck
         }
         finally
         {
-            // Just in case the blob was successfully created but failed to be deleted, try clean up again
-            await TryDeleteBlob(blockBlobClient, cancellationToken);
+            // Remove in WI #114591
+            await TryDeleteOldBlob(containerClient);
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not fail during final clean up")]
-    private static async Task TryDeleteBlob(BlockBlobClient blobClient, CancellationToken cancellationToken)
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not fail on clean up")]
+    private async Task TryDeleteOldBlob(BlobContainerClient blobContainerClient)
     {
         try
         {
-            await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, new BlobRequestConditions(), cancellationToken);
+            BlockBlobClient blockBlobClient = blobContainerClient.GetBlockBlobClient($"{_externalStoreOptions.StorageDirectory}healthCheck/health.txt");
+            await blockBlobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
         }
         catch (Exception)
         {
-            // discard exception. 
+            // do not throw if cleaning up the previous blob fails
         }
     }
 
