@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -96,7 +95,7 @@ public class IndexMetricsCollectionFunctionTests
         bool expectedSucceededTagValue = true)
     {
         Assert.NotEmpty(exportedItems);
-        Collection<MetricPoint> points = exportedItems.GetMetricPoints(metricName);
+        IReadOnlyList<MetricPoint> points = exportedItems.GetMetricPoints(metricName);
         Assert.Single(points);
 
         Dictionary<string, object> tags = points[0].GetTags();

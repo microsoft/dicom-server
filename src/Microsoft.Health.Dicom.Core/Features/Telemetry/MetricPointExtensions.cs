@@ -34,7 +34,7 @@ public static class MetricPointExtensions
     /// <summary>
     /// Get all metrics emitted after flushing.
     /// </summary>
-    public static Collection<MetricPoint> GetMetricPoints(this ICollection<Metric> exportedItems, string metricName)
+    public static IReadOnlyList<MetricPoint> GetMetricPoints(this ICollection<Metric> exportedItems, string metricName)
     {
         var metricItems = exportedItems.Where(item => item.Name.Equals(metricName, StringComparison.Ordinal)).ToList();
         MetricPointsAccessor accessor = metricItems.First().GetMetricPoints();
