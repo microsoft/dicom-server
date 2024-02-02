@@ -74,6 +74,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
         internal readonly static GetExtendedQueryTagsV36Procedure GetExtendedQueryTagsV36 = new GetExtendedQueryTagsV36Procedure();
+        internal readonly static GetIndexedFileMetricsProcedure GetIndexedFileMetrics = new GetIndexedFileMetricsProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceBatchesByTimeStampProcedure GetInstanceBatchesByTimeStamp = new GetInstanceBatchesByTimeStampProcedure();
@@ -87,7 +88,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static GetSeriesResultProcedure GetSeriesResult = new GetSeriesResultProcedure();
         internal readonly static GetStudyResultProcedure GetStudyResult = new GetStudyResultProcedure();
-        internal readonly static GetTotalAndSumContentLengthIndexedAsyncProcedure GetTotalAndSumContentLengthIndexedAsync = new GetTotalAndSumContentLengthIndexedAsyncProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
@@ -1824,6 +1824,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetIndexedFileMetricsProcedure : StoredProcedure
+        {
+            internal GetIndexedFileMetricsProcedure() : base("dbo.GetIndexedFileMetrics")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetIndexedFileMetrics";
+            }
+        }
+
         internal class GetInstanceProcedure : StoredProcedure
         {
             internal GetInstanceProcedure() : base("dbo.GetInstance")
@@ -2153,19 +2166,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
-        }
-
-        internal class GetTotalAndSumContentLengthIndexedAsyncProcedure : StoredProcedure
-        {
-            internal GetTotalAndSumContentLengthIndexedAsyncProcedure() : base("dbo.GetTotalAndSumContentLengthIndexedAsync")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetTotalAndSumContentLengthIndexedAsync";
-            }
         }
 
         internal class GetWorkitemMetadataProcedure : StoredProcedure

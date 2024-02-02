@@ -34,8 +34,10 @@ public static class MetricPointExtensions
     /// <summary>
     /// Get all metrics emitted after flushing.
     /// </summary>
+#pragma warning disable CA1859 // Prefer using more specific types instead of 'Collection'
     public static IReadOnlyList<MetricPoint> GetMetricPoints(this ICollection<Metric> exportedItems, string metricName)
     {
+#pragma warning restore CA1859 // Prefer using more specific types instead of 'Collection'
         MetricPointsAccessor accessor = exportedItems
             .Single(item => item.Name.Equals(metricName, StringComparison.Ordinal))
             .GetMetricPoints();

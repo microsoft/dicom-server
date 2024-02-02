@@ -30,7 +30,7 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
     {
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
-        VLatest.GetTotalAndSumContentLengthIndexedAsync.PopulateCommand(sqlCommandWrapper);
+        VLatest.GetIndexedFileMetrics.PopulateCommand(sqlCommandWrapper);
 
         try
         {

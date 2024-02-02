@@ -2747,7 +2747,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetTotalAndSumContentLengthIndexedAsync
+CREATE OR ALTER PROCEDURE dbo.GetIndexedFileMetrics
 AS
 BEGIN
     SET NOCOUNT ON;

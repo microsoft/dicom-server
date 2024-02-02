@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetTotalAndSumContentLengthIndexedAsync
+--     GetIndexedFileMetrics
 --
 -- FIRST SCHEMA VERSION
 --     57
@@ -9,7 +9,7 @@
 --     Retrieves total sum of content length across all FileProperty rows
 --
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetTotalAndSumContentLengthIndexedAsync
+CREATE OR ALTER PROCEDURE dbo.GetIndexedFileMetrics
     AS
 BEGIN
     SET NOCOUNT     ON
