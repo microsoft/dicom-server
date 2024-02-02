@@ -104,6 +104,7 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
+            long totalBytesStored = 0L;
 
             for (int index = 0; index < instanceEntries.Count; index++)
             {
@@ -115,6 +116,7 @@ public class StoreService : IStoreService
                         long len = length.GetValueOrDefault();
                         // Update Telemetry
                         _storeMeter.InstanceLength.Record(len);
+                        totalBytesStored += len;
                     }
                 }
                 finally
@@ -125,6 +127,7 @@ public class StoreService : IStoreService
                     _ = Task.Run(() => DisposeResourceAsync(capturedIndex), CancellationToken.None);
                 }
             }
+            _dicomRequestContextAccessor.RequestContext.TotalEgressBytes = totalBytesStored;
         }
 
         return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid, returnWarning202);
