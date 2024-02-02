@@ -36,8 +36,9 @@ public static class MetricPointExtensions
     /// </summary>
     public static IReadOnlyList<MetricPoint> GetMetricPoints(this ICollection<Metric> exportedItems, string metricName)
     {
-        var metricItems = exportedItems.Where(item => item.Name.Equals(metricName, StringComparison.Ordinal)).ToList();
-        MetricPointsAccessor accessor = metricItems.First().GetMetricPoints();
+        MetricPointsAccessor accessor = exportedItems
+            .Single(item => item.Name.Equals(metricName, StringComparison.Ordinal))
+            .GetMetricPoints();
         var metrics = new Collection<MetricPoint>();
         foreach (MetricPoint metricPoint in accessor)
         {
