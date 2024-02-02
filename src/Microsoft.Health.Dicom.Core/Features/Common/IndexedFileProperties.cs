@@ -22,25 +22,13 @@ public readonly struct IndexedFileProperties : IEquatable<IndexedFileProperties>
     /// </summary>
     public long TotalSum { get; init; }
 
-    public override bool Equals(object obj)
-    {
-        return obj is IndexedFileProperties && Equals((IndexedFileProperties)obj);
-    }
+    public override bool Equals(object obj) => obj is IndexedFileProperties && Equals((IndexedFileProperties)obj);
 
-    public bool Equals(IndexedFileProperties other)
-    {
-        return TotalIndexed == other.TotalIndexed && TotalSum == other.TotalSum;
-    }
+    public bool Equals(IndexedFileProperties other) => TotalIndexed == other.TotalIndexed && TotalSum == other.TotalSum;
 
     public override int GetHashCode() => (TotalIndexed, TotalSum).GetHashCode();
 
-    public static bool operator ==(IndexedFileProperties left, IndexedFileProperties right)
-    {
-        return left.Equals(right);
-    }
+    public static bool operator ==(IndexedFileProperties left, IndexedFileProperties right) => left.Equals(right);
 
-    public static bool operator !=(IndexedFileProperties left, IndexedFileProperties right)
-    {
-        return !(left == right);
-    }
+    public static bool operator !=(IndexedFileProperties left, IndexedFileProperties right) => return !(left == right);
 }
