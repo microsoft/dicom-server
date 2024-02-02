@@ -25,7 +25,6 @@ using Microsoft.Health.Dicom.Functions.DataCleanup;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.MetricsCollection;
-using Microsoft.Health.Dicom.Functions.MetricsCollection.Telemetry;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Dicom.SqlServer.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -73,7 +72,6 @@ public static class ServiceCollectionExtensions
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings())
             .AddSingleton<UpdateMeter>()
-            .AddSingleton<IndexMetricsCollectionMeter>()
             .AddSingleton<IAuditLogger, AuditLogger>());
     }
 
