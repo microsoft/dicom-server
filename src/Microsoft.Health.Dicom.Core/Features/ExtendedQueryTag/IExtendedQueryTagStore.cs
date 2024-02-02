@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
@@ -113,23 +114,12 @@ public interface IExtendedQueryTagStore
     Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes a batch of the extended query tag index
-    /// </summary>
-    /// <param name="tagKey"></param>
-    /// <param name="vr"></param>
-    /// <param name="batchSize"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task<int> DeleteExtendedQueryTagIndexBatchAsync(int tagKey, string vr, int batchSize, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Updates the status of the extended query tag
     /// </summary>
-    /// <param name="tagKey"></param>
-    /// <param name="status"></param>
+    /// <param name="tagPath"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task UpdateExtendedQueryTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default);
+    Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously assigns the given <paramref name="operationId"/> to the given tag keys.
@@ -170,4 +160,26 @@ public interface IExtendedQueryTagStore
     /// <exception cref="ArgumentNullException"><paramref name="queryTagKeys"/> is <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets batches of extended query tag indicies based on the watermark
+    /// </summary>
+    /// <param name="batchSize"></param>
+    /// <param name="batchCount"></param>
+    /// <param name="vr"></param>
+    /// <param name="tagKey"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<IReadOnlyList<WatermarkRange>> GetExtendedQueryTagBatches(int batchSize, int batchCount, string vr, int tagKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes the extended query tag index in the specified watermark range
+    /// </summary>
+    /// <param name="startWatermark"></param>
+    /// <param name="endWatermark"></param>
+    /// <param name="vr"></param>
+    /// <param name="tagKey"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task DeleteExtendedQueryTagDataByWatermarkRangeAsync(long startWatermark, long endWatermark, string vr, int tagKey, CancellationToken cancellationToken = default);
 }

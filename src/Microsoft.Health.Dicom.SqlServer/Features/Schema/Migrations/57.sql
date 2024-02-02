@@ -1169,6 +1169,51 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagDataByWatermarkRange
+@startWatermark BIGINT, @endWatermark BIGINT, @dataType TINYINT, @tagKey INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @imageResourceType AS TINYINT = 0;
+    IF @dataType = 0
+        DELETE dbo.ExtendedQueryTagString
+        WHERE  TagKey = @tagKey
+               AND ResourceType = @imageResourceType
+               AND Watermark BETWEEN @startWatermark AND @endWatermark;
+    ELSE
+        IF @dataType = 1
+            DELETE dbo.ExtendedQueryTagLong
+            WHERE  TagKey = @tagKey
+                   AND ResourceType = @imageResourceType
+                   AND Watermark BETWEEN @startWatermark AND @endWatermark;
+        ELSE
+            IF @dataType = 2
+                DELETE dbo.ExtendedQueryTagDouble
+                WHERE  TagKey = @tagKey
+                       AND ResourceType = @imageResourceType
+                       AND Watermark BETWEEN @startWatermark AND @endWatermark;
+            ELSE
+                IF @dataType = 3
+                    DELETE dbo.ExtendedQueryTagDateTime
+                    WHERE  TagKey = @tagKey
+                           AND ResourceType = @imageResourceType
+                           AND Watermark BETWEEN @startWatermark AND @endWatermark;
+                ELSE
+                    DELETE dbo.ExtendedQueryTagPersonName
+                    WHERE  TagKey = @tagKey
+                           AND ResourceType = @imageResourceType
+                           AND Watermark BETWEEN @startWatermark AND @endWatermark;
+    COMMIT TRANSACTION;
+    BEGIN TRANSACTION;
+    DELETE dbo.ExtendedQueryTagError
+    WHERE  TagKey = @tagKey
+           AND Watermark BETWEEN @startWatermark AND @endWatermark;
+    COMMIT TRANSACTION;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagErrorBatch
 @tagKey INT, @batchSize INT=1000
 AS
@@ -2367,6 +2412,118 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagAndUpdateStatusToDeleting
+@tagPath VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @tagStatus AS TINYINT;
+    DECLARE @tagKey AS INT;
+    SELECT @tagKey = TagKey,
+           @tagStatus = TagStatus
+    FROM   dbo.ExtendedQueryTag WITH (XLOCK)
+    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'extended query tag not found', 1;
+    IF @tagStatus = 2
+        THROW 50412, 'extended query tag is not in Ready or Adding status', 1;
+    UPDATE dbo.ExtendedQueryTag
+    SET    TagStatus = 2
+    WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
+    SELECT @tagKey;
+    COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagBatches
+@batchSize INT, @batchCount INT, @dataType TINYINT, @tagKey INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @imageResourceType AS TINYINT = 0;
+    IF @dataType = 0
+        SELECT   MIN(Watermark) AS MinWatermark,
+                 MAX(Watermark) AS MaxWatermark
+        FROM     (SELECT TOP (@batchSize * @batchCount) U.Watermark,
+                                                        (ROW_NUMBER() OVER (ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
+                  FROM   (SELECT Watermark
+                          FROM   dbo.ExtendedQueryTagString
+                          WHERE  TagKey = @tagKey
+                                 AND ResourceType = @imageResourceType
+                          UNION
+                          SELECT Watermark
+                          FROM   dbo.ExtendedQueryTagError
+                          WHERE  TagKey = @tagKey) AS U) AS I
+        GROUP BY Batch
+        ORDER BY Batch ASC;
+    ELSE
+        IF @dataType = 1
+            SELECT   MIN(Watermark) AS MinWatermark,
+                     MAX(Watermark) AS MaxWatermark
+            FROM     (SELECT TOP (@batchSize * @batchCount) U.Watermark,
+                                                            (ROW_NUMBER() OVER (ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
+                      FROM   (SELECT Watermark
+                              FROM   dbo.ExtendedQueryTagLong
+                              WHERE  TagKey = @tagKey
+                                     AND ResourceType = @imageResourceType
+                              UNION
+                              SELECT Watermark
+                              FROM   dbo.ExtendedQueryTagError
+                              WHERE  TagKey = @tagKey) AS U) AS I
+            GROUP BY Batch
+            ORDER BY Batch ASC;
+        ELSE
+            IF @dataType = 2
+                SELECT   MIN(Watermark) AS MinWatermark,
+                         MAX(Watermark) AS MaxWatermark
+                FROM     (SELECT TOP (@batchSize * @batchCount) U.Watermark,
+                                                                (ROW_NUMBER() OVER (ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
+                          FROM   (SELECT Watermark
+                                  FROM   dbo.ExtendedQueryTagDouble
+                                  WHERE  TagKey = @tagKey
+                                         AND ResourceType = @imageResourceType
+                                  UNION
+                                  SELECT Watermark
+                                  FROM   dbo.ExtendedQueryTagError
+                                  WHERE  TagKey = @tagKey) AS U) AS I
+                GROUP BY Batch
+                ORDER BY Batch ASC;
+            ELSE
+                IF @dataType = 3
+                    SELECT   MIN(Watermark) AS MinWatermark,
+                             MAX(Watermark) AS MaxWatermark
+                    FROM     (SELECT TOP (@batchSize * @batchCount) U.Watermark,
+                                                                    (ROW_NUMBER() OVER (ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
+                              FROM   (SELECT Watermark
+                                      FROM   dbo.ExtendedQueryTagDateTime
+                                      WHERE  TagKey = @tagKey
+                                             AND ResourceType = @imageResourceType
+                                      UNION
+                                      SELECT Watermark
+                                      FROM   dbo.ExtendedQueryTagError
+                                      WHERE  TagKey = @tagKey) AS U) AS I
+                    GROUP BY Batch
+                    ORDER BY Batch ASC;
+                ELSE
+                    SELECT   MIN(Watermark) AS MinWatermark,
+                             MAX(Watermark) AS MaxWatermark
+                    FROM     (SELECT TOP (@batchSize * @batchCount) U.Watermark,
+                                                                    (ROW_NUMBER() OVER (ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
+                              FROM   (SELECT Watermark
+                                      FROM   dbo.ExtendedQueryTagPersonName
+                                      WHERE  TagKey = @tagKey
+                                             AND ResourceType = @imageResourceType
+                                      UNION
+                                      SELECT Watermark
+                                      FROM   dbo.ExtendedQueryTagError
+                                      WHERE  TagKey = @tagKey) AS U) AS I
+                    GROUP BY Batch
+                    ORDER BY Batch ASC;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrors
 @tagPath VARCHAR (64), @limit INT, @offset INT
 AS
@@ -2456,22 +2613,6 @@ BEGIN
     WHERE    XQTE.TagKey = @tagKey
     ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagIndexBatches
-@batchSize INT, @batchCount INT, @tagKey INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT   MIN(Watermark) AS MinWatermark,
-             MAX(Watermark) AS MaxWatermark
-    FROM     (SELECT TOP (@batchSize * @batchCount) I.Watermark,
-                                                    (ROW_NUMBER() OVER (ORDER BY I.Watermark DESC) - 1) / @batchSize AS Batch
-              FROM   dbo.ExtendedQueryTagString
-              WHERE  TagKey = @tagKey) AS I
-    GROUP BY Batch
-    ORDER BY Batch ASC;
 END
 
 GO
@@ -3299,20 +3440,6 @@ BEGIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
     WHERE  TagPath = @tagPath;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagStatus
-@tagKey INT, @status TINYINT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    UPDATE dbo.ExtendedQueryTag
-    SET    TagStatus = @status
-    WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
-    COMMIT TRANSACTION;
 END
 
 GO

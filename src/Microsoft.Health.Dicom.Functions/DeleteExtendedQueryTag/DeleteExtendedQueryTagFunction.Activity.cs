@@ -3,64 +3,52 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag.Models;
 
 namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 
 public partial class DeleteExtendedQueryTagFunction
 {
-    [FunctionName(nameof(GetExtendedQueryTagAsync))]
-    public Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync([ActivityTrigger] string tagPath, ILogger logger)
+    [FunctionName(nameof(GetExtendedQueryTagAndUpdateStatusToDeletingAsync))]
+    public Task<int> GetExtendedQueryTagAndUpdateStatusToDeletingAsync(
+    [ActivityTrigger] string tagPath,
+    ILogger logger)
     {
         EnsureArg.IsNotNull(tagPath, nameof(tagPath));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        return _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath);
-    }
-
-    [FunctionName(nameof(UpdateTagStatusToDeletingAsync))]
-    public Task UpdateTagStatusToDeletingAsync(
-        [ActivityTrigger] DeleteExtendedQueryTagArguments deleteExtendedQueryTagArguments,
-        ILogger logger)
-    {
-        EnsureArg.IsNotNull(deleteExtendedQueryTagArguments, nameof(deleteExtendedQueryTagArguments));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
         logger.LogInformation("Updating the status of tag {TagPath} to Deleting");
 
-        return _extendedQueryTagStore.UpdateExtendedQueryTagStatusAsync(deleteExtendedQueryTagArguments.TagKey, ExtendedQueryTagStatus.Deleting);
+        return _extendedQueryTagStore.GetExtendedQueryTagAndUpdateStatusToDeleting(tagPath);
     }
 
-    [FunctionName(nameof(DeleteExtendedQueryTagIndexBatchAsync))]
-    public Task<int> DeleteExtendedQueryTagIndexBatchAsync(
-        [ActivityTrigger] DeleteExtendedQueryTagArguments deleteExtendedQueryTagArguments,
-        ILogger logger)
+    [FunctionName(nameof(GetExtendedQueryTagBatchesAsync))]
+    public Task<IReadOnlyList<WatermarkRange>> GetExtendedQueryTagBatchesAsync([ActivityTrigger] BatchCreationArguments input, ILogger logger)
     {
-        EnsureArg.IsNotNull(deleteExtendedQueryTagArguments, nameof(deleteExtendedQueryTagArguments));
+        EnsureArg.IsNotNull(input, nameof(input));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Deleting batch of tag {TagPath}", deleteExtendedQueryTagArguments.TagKey);
-
-        return _extendedQueryTagStore.DeleteExtendedQueryTagIndexBatchAsync(deleteExtendedQueryTagArguments.TagKey, deleteExtendedQueryTagArguments.VR, _options.BatchSize);
+        return _extendedQueryTagStore.GetExtendedQueryTagBatches(input.BatchSize, input.BatchCount, input.VR, input.TagKey);
     }
 
-    [FunctionName(nameof(DeleteExtendedQueryTagErrorBatchAsync))]
-    public Task<int> DeleteExtendedQueryTagErrorBatchAsync(
-        [ActivityTrigger] DeleteExtendedQueryTagArguments deleteExtendedQueryTagArguments,
+    [FunctionName(nameof(DeleteExtendedQueryTagDataByWatermarkRangeAsync))]
+    public Task DeleteExtendedQueryTagDataByWatermarkRangeAsync(
+        [ActivityTrigger] DeleteBatchArguments deleteBatchArguments,
         ILogger logger)
     {
-        EnsureArg.IsNotNull(deleteExtendedQueryTagArguments, nameof(deleteExtendedQueryTagArguments));
+        EnsureArg.IsNotNull(deleteBatchArguments, nameof(deleteBatchArguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Deleting extended query tag errors for tag path {TagPath}", deleteExtendedQueryTagArguments.TagKey);
+        logger.LogInformation("Deleting batch of tag {TagKey} in range {Range}", deleteBatchArguments.TagKey, deleteBatchArguments.Range);
 
-        return _extendedQueryTagErrorStore.DeleteExtendedQueryTagErrorBatch(deleteExtendedQueryTagArguments.TagKey, _options.BatchSize);
+        return _extendedQueryTagStore.DeleteExtendedQueryTagDataByWatermarkRangeAsync(deleteBatchArguments.Range.Start, deleteBatchArguments.Range.End, deleteBatchArguments.VR, deleteBatchArguments.TagKey);
     }
 
     [FunctionName(nameof(DeleteExtendedQueryTagEntry))]

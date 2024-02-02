@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -77,7 +78,17 @@ internal class SqlExtendedQueryTagStoreV1 : ISqlExtendedQueryTagStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task UpdateExtendedQueryTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default)
+    public virtual Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
+
+    public virtual Task<IReadOnlyList<WatermarkRange>> GetExtendedQueryTagBatches(int batchSize, int batchCount, string vr, int tagKey, CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
+
+    public virtual Task DeleteExtendedQueryTagDataByWatermarkRangeAsync(long startWatermark, long endWatermark, string vr, int tagKey, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

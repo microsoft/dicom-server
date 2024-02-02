@@ -3,11 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 
@@ -36,26 +40,75 @@ internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
         }
     }
 
-    public override async Task<int> DeleteExtendedQueryTagIndexBatchAsync(int tagKey, string vr, int batchSize, CancellationToken cancellationToken = default)
+    public override async Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.DeleteExtendedQueryTagIndexBatch.PopulateCommand(sqlCommandWrapper, tagKey, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr], batchSize);
+            VLatest.GetExtendedQueryTagAndUpdateStatusToDeleting.PopulateCommand(sqlCommandWrapper, tagPath);
 
             using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
-            return reader.RecordsAffected;
+
+            if (!await reader.ReadAsync(cancellationToken))
+            {
+                throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
+            }
+
+            return reader.GetInt32(0);
         }
     }
 
-    public override async Task UpdateExtendedQueryTagStatusAsync(int tagKey, ExtendedQueryTagStatus status, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<WatermarkRange>> GetExtendedQueryTagBatches(
+        int batchSize,
+        int batchCount,
+        string vr,
+        int tagKey,
+        CancellationToken cancellationToken = default)
     {
-        using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
-        {
-            VLatest.UpdateExtendedQueryTagStatus.PopulateCommand(sqlCommandWrapper, tagKey, (byte)status);
+        EnsureArg.IsGt(batchSize, 0, nameof(batchSize));
+        EnsureArg.IsGt(batchCount, 0, nameof(batchCount));
 
+        using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+
+        VLatest.GetExtendedQueryTagBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr], tagKey);
+
+        try
+        {
+            var batches = new List<WatermarkRange>();
+            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                batches.Add(new WatermarkRange(reader.GetInt64(0), reader.GetInt64(1)));
+            }
+
+            return batches;
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
+        }
+    }
+
+    public override async Task DeleteExtendedQueryTagDataByWatermarkRangeAsync(
+        long startWatermark,
+        long endWatermark,
+        string vr,
+        int tagKey,
+        CancellationToken cancellationToken = default)
+    {
+        using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+
+        VLatest.DeleteExtendedQueryTagDataByWatermarkRange.PopulateCommand(sqlCommandWrapper, startWatermark, endWatermark, (byte)ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[vr], tagKey);
+
+        try
+        {
             await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch (SqlException ex)
+        {
+            throw new DataStoreException(ex);
         }
     }
 }

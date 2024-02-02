@@ -69,9 +69,8 @@
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
     <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryEntry.sql" />
-    <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryTagErrorBatch.sql" />
-    <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryTagIndexBatch.sql" />
-    <None Remove="features\schema\sql\sprocs\UpdateExtendedQueryTagStatus.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\DeleteExtendedQueryTagDataByWatermarkRange.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\GetExtendedQueryTagAndUpdateStatusToDeleting.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 
