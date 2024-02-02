@@ -11,6 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
@@ -36,18 +37,22 @@ internal class SqlIndexDataStoreV57 : SqlIndexDataStoreV55
         {
             using SqlDataReader sqlDataReader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
 
-            await sqlDataReader.ReadAsync(cancellationToken);
-            int totalIndexedBytesIndex = sqlDataReader.GetOrdinal(TotalIndexedBytes);
-
-            return new IndexedFileProperties
+            if (await sqlDataReader.ReadAsync(cancellationToken))
             {
-                TotalIndexed = (long)sqlDataReader[TotalIndexedFileCount],
-                TotalSum = await sqlDataReader.IsDBNullAsync(totalIndexedBytesIndex, cancellationToken) ? 0 : (long)sqlDataReader[totalIndexedBytesIndex],
-            };
+                (long count, long? sum) = sqlDataReader.ReadRow(TotalIndexedFileCount, TotalIndexedBytes);
+
+                return new IndexedFileProperties
+                {
+                    TotalIndexed = count,
+                    TotalSum = sum ?? 0,
+                };
+            }
         }
         catch (SqlException ex)
         {
             throw new DataStoreException(ex);
         }
+
+        return new IndexedFileProperties { TotalIndexed = 0, TotalSum = 0 };
     }
 }
