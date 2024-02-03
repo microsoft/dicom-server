@@ -33,5 +33,6 @@ public readonly struct IndexedFileProperties : IEquatable<IndexedFileProperties>
     public static bool operator ==(IndexedFileProperties left, IndexedFileProperties right)
         => left.Equals(right);
 
-    public static bool operator !=(IndexedFileProperties left, IndexedFileProperties right) => !(left == right);
+    public static bool operator !=(IndexedFileProperties left, IndexedFileProperties right)
+        => !(left == right);
 }
