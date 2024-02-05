@@ -115,6 +115,7 @@ public class StoreService : IStoreService
                         long len = length.GetValueOrDefault();
                         // Update Telemetry
                         _storeMeter.InstanceLength.Record(len);
+                        _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes += len;
                     }
                 }
                 finally

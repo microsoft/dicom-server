@@ -32,6 +32,7 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
     /// </summary>
     /// <param name="dicomServerBuilder">A service builder for constructing a DICOM server.</param>
     /// <param name="configuration">The root of a configuration containing settings for the client.</param>
+    /// <param name="developmentEnvironment">If service is running in a development environment</param>
     /// <returns>The service builder for adding additional services.</returns>
     /// <exception cref="ArgumentNullException">
     /// <para>
@@ -44,7 +45,8 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
     /// </exception>
     public static IDicomServerBuilder AddAzureFunctionsClient(
         this IDicomServerBuilder dicomServerBuilder,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        bool developmentEnvironment = false)
     {
         EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
@@ -65,7 +67,10 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
 
         services.AddAzureClientsCore();
         services.TryAddScoped<ITaskHubClient, AzureStorageTaskHubClient>();
-        services.AddHealthChecks().AddCheck<DurableTaskHealthCheck>("DurableTask");
+        if (!developmentEnvironment)
+        {
+            services.AddHealthChecks().AddCheck<DurableTaskHealthCheck>("DurableTask");
+        }
 
         return dicomServerBuilder;
     }
