@@ -104,6 +104,9 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
+            _telemetryClient.TrackInstanceCount(instanceEntries.Count);
+
+            long totalLength = 0, minLength = 0, maxLength = 0;
 
             for (int index = 0; index < instanceEntries.Count; index++)
             {
@@ -113,12 +116,20 @@ public class StoreService : IStoreService
                     if (length != null)
                     {
                         long len = length.GetValueOrDefault();
+                        totalLength += len;
+                        minLength = Math.Min(minLength, len);
+                        maxLength = Math.Max(maxLength, len);
                         // Update Telemetry
                         _storeMeter.InstanceLength.Record(len);
                     }
                 }
                 finally
                 {
+                    // Update Requests Telemetry
+                    _telemetryClient.TrackTotalInstanceBytes(totalLength);
+                    _telemetryClient.TrackMinInstanceBytes(minLength);
+                    _telemetryClient.TrackMaxInstanceBytes(maxLength);
+
                     // Fire and forget.
                     int capturedIndex = index;
 
