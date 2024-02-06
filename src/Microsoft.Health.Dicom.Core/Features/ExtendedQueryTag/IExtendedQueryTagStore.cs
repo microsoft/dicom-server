@@ -114,12 +114,12 @@ public interface IExtendedQueryTagStore
     Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates the status of the extended query tag
+    /// Updates the status of the extended query tag to 'Deleting'
     /// </summary>
-    /// <param name="tagPath"></param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="tagKey">tagKey</param>
+    /// <param name="cancellationToken">the cancellation token</param>
     /// <returns></returns>
-    Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default);
+    Task UpdateExtendedQueryTagStatusToDelete(int tagKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously assigns the given <paramref name="operationId"/> to the given tag keys.

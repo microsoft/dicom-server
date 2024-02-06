@@ -25,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 using Microsoft.Health.Dicom.Functions.DataCleanup;
+using Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Update;
@@ -249,7 +250,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         string instanceId = await _durableClient.StartNewAsync(
             _options.Indexing.Name,
             operationId.ToString(OperationId.FormatSpecifier),
-            tagPath);
+            new DeleteExtendedQueryTagCheckpoint() { Batching = _options.Indexing.Batching, TagPath = tagPath });
 
         _logger.LogInformation("Successfully started new delete extended query tag orchestration instance with ID '{InstanceId}'.", instanceId);
 

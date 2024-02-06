@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -28,15 +29,22 @@ public partial class DeleteExtendedQueryTagFunction
 
         DeleteExtendedQueryTagCheckpoint checkpoint = context.GetInput<DeleteExtendedQueryTagCheckpoint>();
 
-        int tagKey = await GetExtendedQueryTagAndUpdateStatusToDeleting(context, checkpoint);
+        if (!checkpoint.Completed.HasValue && checkpoint.TagKey == default(int))
+        {
+            ExtendedQueryTagStoreJoinEntry xqt = await context.CallActivityWithRetryAsync<ExtendedQueryTagStoreJoinEntry>(nameof(GetExtendedQueryTagAsync), _options.RetryOptions, checkpoint.TagPath);
 
-        checkpoint.TagKey = tagKey;
+            // also does validation and will throw if tag is not found or is already being deleted
+            await context.CallActivityWithRetryAsync(nameof(UpdateExtendedQueryTagStatusToDeleting), _options.RetryOptions, xqt.Key);
+
+            checkpoint.TagKey = xqt.Key;
+            checkpoint.VR = xqt.VR;
+        }
+
         DeleteExtendedQueryTagArguments arguments = new DeleteExtendedQueryTagArguments
         {
-            TagKey = tagKey,
+            TagKey = checkpoint.TagKey,
             VR = checkpoint.VR,
         };
-
 
         // get batches
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -68,7 +76,7 @@ public partial class DeleteExtendedQueryTagFunction
                     Batching = checkpoint.Batching,
                     Completed = completed,
                     CreatedTime = checkpoint.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
-                    TagKey = tagKey,
+                    TagKey = checkpoint.TagKey,
                 });
         }
         else
@@ -81,17 +89,4 @@ public partial class DeleteExtendedQueryTagFunction
                 checkpoint.TagPath);
         }
     }
-
-    /// <summary>
-    /// Get the tag key to delete and update the status to deleting if it is not already in that state.
-    /// If it is the first time this orchestration executes, we will update the status and get the key.
-    /// Otherwise, we just return the previously saved key.
-    /// </summary>
-    /// <param name="context"></param>
-    /// <param name="checkpoint"></param>
-    /// <returns></returns>
-    private Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(IDurableOrchestrationContext context, DeleteExtendedQueryTagCheckpoint checkpoint)
-        => checkpoint.Completed.HasValue && checkpoint.TagKey != default(int)
-        ? Task.FromResult(checkpoint.TagKey)
-        : context.CallActivityWithRetryAsync<int>(nameof(GetExtendedQueryTagAndUpdateStatusToDeletingAsync), _options.RetryOptions, checkpoint.TagPath);
 }

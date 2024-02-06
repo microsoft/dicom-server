@@ -44,13 +44,4 @@ public interface IExtendedQueryTagErrorStore
         ValidationErrorCode errorCode,
         long watermark,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Deletes a batch of the extended query tag errors
-    /// </summary>
-    /// <param name="tagKey"></param>
-    /// <param name="batchSize"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task<int> DeleteExtendedQueryTagErrorBatch(int tagKey, int batchSize, CancellationToken cancellationToken = default);
 }

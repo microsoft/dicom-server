@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 public class DeleteExtendedQueryTagCheckpoint : DeleteExtendedQueryTagInput, IOrchestrationCheckpoint
 {
     /// <summary>
-    /// Gets or sets the range of DICOM SOP instance watermarks that have been deleted, if started.
+    /// Gets or sets the range of DICOM SOP instance watermarks that have had their extended query tag deleted, if started.
     /// </summary>
     /// <value>A range of instance watermarks if started; otherwise, <see langword="null"/>.</value>
     public WatermarkRange? Completed { get; set; }

@@ -46,8 +46,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
         internal readonly static DeleteExtendedQueryTagDataByWatermarkRangeProcedure DeleteExtendedQueryTagDataByWatermarkRange = new DeleteExtendedQueryTagDataByWatermarkRangeProcedure();
         internal readonly static DeleteExtendedQueryTagEntryProcedure DeleteExtendedQueryTagEntry = new DeleteExtendedQueryTagEntryProcedure();
-        internal readonly static DeleteExtendedQueryTagErrorBatchProcedure DeleteExtendedQueryTagErrorBatch = new DeleteExtendedQueryTagErrorBatchProcedure();
-        internal readonly static DeleteExtendedQueryTagIndexBatchProcedure DeleteExtendedQueryTagIndexBatch = new DeleteExtendedQueryTagIndexBatchProcedure();
         internal readonly static DeleteExtendedQueryTagV16Procedure DeleteExtendedQueryTagV16 = new DeleteExtendedQueryTagV16Procedure();
         internal readonly static DeleteExtendedQueryTagV8Procedure DeleteExtendedQueryTagV8 = new DeleteExtendedQueryTagV8Procedure();
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
@@ -71,7 +69,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeProcedure GetContentLengthBackFillInstanceIdentifiersByWatermarkRange = new GetContentLengthBackFillInstanceIdentifiersByWatermarkRangeProcedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
-        internal readonly static GetExtendedQueryTagAndUpdateStatusToDeletingProcedure GetExtendedQueryTagAndUpdateStatusToDeleting = new GetExtendedQueryTagAndUpdateStatusToDeletingProcedure();
         internal readonly static GetExtendedQueryTagBatchesProcedure GetExtendedQueryTagBatches = new GetExtendedQueryTagBatchesProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagErrorsV36Procedure GetExtendedQueryTagErrorsV36 = new GetExtendedQueryTagErrorsV36Procedure();
@@ -105,6 +102,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static RetrieveDeletedInstanceV42Procedure RetrieveDeletedInstanceV42 = new RetrieveDeletedInstanceV42Procedure();
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
+        internal readonly static UpdateExtendedQueryTagStatusToDeleteProcedure UpdateExtendedQueryTagStatusToDelete = new UpdateExtendedQueryTagStatusToDeleteProcedure();
         internal readonly static UpdateFilePropertiesContentLengthProcedure UpdateFilePropertiesContentLength = new UpdateFilePropertiesContentLengthProcedure();
         internal readonly static UpdateFrameMetadataProcedure UpdateFrameMetadata = new UpdateFrameMetadataProcedure();
         internal readonly static UpdateIndexWorkitemInstanceCoreProcedure UpdateIndexWorkitemInstanceCore = new UpdateIndexWorkitemInstanceCoreProcedure();
@@ -1045,44 +1043,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class DeleteExtendedQueryTagErrorBatchProcedure : StoredProcedure
-        {
-            internal DeleteExtendedQueryTagErrorBatchProcedure() : base("dbo.DeleteExtendedQueryTagErrorBatch")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Nullable<System.Int32>> _batchSize = new ParameterDefinition<System.Nullable<System.Int32>>("@batchSize", global::System.Data.SqlDbType.Int, true);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Nullable<System.Int32> batchSize)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteExtendedQueryTagErrorBatch";
-                _tagKey.AddParameter(command.Parameters, tagKey);
-                _batchSize.AddParameter(command.Parameters, batchSize);
-            }
-        }
-
-        internal class DeleteExtendedQueryTagIndexBatchProcedure : StoredProcedure
-        {
-            internal DeleteExtendedQueryTagIndexBatchProcedure() : base("dbo.DeleteExtendedQueryTagIndexBatch")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Byte> _dataType = new ParameterDefinition<System.Byte>("@dataType", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.Nullable<System.Int32>> _batchSize = new ParameterDefinition<System.Nullable<System.Int32>>("@batchSize", global::System.Data.SqlDbType.Int, true);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey, System.Byte dataType, System.Nullable<System.Int32> batchSize)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteExtendedQueryTagIndexBatch";
-                _tagKey.AddParameter(command.Parameters, tagKey);
-                _dataType.AddParameter(command.Parameters, dataType);
-                _batchSize.AddParameter(command.Parameters, batchSize);
-            }
-        }
-
         internal class DeleteExtendedQueryTagV16Procedure : StoredProcedure
         {
             internal DeleteExtendedQueryTagV16Procedure() : base("dbo.DeleteExtendedQueryTagV16")
@@ -1742,22 +1702,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTag";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-            }
-        }
-
-        internal class GetExtendedQueryTagAndUpdateStatusToDeletingProcedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagAndUpdateStatusToDeletingProcedure() : base("dbo.GetExtendedQueryTagAndUpdateStatusToDeleting")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagAndUpdateStatusToDeleting";
                 _tagPath.AddParameter(command.Parameters, tagPath);
             }
         }
@@ -2652,6 +2596,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.UpdateExtendedQueryTagQueryStatus";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _queryStatus.AddParameter(command.Parameters, queryStatus);
+            }
+        }
+
+        internal class UpdateExtendedQueryTagStatusToDeleteProcedure : StoredProcedure
+        {
+            internal UpdateExtendedQueryTagStatusToDeleteProcedure() : base("dbo.UpdateExtendedQueryTagStatusToDelete")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _tagKey = new ParameterDefinition<System.Int32>("@tagKey", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 tagKey)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateExtendedQueryTagStatusToDelete";
+                _tagKey.AddParameter(command.Parameters, tagKey);
             }
         }
 

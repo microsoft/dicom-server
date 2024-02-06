@@ -81,10 +81,10 @@ internal sealed class SqlExtendedQueryTagStore : IExtendedQueryTagStore
         return await store.GetExtendedQueryTagsAsync(operationId, cancellationToken);
     }
 
-    public async Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default)
+    public async Task UpdateExtendedQueryTagStatusToDelete(int tagKey, CancellationToken cancellationToken = default)
     {
         ISqlExtendedQueryTagStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-        return await store.GetExtendedQueryTagAndUpdateStatusToDeleting(tagPath, cancellationToken);
+        await store.UpdateExtendedQueryTagStatusToDelete(tagKey, cancellationToken);
     }
 
     ///<inheritdoc/>

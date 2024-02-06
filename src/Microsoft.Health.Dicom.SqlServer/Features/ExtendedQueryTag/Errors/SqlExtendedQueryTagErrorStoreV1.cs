@@ -26,11 +26,6 @@ internal class SqlExtendedQueryTagErrorStoreV1 : ISqlExtendedQueryTagErrorStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task<int> DeleteExtendedQueryTagErrorBatch(int tagKey, int batchSize, CancellationToken cancellationToken = default)
-    {
-        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-    }
-
     public virtual Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);

@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
@@ -40,21 +41,31 @@ internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
         }
     }
 
-    public override async Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default)
+    public override async Task UpdateExtendedQueryTagStatusToDelete(int tagKey, CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.GetExtendedQueryTagAndUpdateStatusToDeleting.PopulateCommand(sqlCommandWrapper, tagPath);
+            VLatest.UpdateExtendedQueryTagStatusToDelete.PopulateCommand(sqlCommandWrapper, tagKey);
 
-            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
-
-            if (!await reader.ReadAsync(cancellationToken))
+            try
             {
-                throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagPath));
+                await sqlCommandWrapper.ExecuteNonQueryAsync(cancellationToken);
             }
-
-            return reader.GetInt32(0);
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
+                {
+                    SqlErrorCodes.NotFound =>
+                        throw new ExtendedQueryTagNotFoundException(
+                            string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagNotFound, tagKey)),
+                    SqlErrorCodes.PreconditionFailed =>
+                        throw new ExtendedQueryTagBusyException(
+                            string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.ExtendedQueryTagIsBusy, tagKey)),
+                    _ =>
+                        throw new DataStoreException(ex)
+                };
+            }
         }
     }
 

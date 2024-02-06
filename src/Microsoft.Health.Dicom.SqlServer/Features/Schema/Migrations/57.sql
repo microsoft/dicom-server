@@ -1214,62 +1214,6 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagErrorBatch
-@tagKey INT, @batchSize INT=1000
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    EXECUTE dbo.ISleepIfBusy ;
-    BEGIN TRANSACTION;
-    DELETE TOP (@batchSize)
-           dbo.ExtendedQueryTagError
-    WHERE  TagKey = @tagKey;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagIndexBatch
-@tagKey INT, @dataType TINYINT, @batchSize INT=1000
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    DECLARE @imageResourceType AS TINYINT = 0;
-    EXECUTE dbo.ISleepIfBusy ;
-    BEGIN TRANSACTION;
-    IF @dataType = 0
-        DELETE TOP (@batchSize)
-               dbo.ExtendedQueryTagString
-        WHERE  TagKey = @tagKey
-               AND ResourceType = @imageResourceType;
-    ELSE
-        IF @dataType = 1
-            DELETE TOP (@batchSize)
-                   dbo.ExtendedQueryTagLong
-            WHERE  TagKey = @tagKey
-                   AND ResourceType = @imageResourceType;
-        ELSE
-            IF @dataType = 2
-                DELETE TOP (@batchSize)
-                       dbo.ExtendedQueryTagDouble
-                WHERE  TagKey = @tagKey
-                       AND ResourceType = @imageResourceType;
-            ELSE
-                IF @dataType = 3
-                    DELETE TOP (@batchSize)
-                           dbo.ExtendedQueryTagDateTime
-                    WHERE  TagKey = @tagKey
-                           AND ResourceType = @imageResourceType;
-                ELSE
-                    DELETE TOP (@batchSize)
-                           dbo.ExtendedQueryTagPersonName
-                    WHERE  TagKey = @tagKey
-                           AND ResourceType = @imageResourceType;
-    COMMIT TRANSACTION;
-END
-
-GO
 CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagV16
 @tagPath VARCHAR (64), @dataType TINYINT, @batchSize INT=1000
 AS
@@ -2412,31 +2356,6 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagAndUpdateStatusToDeleting
-@tagPath VARCHAR (64)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @tagStatus AS TINYINT;
-    DECLARE @tagKey AS INT;
-    SELECT @tagKey = TagKey,
-           @tagStatus = TagStatus
-    FROM   dbo.ExtendedQueryTag WITH (XLOCK)
-    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'extended query tag not found', 1;
-    IF @tagStatus = 2
-        THROW 50412, 'extended query tag is not in Ready or Adding status', 1;
-    UPDATE dbo.ExtendedQueryTag
-    SET    TagStatus = 2
-    WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
-    SELECT @tagKey;
-    COMMIT TRANSACTION;
-END
-
-GO
 CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagBatches
 @batchSize INT, @batchCount INT, @dataType TINYINT, @tagKey INT
 AS
@@ -3440,6 +3359,28 @@ BEGIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
     WHERE  TagPath = @tagPath;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagStatusToDelete
+@tagKey INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @tagStatus AS TINYINT;
+    SELECT @tagStatus = TagStatus
+    FROM   dbo.ExtendedQueryTag WITH (XLOCK)
+    WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'extended query tag not found', 1;
+    IF @tagStatus = 2
+        THROW 50412, 'extended query tag is not in Ready or Adding status', 1;
+    UPDATE dbo.ExtendedQueryTag
+    SET    TagStatus = 2
+    WHERE  dbo.ExtendedQueryTag.TagKey = @tagKey;
+    COMMIT TRANSACTION;
 END
 
 GO

@@ -78,7 +78,7 @@ internal class SqlExtendedQueryTagStoreV1 : ISqlExtendedQueryTagStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task<int> GetExtendedQueryTagAndUpdateStatusToDeleting(string tagPath, CancellationToken cancellationToken = default)
+    public virtual Task UpdateExtendedQueryTagStatusToDelete(int tagKey, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag.Models;
 
@@ -16,17 +17,27 @@ namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 
 public partial class DeleteExtendedQueryTagFunction
 {
-    [FunctionName(nameof(GetExtendedQueryTagAndUpdateStatusToDeletingAsync))]
-    public Task<int> GetExtendedQueryTagAndUpdateStatusToDeletingAsync(
-    [ActivityTrigger] string tagPath,
-    ILogger logger)
+    [FunctionName(nameof(GetExtendedQueryTagAsync))]
+    public Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(
+        [ActivityTrigger] string tagPath,
+        ILogger logger)
     {
         EnsureArg.IsNotNull(tagPath, nameof(tagPath));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Updating the status of tag {TagPath} to Deleting");
+        return _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath);
+    }
 
-        return _extendedQueryTagStore.GetExtendedQueryTagAndUpdateStatusToDeleting(tagPath);
+    [FunctionName(nameof(UpdateExtendedQueryTagStatusToDeleting))]
+    public Task UpdateExtendedQueryTagStatusToDeleting(
+    [ActivityTrigger] int tagKey,
+    ILogger logger)
+    {
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        logger.LogInformation("Updating the status of tag {TagKey} to Deleting", tagKey);
+
+        return _extendedQueryTagStore.UpdateExtendedQueryTagStatusToDelete(tagKey);
     }
 
     [FunctionName(nameof(GetExtendedQueryTagBatchesAsync))]

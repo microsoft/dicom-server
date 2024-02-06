@@ -70,7 +70,7 @@
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
     <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryEntry.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\DeleteExtendedQueryTagDataByWatermarkRange.sql" />
-    <None Remove="Features\Schema\Sql\Sprocs\GetExtendedQueryTagAndUpdateStatusToDeleting.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\UpdateExtendedQueryTagStatusToDelete.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 
