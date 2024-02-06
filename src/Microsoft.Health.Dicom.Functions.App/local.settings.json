@@ -2,6 +2,7 @@
   "IsEncrypted": false,
   "Values": {
     "AzureFunctionsJobHost__DicomFunctions__Indexing__MaxParallelBatches": "1",
+    "AzureFunctionsJobHost__DicomFunctions__IndexMetricsCollection__Frequency": "0 0 * * *",
     "AzureFunctionsJobHost__Logging__Console__IsEnabled": "true",
     "AzureFunctionsJobHost__SqlServer__ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true;TrustServerCertificate=true",
     "AzureFunctionsJobHost__BlobStore__ConnectionString": "UseDevelopmentStorage=true",

@@ -75,6 +75,9 @@
         "FirstRetryInterval": "00:01:00",
         "MaxNumberOfAttempts": 4
       }
+    },
+    "IndexMetricsCollection": {
+      "Frequency": "0 0 * * *"
     }
   },
   "Extensions": {
