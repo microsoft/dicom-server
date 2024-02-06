@@ -54,7 +54,7 @@ public class Startup
             .AddBlobDataStores(Configuration)
             .AddSqlServer(Configuration)
             .AddKeyVaultClient(Configuration)
-            .AddAzureFunctionsClient(Configuration)
+            .AddAzureFunctionsClient(Configuration, _environment.IsDevelopment())
             .AddBackgroundWorkers(Configuration)
             .AddHostedServices();
 
