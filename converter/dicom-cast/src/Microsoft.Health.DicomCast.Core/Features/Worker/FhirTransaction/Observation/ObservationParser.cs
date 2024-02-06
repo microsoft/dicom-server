@@ -32,13 +32,24 @@ internal static class ObservationParser
     {
         if (dataset.TryGetSequence(DicomTag.ConceptNameCodeSequence, out DicomSequence codes) && codes.Items.Count > 0)
         {
-            var code = new DicomCodeItem(codes);
+            Observation observation = null;
+            try
+            {
+                var code = new DicomCodeItem(codes);
 
-            if (ObservationConstants.IrradiationEvents.Contains(code) && TryCreateIrradiationEvent(dataset, patientReference, identifier, out Observation irradiationEvent))
-                yield return irradiationEvent;
+                if (ObservationConstants.IrradiationEvents.Contains(code) && TryCreateIrradiationEvent(dataset, patientReference, identifier, out Observation irradiationEvent))
+                    observation = irradiationEvent;
 
-            if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
-                yield return CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier);
+                if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
+                    observation = CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier);
+            }
+            catch (DicomValidationException)
+            {
+                observation = null; //we can safely ignore any validation errors since we are only looking for irradiation and dose summary reports specifically. If the code fails to validate then it will not match either report.
+            }
+
+            if (observation != null)
+                yield return observation;
         }
 
         // Recursively iterate through every child in the document checking for nested observations.
