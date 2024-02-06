@@ -67,5 +67,4 @@ public enum SchemaVersion
     V54 = 54,
     V55 = 55,
     V56 = 56,
-    V57 = 57,
 }
