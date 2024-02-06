@@ -20,7 +20,7 @@ internal class ExternalBlobDataStoreConfiguration
     // use for local testing with Azurite
     public string ContainerName { get; set; }
 
-    public string HealthCheckFilePath { get; set; }
+    public string HealthCheckFilePath { get; set; } = "healthCheck/health";
 
     [Range(typeof(TimeSpan), "00:01:00", "1.00:00:00", ConvertValueInInvariantCulture = true, ParseLimitsInInvariantCulture = true)]
     public TimeSpan HealthCheckFileExpiry { get; set; } = TimeSpan.FromMinutes(5);
