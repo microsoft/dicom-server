@@ -58,6 +58,7 @@ public class DicomConnectedStoreHealthCheckTests
     }
 
     [Theory]
+    [InlineData(400, "UnsupportedHeader")]
     [InlineData(401, "InvalidAuthenticationInfo")]
     [InlineData(403, "InvalidAuthenticationInfo")]
     [InlineData(403, "AuthorizationFailure")]
