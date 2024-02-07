@@ -30,3 +30,9 @@ CREATE NONCLUSTERED INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength O
     ContentLength
 )
 WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
+
+-- Used to get dailu sum total
+CREATE NONCLUSTERED INDEX IXC_FileProperty_ContentLength ON dbo.FileProperty(
+    ContentLength
+)
+WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
