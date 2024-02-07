@@ -21,7 +21,7 @@ jobs:
 
   - template: ../common/run-e2e-features-enabled-tests.yml
 
-  - script: docker-compose -p healthcare -f docker-compose.yml -f docker-compose.features.yml logs -t
+  - script: docker-compose -p healthcare -f docker-compose.yml -f docker-compose.features.yml logs -t --until=5m
     displayName: 'docker-compose logs'
     workingDirectory: 'docker'
     condition: always()
