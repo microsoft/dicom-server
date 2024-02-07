@@ -21,7 +21,7 @@ jobs:
 
   - template: ../common/run-e2e-tests.yml
 
-  - script: docker-compose -p healthcare -f docker-compose.yml logs
+  - script: docker-compose -p healthcare -f docker-compose.yml logs -t
     displayName: 'docker-compose logs'
     workingDirectory: 'docker'
     condition: always()
