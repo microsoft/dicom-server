@@ -35,7 +35,7 @@ internal static class ObservationParser
             Observation observation = null;
             try
             {
-                var code = new DicomCodeItem(codes);
+                var code = createDicomCode(codes);
 
                 if (ObservationConstants.IrradiationEvents.Contains(code) && TryCreateIrradiationEvent(dataset, patientReference, identifier, out Observation irradiationEvent))
                     observation = irradiationEvent;
@@ -62,6 +62,21 @@ internal static class ObservationParser
                     yield return childObservation;
             }
         }
+    }
+
+    // We do not use the built in fo dicom method to create dicom codes as that validates the entire dataset by default and we do not want to do that
+    private static DicomCodeItem createDicomCode(DicomSequence sequence)
+    {
+        if (sequence.Items.Count == 0)
+        {
+            throw new DicomDataException("No code item found in sequence.");
+        }
+
+        string codeValue = sequence.Items[0].GetValueOrDefault(DicomTag.CodeValue, 0, string.Empty);
+        string scheme = sequence.Items[0].GetValueOrDefault(DicomTag.CodingSchemeDesignator, 0, string.Empty);
+        string meaning = sequence.Items[0].GetValueOrDefault(DicomTag.CodeMeaning, 0, string.Empty);
+
+        return new DicomCodeItem(codeValue, scheme, meaning);
     }
 
     private static Observation CreateDoseSummary(
