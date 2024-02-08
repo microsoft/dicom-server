@@ -38,6 +38,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>DicomSqlServerResource.resx</DependentUpon>
     </Compile>
+    <Compile Remove="Features\Schema\Model\V56.Generated.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="DicomSqlServerResource.resx">
