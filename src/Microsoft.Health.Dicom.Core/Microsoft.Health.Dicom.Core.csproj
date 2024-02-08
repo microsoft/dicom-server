@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.Health.Operations" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>

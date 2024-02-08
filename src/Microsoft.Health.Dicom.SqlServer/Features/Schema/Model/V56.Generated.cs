@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V56
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -74,7 +74,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
         internal readonly static GetExtendedQueryTagsV36Procedure GetExtendedQueryTagsV36 = new GetExtendedQueryTagsV36Procedure();
-        internal readonly static GetIndexedFileMetricsProcedure GetIndexedFileMetrics = new GetIndexedFileMetricsProcedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceBatchesByTimeStampProcedure GetInstanceBatchesByTimeStamp = new GetInstanceBatchesByTimeStampProcedure();
@@ -311,7 +310,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn ContentLength = new BigIntColumn("ContentLength");
             internal readonly Index IXC_FileProperty = new Index("IXC_FileProperty");
             internal readonly Index IXC_FileProperty_InstanceKey_Watermark_ContentLength = new Index("IXC_FileProperty_InstanceKey_Watermark_ContentLength");
-            internal readonly Index IXC_FileProperty_ContentLength = new Index("IXC_FileProperty_ContentLength");
         }
 
         internal class InstanceTable : Table
@@ -1821,19 +1819,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.GetExtendedQueryTagsV36";
                 _limit.AddParameter(command.Parameters, limit);
                 _offset.AddParameter(command.Parameters, offset);
-            }
-        }
-
-        internal class GetIndexedFileMetricsProcedure : StoredProcedure
-        {
-            internal GetIndexedFileMetricsProcedure() : base("dbo.GetIndexedFileMetrics")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetIndexedFileMetrics";
             }
         }
 
