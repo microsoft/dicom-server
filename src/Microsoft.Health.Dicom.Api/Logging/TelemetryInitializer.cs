@@ -9,6 +9,8 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Api.Logging;
 
@@ -18,11 +20,21 @@ namespace Microsoft.Health.Dicom.Api.Logging;
 internal class TelemetryInitializer : ITelemetryInitializer
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly bool _enableDataPartitions;
+    private readonly bool _enableExport;
+    private readonly bool _enableExternalStore;
     private const string ApiVersionColumnName = "ApiVersion";
+    private const string EnableDataPartitions = "EnableDataPartitions";
+    private const string EnableExport = "EnableExport";
+    private const string EnableExternalStore = "EnableExternalStore";
 
-    public TelemetryInitializer(IHttpContextAccessor httpContextAccessor)
+    public TelemetryInitializer(IHttpContextAccessor httpContextAccessor, IOptions<FeatureConfiguration> featureConfiguration)
     {
         _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+        _enableDataPartitions = featureConfiguration.Value.EnableDataPartitions;
+        _enableExport = featureConfiguration.Value.EnableExport;
+        _enableExternalStore = featureConfiguration.Value.EnableExternalStore;
     }
 
     public void Initialize(ITelemetry telemetry)
@@ -52,5 +64,8 @@ internal class TelemetryInitializer : ITelemetryInitializer
         }
 
         requestTelemetry.Properties[ApiVersionColumnName] = version;
+        requestTelemetry.Properties[EnableDataPartitions] = _enableDataPartitions.ToString();
+        requestTelemetry.Properties[EnableExport] = _enableExport.ToString();
+        requestTelemetry.Properties[EnableExternalStore] = _enableExternalStore.ToString();
     }
 }

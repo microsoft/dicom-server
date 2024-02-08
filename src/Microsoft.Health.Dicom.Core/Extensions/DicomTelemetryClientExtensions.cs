@@ -4,33 +4,33 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.ApplicationInsights;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
 
 internal static class DicomTelemetryClientExtensions
 {
-    public static void TrackInstanceCount(this TelemetryClient telemetryClient, int count)
+    public static void TrackInstanceCount(this IDicomTelemetryClient telemetryClient, int count)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("Dicom_InstanceCount", count);
+        telemetryClient.TrackMetric("InstanceCount", count);
     }
 
-    public static void TrackTotalInstanceBytes(this TelemetryClient telemetryClient, long bytes)
+    public static void TrackTotalInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("Dicom_TotalInstanceBytes", bytes);
+        telemetryClient.TrackMetric("TotalInstanceBytes", bytes);
     }
 
-    public static void TrackMinInstanceBytes(this TelemetryClient telemetryClient, long bytes)
+    public static void TrackMinInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("Dicom_MinInstanceBytes", bytes);
+        telemetryClient.TrackMetric("MinInstanceBytes", bytes);
     }
 
-    public static void TrackMaxInstanceBytes(this TelemetryClient telemetryClient, long bytes)
+    public static void TrackMaxInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("Dicom_MaxInstanceBytes", bytes);
+        telemetryClient.TrackMetric("MaxInstanceBytes", bytes);
     }
 }
