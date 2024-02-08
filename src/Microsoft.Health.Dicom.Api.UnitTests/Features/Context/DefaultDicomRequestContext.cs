@@ -51,4 +51,9 @@ public class DefaultDicomRequestContext : IDicomRequestContext
     public IDictionary<string, StringValues> ResponseHeaders { get; set; }
 
     public int Version { get; set; }
+
+    /// <summary>
+    /// Egress bytes from Dicom server to other resources
+    /// </summary>
+    public long TotalDicomEgressToStorageBytes { get; set; }
 }

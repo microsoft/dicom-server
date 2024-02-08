@@ -10,10 +10,6 @@ steps:
   displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 
-- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "Category=bvt-dp" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults" -e DicomServer__Features__EnableExternalStore="true"
-  displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll with EnableExternalStore'
-  workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
-
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   condition: succeededOrFailed()

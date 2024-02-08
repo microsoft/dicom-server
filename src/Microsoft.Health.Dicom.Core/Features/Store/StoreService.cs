@@ -124,6 +124,7 @@ public class StoreService : IStoreService
                         maxLength = Math.Max(maxLength, len);
                         // Update Telemetry
                         _storeMeter.InstanceLength.Record(len);
+                        _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes += len;
                     }
                 }
                 finally
