@@ -68,6 +68,6 @@ internal class TelemetryInitializer : ITelemetryInitializer
         requestTelemetry.Properties[EnableDataPartitions] = _enableDataPartitions.ToString();
         requestTelemetry.Properties[EnableExport] = _enableExport.ToString();
         requestTelemetry.Properties[EnableExternalStore] = _enableExternalStore.ToString();
-        requestTelemetry.Properties[UserAgent] = _httpContextAccessor.HttpContext.Request.Headers.UserAgent;
+        requestTelemetry.Properties[UserAgent] = _httpContextAccessor.HttpContext?.Request.Headers.UserAgent;
     }
 }
