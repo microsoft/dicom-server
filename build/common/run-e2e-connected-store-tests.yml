@@ -15,11 +15,11 @@ steps:
   condition: eq(${{ parameters.externalStorageTests }}, true)
 
 - task: PublishTestResults@2
-  displayName: 'Publish Test Results'
+  displayName: 'Publish Connected Store Test Results'
   condition: succeededOrFailed()
   inputs:
     testResultsFormat: 'VSTest'
     testResultsFiles: '*.trx'
     searchFolder: '$(Agent.TempDirectory)/TestResults'
-    testRunTitle: 'E2E Tests'
+    testRunTitle: 'E2E Connected Store Tests'
     buildConfiguration: '$(buildConfiguration)'

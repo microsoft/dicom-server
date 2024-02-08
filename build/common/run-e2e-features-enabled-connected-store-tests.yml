@@ -11,11 +11,11 @@ steps:
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 
 - task: PublishTestResults@2
-  displayName: 'Publish Test Results'
+  displayName: 'Publish Connected Store Test Results'
   condition: succeededOrFailed()
   inputs:
     testResultsFormat: 'VSTest'
     testResultsFiles: '*.trx'
     searchFolder: '$(Agent.TempDirectory)/TestResults'
-    testRunTitle: 'Partitioned E2E Tests'
+    testRunTitle: 'Partitioned Connected Store E2E Tests'
     buildConfiguration: '$(buildConfiguration)'
