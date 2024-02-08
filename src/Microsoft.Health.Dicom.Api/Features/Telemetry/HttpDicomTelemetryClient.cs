@@ -21,16 +21,16 @@ internal class HttpDicomTelemetryClient : IDicomTelemetryClient
         _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
     }
 
-    // Note: Context Items are prefixed so that the telemetry initializer knows which items to include in the telemetry
-
     public void TrackMetric(string name, int value)
     {
+        // Note: Context Items are prefixed so that the telemetry initializer knows which items to include in the telemetry
         _httpContextAccessor.HttpContext.Items[DicomTelemetry.ContextItemPrefix + name] = value;
         _telemetryClient.GetMetric(name).TrackValue(value);
     }
 
     public void TrackMetric(string name, long value)
     {
+        // Note: Context Items are prefixed so that the telemetry initializer knows which items to include in the telemetry
         _httpContextAccessor.HttpContext.Items[DicomTelemetry.ContextItemPrefix + name] = value;
         _telemetryClient.GetMetric(name).TrackValue(value);
     }
