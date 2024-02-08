@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -10,6 +13,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Api.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Api.Logging;
@@ -41,6 +45,8 @@ internal class TelemetryInitializer : ITelemetryInitializer
     public void Initialize(ITelemetry telemetry)
     {
         AddApiVersionColumn(telemetry);
+        if (telemetry is RequestTelemetry requestTelemetry)
+            AddPropertiesFromHttpContextItems(requestTelemetry);
     }
 
     private void AddApiVersionColumn(ITelemetry telemetry)
@@ -69,5 +75,27 @@ internal class TelemetryInitializer : ITelemetryInitializer
         requestTelemetry.Properties[EnableExport] = _enableExport.ToString();
         requestTelemetry.Properties[EnableExternalStore] = _enableExternalStore.ToString();
         requestTelemetry.Properties[UserAgent] = _httpContextAccessor.HttpContext?.Request.Headers.UserAgent;
+    }
+
+    private void AddPropertiesFromHttpContextItems(RequestTelemetry requestTelemetry)
+    {
+        if (_httpContextAccessor.HttpContext == null)
+        {
+            return;
+        }
+
+        IEnumerable<(string Key, string Value)> properties = _httpContextAccessor.HttpContext
+            .Items
+            .Select(x => (Key: x.Key.ToString(), x.Value))
+            .Where(x => x.Key.StartsWith(DicomTelemetry.ContextItemPrefix, StringComparison.Ordinal))
+            .Select(x => (x.Key[DicomTelemetry.ContextItemPrefix.Length..], x.Value?.ToString()));
+
+        foreach ((string key, string value) in properties)
+        {
+            if (requestTelemetry.Properties.ContainsKey(key))
+                requestTelemetry.Properties["DuplicateDimension"] = bool.TrueString;
+
+            requestTelemetry.Properties[key] = value;
+        }
     }
 }

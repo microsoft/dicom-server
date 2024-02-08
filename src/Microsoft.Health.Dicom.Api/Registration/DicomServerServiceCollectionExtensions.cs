@@ -176,8 +176,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddRecyclableMemoryStreamManager(configurationRoot);
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
-        // track common Dicom server specific requests telemetry
-        services.AddSingleton<ITelemetryInitializer, DicomTelemetryInitializer>();
         services.AddSingleton<IDicomTelemetryClient, HttpDicomTelemetryClient>();
 
         CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
