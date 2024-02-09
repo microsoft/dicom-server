@@ -4,7 +4,7 @@
 --     DeleteExtendedQueryTagDataByWatermarkRange
 --
 -- FIRST SCHEMA VERSION
---     6
+--     57
 --
 -- DESCRIPTION
 --     Deletes the extended query tag data in the provided watermark range

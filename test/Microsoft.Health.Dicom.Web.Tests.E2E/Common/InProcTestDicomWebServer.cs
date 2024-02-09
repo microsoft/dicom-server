@@ -72,7 +72,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
             .UseStartup(startupType)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                //config.AddInMemoryCollection(authSettings);
+                config.AddInMemoryCollection(authSettings);
                 config.AddInMemoryCollection(featureSettings);
                 config.AddInMemoryCollection(sqlSettings);
 

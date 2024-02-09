@@ -33,7 +33,6 @@ internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
 
     public override SchemaVersion Version => SchemaVersion.V57;
 
-    // just deletes the tag itself
     public override async Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))

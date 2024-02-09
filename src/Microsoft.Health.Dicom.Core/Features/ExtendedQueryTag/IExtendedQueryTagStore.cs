@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -106,19 +107,21 @@ public interface IExtendedQueryTagStore
     Task DeleteExtendedQueryTagAsync(string tagPath, string vr, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes the extended query tag entry
+    /// Asynchronously deletes the extended query tag entry
     /// </summary>
-    /// <param name="tagKey"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="tagKey">The key of the tag to delete</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the <see cref="DeleteExtendedQueryTagEntryAsync"/> operation.</returns>
     Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates the status of the extended query tag to 'Deleting'
+    /// Asynchronously updates the status of the extended query tag to 'Deleting'
     /// </summary>
-    /// <param name="tagKey">tagKey</param>
-    /// <param name="cancellationToken">the cancellation token</param>
-    /// <returns></returns>
+    /// <param name="tagKey">The key of the tag to update</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A task representing the <see cref="DeleteExtendedQueryTagEntryAsync"/> operation.</returns>
+    /// <exception cref="ExtendedQueryTagBusyException">The extended query tag is already in a Deleting state.</exception>
+    /// <exception cref="ExtendedQueryTagNotFoundException">The extended query tag could not be found.</exception>
     Task UpdateExtendedQueryTagStatusToDelete(int tagKey, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -162,24 +165,24 @@ public interface IExtendedQueryTagStore
     Task<IReadOnlyList<int>> CompleteReindexingAsync(IReadOnlyCollection<int> queryTagKeys, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets batches of extended query tag indicies based on the watermark
+    /// Asynchronously gets batches of extended query tag indicies based on the watermark
     /// </summary>
-    /// <param name="batchSize"></param>
-    /// <param name="batchCount"></param>
-    /// <param name="vr"></param>
-    /// <param name="tagKey"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="batchSize">The size of the batch of each watermark range</param>
+    /// <param name="batchCount">The maximum number of watermark ranges to create</param>
+    /// <param name="vr">The VR of the tag</param>
+    /// <param name="tagKey">The key of the tag</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A list of watermark ranges that define equal batches of work to act on.</returns>
     Task<IReadOnlyList<WatermarkRange>> GetExtendedQueryTagBatches(int batchSize, int batchCount, string vr, int tagKey, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes the extended query tag index in the specified watermark range
+    /// Asynchronously deletes the extended query tag index in the specified watermark range
     /// </summary>
-    /// <param name="startWatermark"></param>
-    /// <param name="endWatermark"></param>
-    /// <param name="vr"></param>
-    /// <param name="tagKey"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="startWatermark">The watermark to start deleting at.</param>
+    /// <param name="endWatermark">The watermark to finish deleting at.</param>
+    /// <param name="vr">The VR of the tag</param>
+    /// <param name="tagKey">The key of the tag</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A task representing the <see cref="DeleteExtendedQueryTagDataByWatermarkRangeAsync"/> operation.</returns>
     Task DeleteExtendedQueryTagDataByWatermarkRangeAsync(long startWatermark, long endWatermark, string vr, int tagKey, CancellationToken cancellationToken = default);
 }

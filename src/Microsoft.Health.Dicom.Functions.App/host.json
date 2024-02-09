@@ -69,13 +69,13 @@
       }
     },
     "DeleteExtendedQueryTag": {
-      "BatchSize": 2,
-      "MaxParallelThreads": 2,
-      "MaxParallelBatches": 2,
+      "BatchSize": 100,
+      "MaxParallelThreads": 5,
+      "MaxParallelBatches": 10,
       "RetryOptions": {
-        "BackoffCoefficient": 1,
+        "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
-        "MaxNumberOfAttempts": 1
+        "MaxNumberOfAttempts": 4
       }
     },
     "Update": {
