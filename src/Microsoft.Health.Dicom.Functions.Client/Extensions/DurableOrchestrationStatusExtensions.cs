@@ -32,6 +32,9 @@ internal static class DurableOrchestrationStatusExtensions
 
             if (status.Name.StartsWith(FunctionNames.UpdateInstances, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Update;
+
+            if (status.Name.StartsWith(FunctionNames.DeleteExtendedQueryTag, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.DeleteExtendedQueryTag;
         }
 
         return DicomOperation.Unknown;

@@ -40,5 +40,10 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an update operation that updates the Dicom attributes.
     /// </summary>
-    Update
+    Update,
+
+    /// <summary>
+    /// Specifies an operation to delete extended query tag.
+    /// </summary>
+    DeleteExtendedQueryTag
 }

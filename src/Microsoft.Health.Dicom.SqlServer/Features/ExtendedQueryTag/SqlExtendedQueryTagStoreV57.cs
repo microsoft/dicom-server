@@ -12,11 +12,13 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+
 internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
 {
     /// <summary>
@@ -28,6 +30,8 @@ internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
         : base(sqlConnectionWrapperFactory, logger)
     {
     }
+
+    public override SchemaVersion Version => SchemaVersion.V57;
 
     // just deletes the tag itself
     public override async Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default)

@@ -12,16 +12,13 @@ namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 public partial class DeleteExtendedQueryTagFunction
 {
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-    private readonly IExtendedQueryTagErrorStore _extendedQueryTagErrorStore;
     private readonly DeleteExtendedQueryTagOptions _options;
 
     public DeleteExtendedQueryTagFunction(
         IExtendedQueryTagStore extendedQueryTagStore,
-        IExtendedQueryTagErrorStore extendedQueryTagErrorStore,
         IOptions<DeleteExtendedQueryTagOptions> configOptions)
     {
         _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-        _extendedQueryTagErrorStore = EnsureArg.IsNotNull(extendedQueryTagErrorStore, nameof(extendedQueryTagErrorStore));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }

@@ -143,11 +143,12 @@ public interface IDicomOperationsClient
     Task StartContentLengthBackFillOperationAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Begin delete extended query tags
+    /// Asynchronously begins the delete of extended query tag operation.
     /// </summary>
-    /// <param name="operationId"></param>
-    /// <param name="tagPath"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task<OperationReference> StartDeleteExtendedQueryTagOperationAsync(Guid operationId, string tagPath, CancellationToken cancellationToken = default);
+    /// <param name="operationId">The desired ID for the operation.</param>
+    /// <param name="tagKey">tag key</param>
+    /// <param name="vr">vr</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>A task representing the <see cref="StartDeleteExtendedQueryTagOperationAsync"/> operation.</returns>
+    Task StartDeleteExtendedQueryTagOperationAsync(Guid operationId, int tagKey, string vr, CancellationToken cancellationToken = default);
 }

@@ -136,6 +136,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV1>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV2>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV36>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV57>());
 
         return services;
     }

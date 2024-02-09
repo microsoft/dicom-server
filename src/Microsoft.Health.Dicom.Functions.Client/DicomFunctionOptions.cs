@@ -29,4 +29,7 @@ internal class DicomFunctionOptions
 
     [Required]
     public FanOutFunctionOptions Update { get; set; }
+
+    [Required]
+    public FanOutFunctionOptions DeleteExtendedQueryTag { get; set; }
 }

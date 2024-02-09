@@ -241,20 +241,18 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationReference> StartDeleteExtendedQueryTagOperationAsync(Guid operationId, string tagPath, CancellationToken cancellationToken = default)
+    public async Task StartDeleteExtendedQueryTagOperationAsync(Guid operationId, int tagKey, string vr, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        EnsureArg.IsNotNull(vr, nameof(vr));
 
         cancellationToken.ThrowIfCancellationRequested();
 
         string instanceId = await _durableClient.StartNewAsync(
-            _options.Indexing.Name,
+            _options.DeleteExtendedQueryTag.Name,
             operationId.ToString(OperationId.FormatSpecifier),
-            new DeleteExtendedQueryTagCheckpoint() { Batching = _options.Indexing.Batching, TagPath = tagPath });
+            new DeleteExtendedQueryTagCheckpoint() { Batching = _options.DeleteExtendedQueryTag.Batching, TagKey = tagKey, VR = vr });
 
         _logger.LogInformation("Successfully started new delete extended query tag orchestration instance with ID '{InstanceId}'.", instanceId);
-
-        return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
     private async Task<T> GetStateAsync<T>(
@@ -297,6 +295,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             case DicomOperation.Export:
             case DicomOperation.DataCleanup:
             case DicomOperation.ContentLengthBackFill:
+            case DicomOperation.DeleteExtendedQueryTag:
                 return null;
             case DicomOperation.Reindex:
                 IReadOnlyList<Uri> tagPaths = Array.Empty<Uri>();
@@ -328,6 +327,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             DicomOperation.Update => status.Input?.ToObject<UpdateCheckpoint>() ?? new UpdateCheckpoint(),
+            DicomOperation.DeleteExtendedQueryTag => status.Input?.ToObject<DeleteExtendedQueryTagCheckpoint>() ?? new DeleteExtendedQueryTagCheckpoint(),
             _ => NullOrchestrationCheckpoint.Value,
         };
 

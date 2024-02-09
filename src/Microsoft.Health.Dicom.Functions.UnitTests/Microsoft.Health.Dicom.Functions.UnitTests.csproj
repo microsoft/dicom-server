@@ -42,8 +42,11 @@
     <None Include="DataCleanup\DataCleanupDurableFunctionTests.*.cs">
       <DependentUpon>DataCleanupDurableFunctionTests.cs</DependentUpon>
     </None>
-    <None Include="ContentLengthBackFill\ContentLengthBackFillDurableFunction.*.cs">
-      <DependentUpon>ContentLengthBackFillDurableFunction.cs</DependentUpon>
+    <None Include="ContentLengthBackFill\ContentLengthBackFillDurableFunctionTests.*.cs">
+      <DependentUpon>ContentLengthBackFillDurableFunctionTests.cs</DependentUpon>
+    </None>
+    <None Include="DeleteExtendedQueryTag\DeleteExtendedQueryTagFunctionTests.*.cs">
+      <DependentUpon>DeleteExtendedQueryTagFunctionTests.cs</DependentUpon>
     </None>
   </ItemGroup>
 

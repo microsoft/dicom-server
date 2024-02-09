@@ -16,4 +16,6 @@ internal static class FunctionNames
     public const string ReindexInstances = "ReindexInstances";
 
     public const string UpdateInstances = "UpdateInstances";
+
+    public const string DeleteExtendedQueryTag = "DeleteExtendedQueryTag";
 }

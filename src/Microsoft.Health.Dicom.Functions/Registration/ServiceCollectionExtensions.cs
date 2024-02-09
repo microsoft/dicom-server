@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.ContentLengthBackFill;
 using Microsoft.Health.Dicom.Functions.DataCleanup;
+using Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Update;
@@ -67,6 +68,7 @@ public static class ServiceCollectionExtensions
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .AddFunctionsOptions<FeatureConfiguration>(configuration, "DicomServer:Features", isDicomFunction: false)
             .AddFunctionsOptions<UpdateOptions>(configuration, UpdateOptions.SectionName)
+            .AddFunctionsOptions<DeleteExtendedQueryTagOptions>(configuration, DeleteExtendedQueryTagOptions.SectionName)
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings())
             .AddSingleton<UpdateMeter>()

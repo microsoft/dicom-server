@@ -68,6 +68,16 @@
         "MaxNumberOfAttempts": 4
       }
     },
+    "DeleteExtendedQueryTag": {
+      "BatchSize": 2,
+      "MaxParallelThreads": 2,
+      "MaxParallelBatches": 2,
+      "RetryOptions": {
+        "BackoffCoefficient": 1,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 1
+      }
+    },
     "Update": {
       "MaxParallelThreads": 5,
       "RetryOptions": {

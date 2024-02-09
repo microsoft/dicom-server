@@ -10,7 +10,6 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -29,28 +28,11 @@ public partial class DeleteExtendedQueryTagFunction
 
         DeleteExtendedQueryTagCheckpoint checkpoint = context.GetInput<DeleteExtendedQueryTagCheckpoint>();
 
-        if (!checkpoint.Completed.HasValue && checkpoint.TagKey == default(int))
-        {
-            ExtendedQueryTagStoreJoinEntry xqt = await context.CallActivityWithRetryAsync<ExtendedQueryTagStoreJoinEntry>(nameof(GetExtendedQueryTagAsync), _options.RetryOptions, checkpoint.TagPath);
-
-            // also does validation and will throw if tag is not found or is already being deleted
-            await context.CallActivityWithRetryAsync(nameof(UpdateExtendedQueryTagStatusToDeleting), _options.RetryOptions, xqt.Key);
-
-            checkpoint.TagKey = xqt.Key;
-            checkpoint.VR = xqt.VR;
-        }
-
-        DeleteExtendedQueryTagArguments arguments = new DeleteExtendedQueryTagArguments
-        {
-            TagKey = checkpoint.TagKey,
-            VR = checkpoint.VR,
-        };
-
         // get batches
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
             nameof(GetExtendedQueryTagBatchesAsync),
             _options.RetryOptions,
-            new BatchCreationArguments(arguments, checkpoint.Batching.Size, checkpoint.Batching.MaxParallelCount));
+            new BatchCreationArguments(checkpoint.TagKey, checkpoint.VR, checkpoint.Batching.Size, checkpoint.Batching.MaxParallelCount));
 
         if (batches.Count > 0)
         {
@@ -62,7 +44,7 @@ public partial class DeleteExtendedQueryTagFunction
                 .Select(range => context.CallActivityWithRetryAsync(
                     nameof(DeleteExtendedQueryTagDataByWatermarkRangeAsync),
                     _options.RetryOptions,
-                    new DeleteBatchArguments(arguments, range))));
+                    new DeleteBatchArguments(checkpoint.TagKey, checkpoint.VR, range))));
 
             logger.LogInformation("Completed deletion of extended query tag data the range {Range}. Continuing with new execution...", batchRange);
 
@@ -77,16 +59,20 @@ public partial class DeleteExtendedQueryTagFunction
                     Completed = completed,
                     CreatedTime = checkpoint.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                     TagKey = checkpoint.TagKey,
+                    VR = checkpoint.VR,
                 });
         }
         else
         {
             // once everything else is complete, delete the tag entry itself
-            await context.CallActivityWithRetryAsync(nameof(DeleteExtendedQueryTagEntry), _options.RetryOptions, arguments);
+            await context.CallActivityWithRetryAsync(
+                nameof(DeleteExtendedQueryTagEntry),
+                _options.RetryOptions,
+                new DeleteExtendedQueryTagArguments { TagKey = checkpoint.TagKey });
 
             logger.LogInformation(
-                "Completed deletion of the extended query tag for path {TagPath}.",
-                checkpoint.TagPath);
+                "Completed deletion of the extended query tag for tag key {TagKey}.",
+                checkpoint.TagKey);
         }
     }
 }

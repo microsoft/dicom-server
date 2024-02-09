@@ -9,14 +9,15 @@ namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag.Models;
 
 public class BatchCreationArguments : DeleteExtendedQueryTagArguments
 {
-    public BatchCreationArguments(DeleteExtendedQueryTagArguments deleteExtendedQueryTagArguments, int batchSize, int batchCount)
+    public BatchCreationArguments(int tagKey, string vr, int batchSize, int batchCount)
     {
-        EnsureArg.IsNotNull(deleteExtendedQueryTagArguments, nameof(deleteExtendedQueryTagArguments));
+        EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
+        EnsureArg.IsGte(batchCount, 1, nameof(batchCount));
 
         BatchSize = batchSize;
         BatchCount = batchCount;
-        TagKey = deleteExtendedQueryTagArguments.TagKey;
-        VR = deleteExtendedQueryTagArguments.VR;
+        TagKey = tagKey;
+        VR = vr;
     }
 
     public int BatchSize { get; set; }

@@ -8,11 +8,6 @@ namespace Microsoft.Health.Dicom.Functions.DeleteExtendedQueryTag;
 public class DeleteExtendedQueryTagInput
 {
     /// <summary>
-    /// The tag path to delete
-    /// </summary>
-    public string TagPath { get; set; }
-
-    /// <summary>
     /// The tag key to delete
     /// </summary>
     public int TagKey { get; set; }
