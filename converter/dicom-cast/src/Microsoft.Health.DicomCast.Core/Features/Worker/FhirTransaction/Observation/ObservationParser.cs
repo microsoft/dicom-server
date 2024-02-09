@@ -67,11 +67,6 @@ internal static class ObservationParser
     // We do not use the built in fo dicom method to create dicom codes as that validates the entire dataset by default and we do not want to do that
     private static DicomCodeItem createDicomCode(DicomSequence sequence)
     {
-        if (sequence.Items.Count == 0)
-        {
-            throw new DicomDataException("No code item found in sequence.");
-        }
-
         string codeValue = sequence.Items[0].GetValueOrDefault(DicomTag.CodeValue, 0, string.Empty);
         string scheme = sequence.Items[0].GetValueOrDefault(DicomTag.CodingSchemeDesignator, 0, string.Empty);
         string meaning = sequence.Items[0].GetValueOrDefault(DicomTag.CodeMeaning, 0, string.Empty);
