@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -66,13 +67,21 @@ public static class DicomServerServiceCollectionExtensions
             serverBuilder.Services.AddHostedService<StartContentLengthBackFillBackgroundService>();
         }
 
+        HealthCheckPublisherConfiguration healthCheckPublisherConfiguration = new HealthCheckPublisherConfiguration();
+        configuration.GetSection(HealthCheckPublisherConfiguration.SectionName).Bind(healthCheckPublisherConfiguration);
+
         serverBuilder.Services
             .AddCustomerKeyValidationBackgroundService(options => configuration
                 .GetSection(CustomerManagedKeyOptions.CustomerManagedKey)
                 .Bind(options))
-            .AddHealthCheckCachePublisher(options => configuration
-                .GetSection("HealthCheckPublisher")
-                .Bind(options));
+            .AddHealthCheckCachePublisher(options =>
+            {
+                configuration
+                    .GetSection(HealthCheckPublisherConfiguration.SectionName)
+                    .Bind(options);
+
+                options.Predicate = (check) => !healthCheckPublisherConfiguration.ExcludedHealthCheckNames.Contains(check.Name);
+            });
 
         return serverBuilder;
     }
