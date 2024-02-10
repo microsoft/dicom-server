@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using EnsureThat;
@@ -69,6 +70,7 @@ public static class DicomServerServiceCollectionExtensions
 
         HealthCheckPublisherConfiguration healthCheckPublisherConfiguration = new HealthCheckPublisherConfiguration();
         configuration.GetSection(HealthCheckPublisherConfiguration.SectionName).Bind(healthCheckPublisherConfiguration);
+        IEnumerable<string> excludedHealthCheckNames = healthCheckPublisherConfiguration.GetListOfExcludedHealthCheckNames();
 
         serverBuilder.Services
             .AddCustomerKeyValidationBackgroundService(options => configuration
@@ -80,7 +82,7 @@ public static class DicomServerServiceCollectionExtensions
                     .GetSection(HealthCheckPublisherConfiguration.SectionName)
                     .Bind(options);
 
-                options.Predicate = (check) => !healthCheckPublisherConfiguration.ExcludedHealthCheckNames.Contains(check.Name);
+                options.Predicate = (check) => !excludedHealthCheckNames.Contains(check.Name);
             });
 
         return serverBuilder;
