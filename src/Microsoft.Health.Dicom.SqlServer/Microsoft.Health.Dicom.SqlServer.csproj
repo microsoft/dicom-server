@@ -69,6 +69,8 @@
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
     <None Remove="features\schema\migrations\57.diff.sql" />
+    <None Remove="features\schema\migrations\58.diff.sql" />
+    <None Remove="features\schema\migrations\58.sql" />
     <None Remove="features\schema\sql\sprocs\DeleteExtendedQueryEntry.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\DeleteExtendedQueryTagDataByWatermarkRange.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\UpdateExtendedQueryTagStatusToDelete.sql" />

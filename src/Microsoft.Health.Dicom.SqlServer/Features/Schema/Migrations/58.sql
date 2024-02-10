@@ -298,9 +298,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty
 CREATE NONCLUSTERED INDEX IXC_FileProperty_InstanceKey_Watermark_ContentLength
     ON dbo.FileProperty(InstanceKey, Watermark, ContentLength) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
 
-CREATE NONCLUSTERED INDEX IXC_FileProperty_ContentLength
-    ON dbo.FileProperty(ContentLength) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
-
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
     SeriesKey             BIGINT        NOT NULL,
@@ -2630,17 +2627,6 @@ BEGIN
              ON XQT.TagKey = XQTO.TagKey
     ORDER BY XQT.TagKey ASC
     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetIndexedFileMetrics
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT COUNT_BIG(*) AS TotalIndexedFileCount,
-           SUM(ContentLength) AS TotalIndexedBytes
-    FROM   dbo.FileProperty;
 END
 
 GO

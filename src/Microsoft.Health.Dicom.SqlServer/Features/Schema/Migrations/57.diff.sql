@@ -2,22 +2,14 @@ SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     Delete extended query tag entry
---
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteExtendedQueryTagEntry (
-    @tagKey INT
-) AS
+CREATE OR ALTER PROCEDURE dbo.GetIndexedFileMetrics
+    AS
 BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    -- Delete tag
-    DELETE FROM dbo.ExtendedQueryTag
-    WHERE TagKey = @tagKey
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+SELECT TotalIndexedFileCount=COUNT_BIG(*),
+       TotalIndexedBytes=SUM(ContentLength)
+FROM   dbo.FileProperty;
 END
 GO
 
@@ -51,180 +43,20 @@ BEGIN
         ELSE
             DELETE FROM dbo.ExtendedQueryTagPersonName WHERE TagKey = @tagKey AND ResourceType = @imageResourceType AND Watermark BETWEEN @startWatermark AND @endWatermark
 
-    COMMIT TRANSACTION
-
-    BEGIN TRANSACTION
-
-        DELETE FROM dbo.ExtendedQueryTagError
-        WHERE TagKey = @tagKey AND Watermark BETWEEN @startWatermark AND @endWatermark
-
-    COMMIT TRANSACTION
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     Gets the batches for extended query tag by watermark range
---
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagBatches
-    @batchSize INT,
-    @batchCount INT,
-    @dataType TINYINT,
-    @tagKey INT
-AS
+COMMIT TRANSACTION
+    
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IXC_FileProperty_ContentLength'
+        AND Object_id = OBJECT_ID('dbo.FileProperty')
+)
 BEGIN
-    SET NOCOUNT ON
-
-    DECLARE @imageResourceType TINYINT = 0
-
-    IF @dataType = 0
-        SELECT
-            MIN(Watermark) AS MinWatermark,
-            MAX(Watermark) AS MaxWatermark
-        FROM
-        (
-            SELECT TOP (@batchSize * @batchCount)
-                U.Watermark,
-                (ROW_NUMBER() OVER(ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
-            FROM
-			(
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagString
-				WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-				UNION
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagError
-				WHERE TagKey = @tagKey
-			) as U
-        ) AS I
-        GROUP BY Batch
-        ORDER BY Batch ASC
-    ELSE IF @dataType = 1
-        SELECT
-            MIN(Watermark) AS MinWatermark,
-            MAX(Watermark) AS MaxWatermark
-        FROM
-        (
-            SELECT TOP (@batchSize * @batchCount)
-                U.Watermark,
-                (ROW_NUMBER() OVER(ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
-            FROM
-			(
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagLong
-				WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-				UNION
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagError
-				WHERE TagKey = @tagKey
-			) as U
-        ) AS I
-        GROUP BY Batch
-        ORDER BY Batch ASC
-    ELSE IF @dataType = 2
-        SELECT
-            MIN(Watermark) AS MinWatermark,
-            MAX(Watermark) AS MaxWatermark
-        FROM
-        (
-            SELECT TOP (@batchSize * @batchCount)
-                U.Watermark,
-                (ROW_NUMBER() OVER(ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
-            FROM
-			(
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagDouble
-				WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-				UNION
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagError
-				WHERE TagKey = @tagKey
-			) as U
-        ) AS I
-        GROUP BY Batch
-        ORDER BY Batch ASC
-    ELSE IF @dataType = 3
-        SELECT
-            MIN(Watermark) AS MinWatermark,
-            MAX(Watermark) AS MaxWatermark
-        FROM
-        (
-            SELECT TOP (@batchSize * @batchCount)
-                U.Watermark,
-                (ROW_NUMBER() OVER(ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
-            FROM
-			(
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagDateTime
-				WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-				UNION
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagError
-				WHERE TagKey = @tagKey
-			) as U
-        ) AS I
-        GROUP BY Batch
-        ORDER BY Batch ASC
-    ELSE
-        SELECT
-            MIN(Watermark) AS MinWatermark,
-            MAX(Watermark) AS MaxWatermark
-        FROM
-        (
-            SELECT TOP (@batchSize * @batchCount)
-                U.Watermark,
-                (ROW_NUMBER() OVER(ORDER BY U.Watermark DESC) - 1) / @batchSize AS Batch
-            FROM
-			(
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagPersonName
-				WHERE TagKey = @tagKey AND ResourceType = @imageResourceType
-				UNION
-				SELECT Watermark
-				FROM dbo.ExtendedQueryTagError
-				WHERE TagKey = @tagKey
-			) as U
-        ) AS I
-        GROUP BY Batch
-        ORDER BY Batch ASC
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     Update the status of the extended query tag to Deleting
---
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.UpdateExtendedQueryTagStatusToDelete
-    @tagKey INT
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    BEGIN TRANSACTION
-
-        DECLARE @tagStatus TINYINT
-
-        SELECT @tagStatus = TagStatus
-        FROM dbo.ExtendedQueryTag WITH(XLOCK)
-        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
-
-        -- Check existence
-        IF @@ROWCOUNT = 0
-            THROW 50404, 'extended query tag not found', 1
-
-        -- check if status is Ready or Adding
-        IF @tagStatus = 2
-            THROW 50412, 'extended query tag is not in Ready or Adding status', 1
-
-        -- Update status to Deleting
-        UPDATE dbo.ExtendedQueryTag
-        SET TagStatus = 2
-        WHERE dbo.ExtendedQueryTag.TagKey = @tagKey
-
-    COMMIT TRANSACTION
+    CREATE NONCLUSTERED INDEX IXC_FileProperty_ContentLength ON dbo.FileProperty
+    (
+    ContentLength
+    ) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON)
 END
 GO
 

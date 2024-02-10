@@ -3,10 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Xunit;
 
-public static class SchemaVersionConstants
+namespace Microsoft.Health.Dicom.Tests.Integration;
+
+[CollectionDefinition("Indexed File Properties Collection", DisableParallelization = true)]
+public class IndexedFilePropertiesCollection
 {
-    public const int Min = (int)SchemaVersion.V51;
-    public const int Max = (int)SchemaVersion.V58;
 }

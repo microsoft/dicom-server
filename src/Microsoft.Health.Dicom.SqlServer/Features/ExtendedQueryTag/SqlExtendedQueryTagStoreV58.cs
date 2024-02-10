@@ -19,19 +19,19 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 
-internal class SqlExtendedQueryTagStoreV57 : SqlExtendedQueryTagStoreV36
+internal class SqlExtendedQueryTagStoreV58 : SqlExtendedQueryTagStoreV36
 {
     /// <summary>
     /// TODO: Error handling for new sprocs
     /// </summary>
     /// <param name="sqlConnectionWrapperFactory"></param>
     /// <param name="logger"></param>
-    public SqlExtendedQueryTagStoreV57(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagStoreV57> logger)
+    public SqlExtendedQueryTagStoreV58(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagStoreV58> logger)
         : base(sqlConnectionWrapperFactory, logger)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V57;
+    public override SchemaVersion Version => SchemaVersion.V58;
 
     public override async Task DeleteExtendedQueryTagEntryAsync(int tagKey, CancellationToken cancellationToken = default)
     {
