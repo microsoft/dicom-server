@@ -18,7 +18,7 @@ public class HealthCheckPublisherConfiguration
     /// </summary>
     public string ExcludedHealthCheckNames { get; set; }
 
-    public IEnumerable<string> GetListOfExcludedHealthCheckNames()
+    public IReadOnlyList<string> GetListOfExcludedHealthCheckNames()
     {
         return ExcludedHealthCheckNames?.Split(',') ?? Array.Empty<string>();
     }

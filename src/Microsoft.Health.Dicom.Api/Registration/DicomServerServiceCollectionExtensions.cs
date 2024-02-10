@@ -70,7 +70,7 @@ public static class DicomServerServiceCollectionExtensions
 
         HealthCheckPublisherConfiguration healthCheckPublisherConfiguration = new HealthCheckPublisherConfiguration();
         configuration.GetSection(HealthCheckPublisherConfiguration.SectionName).Bind(healthCheckPublisherConfiguration);
-        IEnumerable<string> excludedHealthCheckNames = healthCheckPublisherConfiguration.GetListOfExcludedHealthCheckNames();
+        IReadOnlyList<string> excludedHealthCheckNames = healthCheckPublisherConfiguration.GetListOfExcludedHealthCheckNames();
 
         serverBuilder.Services
             .AddCustomerKeyValidationBackgroundService(options => configuration
