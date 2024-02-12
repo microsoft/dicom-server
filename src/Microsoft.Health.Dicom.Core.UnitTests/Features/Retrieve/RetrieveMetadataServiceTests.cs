@@ -247,7 +247,7 @@ public class RetrieveMetadataServiceTests
                 break;
             case ResourceType.Instance:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, version: 0), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, false, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
         }
 
