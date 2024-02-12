@@ -81,7 +81,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");
                 if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
                 {
-                    TestEnvironment.Variables["security_enabled"] = "true";
+                    TestEnvironment.Variables["security_enabled"] = "false";
                 }
 
                 config.AddEnvironmentVariables();

@@ -352,9 +352,10 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     public async Task GivenLargeSinglePartRequest_WhenStoring_ThenServerShouldReturnOk()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
-            rows: 42724,
-            columns: 42724,
-            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~1.7 GB
+            rows: 19930,
+            columns: 19930,
+            frames: 10,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~3.7 GB
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
         Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
@@ -370,9 +371,10 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
             .Repeat(studyInstanceUid, 1)
             .Select(study => Samples.CreateRandomDicomFileWithPixelData(
                 studyInstanceUid: study,
-                rows: 42724,
-                columns: 42724,
-                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~1.7 GB
+                rows: 19930,
+                columns: 19930,
+                frames: 10,
+                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~3.7 GB
             .ToArray();
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files);
