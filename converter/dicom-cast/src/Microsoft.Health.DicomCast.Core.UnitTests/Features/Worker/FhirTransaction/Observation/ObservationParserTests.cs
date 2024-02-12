@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -253,5 +253,26 @@ public class ObservationParserTests
             new ResourceReference(),
             new Identifier());
         Assert.Empty(observations);
+    }
+
+    [Fact]
+    public void RadiationEventWithInvalidDataNotInCodeCodeNoErrorThrown()
+    {
+        var report = new DicomStructuredReport(
+            ObservationConstants.IrradiationEventXRayData,
+            new DicomContentItem(
+                ObservationConstants.IrradiationEventUid,
+                DicomRelationship.Contains,
+                new DicomUID("1.3.12.2.1234.5.4.5.123123.3000000111", "foobar", DicomUidType.Unknown)
+            ));
+        report.Dataset.NotValidated();
+        report.Dataset.Add(DicomTag.PatientBirthDateInAlternativeCalendar, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
+
+        var observations = ObservationParser.Parse(
+            report.Dataset,
+            new ResourceReference(),
+            new ResourceReference(),
+            new Identifier());
+        Assert.Single(observations);
     }
 }
