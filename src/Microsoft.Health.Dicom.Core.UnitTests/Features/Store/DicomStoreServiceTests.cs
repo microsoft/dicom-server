@@ -69,6 +69,7 @@ public class DicomStoreServiceTests
         TelemetryChannel = Substitute.For<ITelemetryChannel>(),
     });
 
+    private readonly IDicomTelemetryClient _dicomTelemetryClient = Substitute.For<IDicomTelemetryClient>();
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
 
@@ -94,6 +95,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { }),
+            _dicomTelemetryClient,
             _telemetryClient);
 
         _storeServiceDropData = new StoreService(
@@ -104,6 +106,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { }),
+            _dicomTelemetryClient,
             _telemetryClient);
 
         DicomValidationBuilderExtension.SkipValidation(null);

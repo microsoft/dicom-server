@@ -27,12 +27,14 @@ using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Partitioning;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
+using Microsoft.Health.Dicom.Api.Features.Telemetry;
 using Microsoft.Health.Dicom.Api.Logging;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Encryption.Customer.Configs;
 using Microsoft.Health.Encryption.Customer.Extensions;
@@ -174,6 +176,7 @@ public static class DicomServerServiceCollectionExtensions
         services.AddRecyclableMemoryStreamManager(configurationRoot);
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
+        services.AddSingleton<IDicomTelemetryClient, HttpDicomTelemetryClient>();
 
         CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
