@@ -44,12 +44,12 @@ internal class TelemetryInitializer : ITelemetryInitializer
 
     public void Initialize(ITelemetry telemetry)
     {
-        AddApiVersionColumn(telemetry);
+        AddMetadataColumns(telemetry);
         if (telemetry is RequestTelemetry requestTelemetry)
             AddPropertiesFromHttpContextItems(requestTelemetry);
     }
 
-    private void AddApiVersionColumn(ITelemetry telemetry)
+    private void AddMetadataColumns(ITelemetry telemetry)
     {
         var requestTelemetry = telemetry as RequestTelemetry;
         if (requestTelemetry == null)
