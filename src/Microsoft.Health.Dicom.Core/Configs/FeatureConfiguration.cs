@@ -39,9 +39,4 @@ public class FeatureConfiguration
     /// Disables all async operations
     /// </summary>
     public bool DisableOperations { get; set; }
-
-    /// <summary>
-    /// Enabled the health check for external store
-    /// </summary>
-    public bool EnableExternalStoreHealthCheck { get; set; }
 }

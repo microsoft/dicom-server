@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Core.Pipeline;
+using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Health.Dicom.Blob.Utilities;
 
@@ -24,11 +25,23 @@ internal class ExternalStoreHealthExpiryHttpPipelinePolicy : HttpPipelinePolicy
     public ExternalStoreHealthExpiryHttpPipelinePolicy(ExternalBlobDataStoreConfiguration externalStoreOptions)
     {
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions, nameof(externalStoreOptions));
-        EnsureArg.IsNotNull(externalStoreOptions.BlobContainerUri, nameof(externalStoreOptions.BlobContainerUri));
         EnsureArg.IsNotNull(externalStoreOptions.StorageDirectory, nameof(externalStoreOptions.StorageDirectory));
         EnsureArg.IsNotNull(externalStoreOptions.HealthCheckFilePath, nameof(externalStoreOptions.HealthCheckFilePath));
 
-        UriBuilder uriBuilder = new UriBuilder(_externalStoreOptions.BlobContainerUri);
+        Uri blobUri;
+
+        if (_externalStoreOptions.BlobContainerUri != null)
+        {
+            blobUri = _externalStoreOptions.BlobContainerUri;
+        }
+        else
+        {
+            // For local testing with Azurite
+            BlobContainerClient blobContainerClient = new BlobContainerClient(_externalStoreOptions.ConnectionString, _externalStoreOptions.ContainerName);
+            blobUri = blobContainerClient.Uri;
+        }
+
+        UriBuilder uriBuilder = new UriBuilder(blobUri);
         uriBuilder.Path = Path.Combine(uriBuilder.Path, _externalStoreOptions.StorageDirectory, _externalStoreOptions.HealthCheckFilePath);
 
         string healthCheckPathRegex = Regex.Escape(uriBuilder.Uri.AbsoluteUri);
