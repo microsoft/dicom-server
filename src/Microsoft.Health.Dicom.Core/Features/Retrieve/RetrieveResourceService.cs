@@ -109,7 +109,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
             // this call throws NotFound when zero instance found
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                message.ResourceType, partition, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, message.IsOriginalVersionRequested, cancellationToken);
+                message.ResourceType, partition, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
             long version = instance.GetVersion(message.IsOriginalVersionRequested);
 
@@ -218,9 +218,6 @@ public class RetrieveResourceService : IRetrieveResourceService
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
         _logger.LogInformation("Downloading the entire instance for frame parsing");
-
-        // Get file properties again for transcoding
-        instance = await GetInstanceMetadata(instanceIdentifier, isOriginalVersion: false, cancellationToken);
 
         FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, _logger, cancellationToken);
         LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
@@ -386,27 +383,6 @@ public class RetrieveResourceService : IRetrieveResourceService
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,
-                isOriginalVersion: true,
-                cancellationToken);
-
-        if (!retrieveInstances.Any())
-        {
-            throw new InstanceNotFoundException();
-        }
-
-        return retrieveInstances.First();
-    }
-
-    private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, bool isOriginalVersion, CancellationToken cancellationToken)
-    {
-        var partition = new Partition(instanceIdentifier.Partition.Key, instanceIdentifier.Partition.Name);
-        IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance,
-                partition,
-                instanceIdentifier.StudyInstanceUid,
-                instanceIdentifier.SeriesInstanceUid,
-                instanceIdentifier.SopInstanceUid,
-                isOriginalVersion,
                 cancellationToken);
 
         if (!retrieveInstances.Any())

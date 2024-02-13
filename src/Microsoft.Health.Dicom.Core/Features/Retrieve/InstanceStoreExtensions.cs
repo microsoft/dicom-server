@@ -24,12 +24,11 @@ public static class InstanceStoreExtensions
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
-            bool isOriginalVersion = false,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
 
-        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, isOriginalVersion, cancellationToken);
+        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
 
         if (!instancesToRetrieve.Any())
         {
