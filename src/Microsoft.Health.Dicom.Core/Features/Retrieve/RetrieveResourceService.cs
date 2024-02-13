@@ -386,7 +386,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,
-                isOriginalVersion: true,
+                isOriginalVersion: true, // Setting the flag to default true, since with or without update we always use the first/original version. This is optimize fast frame fetch.
                 cancellationToken);
 
         if (!retrieveInstances.Any())
