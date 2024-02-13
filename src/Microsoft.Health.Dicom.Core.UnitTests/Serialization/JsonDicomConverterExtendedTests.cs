@@ -5,8 +5,10 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.FellowOakDicom.Serialization;
 using Xunit;
 
@@ -301,5 +303,29 @@ public class JsonDicomConverterExtendedTests
         // make sure below serialization does not throw
         DicomDataset ds = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
         Assert.NotNull(ds);
+    }
+
+    [Theory]
+    [InlineData("2147384638123")]
+    [InlineData("73.8")]
+    [InlineData("InvalidNumber")]
+    public static void GivenDatasetWithInvalidOrOverflowNumberForValueRepresentationIS_WhenSerialized_IsDeserializedCorrectly(string overflowNumber)
+    {
+        var dicomDataset = new DicomDataset().NotValidated();
+        dicomDataset.Add(new DicomIntegerString(DicomTag.Exposure, new MemoryByteBuffer(Encoding.ASCII.GetBytes(overflowNumber))));
+
+        var serializerOptions = new JsonSerializerOptions
+        {
+            Converters =
+            {
+                new DicomJsonConverter(autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber)
+            }
+        };
+
+        var json = JsonSerializer.Serialize(dicomDataset, serializerOptions);
+        JsonDocument.Parse(json);
+        DicomDataset deserializedDataset = JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions);
+        var recoveredString = deserializedDataset.GetValue<string>(DicomTag.Exposure, 0);
+        Assert.Equal(overflowNumber, recoveredString);
     }
 }
