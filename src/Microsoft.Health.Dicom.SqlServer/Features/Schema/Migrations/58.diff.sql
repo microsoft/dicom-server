@@ -23,6 +23,8 @@ GO
 --         * The series instance UID.
 --     @sopInstanceUid
 --         * The SOP instance UID.
+--     @originalVersion
+--         * If true, will return original file properties.
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetInstanceWithPropertiesV58 (
     @validStatus        TINYINT,
@@ -61,3 +63,4 @@ BEGIN
 
 END
 GO
+COMMIT TRANSACTION
