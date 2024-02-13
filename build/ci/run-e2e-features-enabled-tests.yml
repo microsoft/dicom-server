@@ -36,3 +36,5 @@ jobs:
     displayName: 'Setup Authentication'
 
   - template: ../common/run-e2e-features-enabled-tests.yml
+
+  - template: ../common/run-e2e-features-enabled-connected-store-tests.yml
