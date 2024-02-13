@@ -2699,7 +2699,7 @@ BEGIN
            LEFT OUTER JOIN
            dbo.FileProperty AS f
            ON f.InstanceKey = i.InstanceKey
-              AND f.Watermark = IIF (@originalVersion = 1, i.OriginalWatermark, i.Watermark)
+              AND f.Watermark = IIF (@originalVersion = 1, ISNULL(i.OriginalWatermark, i.Watermark), i.Watermark)
     WHERE  i.PartitionKey = @partitionKey
            AND i.StudyInstanceUid = @studyInstanceUid
            AND i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
