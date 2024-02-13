@@ -65,6 +65,7 @@ public class StoreService : IStoreService
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly IDicomTelemetryClient _dicomTelemetryClient;
     private readonly TelemetryClient _telemetryClient;
     private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
@@ -80,6 +81,7 @@ public class StoreService : IStoreService
         StoreMeter storeMeter,
         ILogger<StoreService> logger,
         IOptions<FeatureConfiguration> featureConfiguration,
+        IDicomTelemetryClient dicomTelemetryClient,
         TelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
@@ -87,7 +89,8 @@ public class StoreService : IStoreService
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _dicomTelemetryClient = EnsureArg.IsNotNull(dicomTelemetryClient, nameof(dicomTelemetryClient));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(_telemetryClient));
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
@@ -104,6 +107,9 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
+            _dicomTelemetryClient.TrackInstanceCount(instanceEntries.Count);
+
+            long totalLength = 0, minLength = 0, maxLength = 0;
 
             for (int index = 0; index < instanceEntries.Count; index++)
             {
@@ -113,12 +119,21 @@ public class StoreService : IStoreService
                     if (length != null)
                     {
                         long len = length.GetValueOrDefault();
+                        totalLength += len;
+                        minLength = Math.Min(minLength, len);
+                        maxLength = Math.Max(maxLength, len);
                         // Update Telemetry
                         _storeMeter.InstanceLength.Record(len);
+                        _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes += len;
                     }
                 }
                 finally
                 {
+                    // Update Requests Telemetry
+                    _dicomTelemetryClient.TrackTotalInstanceBytes(totalLength);
+                    _dicomTelemetryClient.TrackMinInstanceBytes(minLength);
+                    _dicomTelemetryClient.TrackMaxInstanceBytes(maxLength);
+
                     // Fire and forget.
                     int capturedIndex = index;
 

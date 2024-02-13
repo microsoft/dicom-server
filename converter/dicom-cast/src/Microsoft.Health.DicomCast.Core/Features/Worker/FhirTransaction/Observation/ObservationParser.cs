@@ -32,13 +32,24 @@ internal static class ObservationParser
     {
         if (dataset.TryGetSequence(DicomTag.ConceptNameCodeSequence, out DicomSequence codes) && codes.Items.Count > 0)
         {
-            var code = new DicomCodeItem(codes);
+            Observation observation = null;
+            try
+            {
+                var code = createDicomCode(codes);
 
-            if (ObservationConstants.IrradiationEvents.Contains(code) && TryCreateIrradiationEvent(dataset, patientReference, identifier, out Observation irradiationEvent))
-                yield return irradiationEvent;
+                if (ObservationConstants.IrradiationEvents.Contains(code) && TryCreateIrradiationEvent(dataset, patientReference, identifier, out Observation irradiationEvent))
+                    observation = irradiationEvent;
 
-            if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
-                yield return CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier);
+                if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
+                    observation = CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier);
+            }
+            catch (DicomValidationException)
+            {
+                observation = null; //we can safely ignore any validation errors since we are only looking for irradiation and dose summary reports specifically. If the code fails to validate then it will not match either report.
+            }
+
+            if (observation != null)
+                yield return observation;
         }
 
         // Recursively iterate through every child in the document checking for nested observations.
@@ -51,6 +62,16 @@ internal static class ObservationParser
                     yield return childObservation;
             }
         }
+    }
+
+    // We do not use the built in fo dicom method to create dicom codes as that validates the entire dataset by default and we do not want to do that
+    private static DicomCodeItem createDicomCode(DicomSequence sequence)
+    {
+        string codeValue = sequence.Items[0].GetValueOrDefault(DicomTag.CodeValue, 0, string.Empty);
+        string scheme = sequence.Items[0].GetValueOrDefault(DicomTag.CodingSchemeDesignator, 0, string.Empty);
+        string meaning = sequence.Items[0].GetValueOrDefault(DicomTag.CodeMeaning, 0, string.Empty);
+
+        return new DicomCodeItem(codeValue, scheme, meaning);
     }
 
     private static Observation CreateDoseSummary(

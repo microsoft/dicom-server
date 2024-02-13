@@ -69,6 +69,7 @@ public class DicomStoreServiceTests
         TelemetryChannel = Substitute.For<ITelemetryChannel>(),
     });
 
+    private readonly IDicomTelemetryClient _dicomTelemetryClient = Substitute.For<IDicomTelemetryClient>();
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
 
@@ -94,6 +95,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { }),
+            _dicomTelemetryClient,
             _telemetryClient);
 
         _storeServiceDropData = new StoreService(
@@ -104,6 +106,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { }),
+            _dicomTelemetryClient,
             _telemetryClient);
 
         DicomValidationBuilderExtension.SkipValidation(null);
@@ -155,12 +158,15 @@ public class DicomStoreServiceTests
         IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
+        long bytesStored = 100L;
+        _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken).Returns(bytesStored);
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
         _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, DefaultStoreValidationResult, _dicomRequestContext.DataPartition);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(bytesStored, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -174,6 +180,8 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult, Partition.Default);
         _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ProcessingFailureReasonCode);
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
+        await _storeOrchestrator.DidNotReceiveWithAnyArgs().StoreDicomInstanceEntryAsync(Arg.Any<IDicomInstanceEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -187,6 +195,8 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult, Partition.Default);
         _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ValidationFailureReasonCode);
+        Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
+        await _storeOrchestrator.DidNotReceiveWithAnyArgs().StoreDicomInstanceEntryAsync(Arg.Any<IDicomInstanceEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -199,6 +209,8 @@ public class DicomStoreServiceTests
         dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
 
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
+        long bytesStored = 100L;
+        _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken).Returns(bytesStored);
 
         // call
         StoreResponse response = await _storeServiceDropData.ProcessAsync(
@@ -235,6 +247,8 @@ public class DicomStoreServiceTests
                 dicomInstanceEntry,
                 DefaultCancellationToken
             );
+
+        Assert.Equal(bytesStored, _dicomRequestContextAccessorLatestApi.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -247,6 +261,8 @@ public class DicomStoreServiceTests
         dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
 
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
+        long bytesStored = 100L;
+        _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken).Returns(bytesStored);
 
         // call
         StoreResponse response = await _storeServiceDropData.ProcessAsync(
@@ -283,6 +299,8 @@ public class DicomStoreServiceTests
                 dicomInstanceEntry,
                 DefaultCancellationToken
             );
+
+        Assert.Equal(bytesStored, _dicomRequestContextAccessorLatestApi.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]
@@ -515,10 +533,12 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
-    public async Task GivenMultipleDicomInstanceEntries_WhenProcessed_ThenCorrespondingEntryShouldBeAdded()
+    public async Task GivenMultipleDicomInstanceEntriesWithFailure_WhenProcessed_ThenCorrespondingEntryShouldBeAdded()
     {
         IDicomInstanceEntry dicomInstanceEntryToSucceed = Substitute.For<IDicomInstanceEntry>();
         IDicomInstanceEntry dicomInstanceEntryToFail = Substitute.For<IDicomInstanceEntry>();
+        long bytesStored = 100L;
+        _storeOrchestrator.StoreDicomInstanceEntryAsync(Arg.Any<IDicomInstanceEntry>(), DefaultCancellationToken).Returns(bytesStored);
 
         dicomInstanceEntryToSucceed.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
         dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
@@ -535,6 +555,56 @@ public class DicomStoreServiceTests
         _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, DefaultStoreValidationResult, _dicomRequestContext.DataPartition);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
         Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntryToSucceed,
+                DefaultCancellationToken
+            );
+
+        await _storeOrchestrator
+            .DidNotReceive()
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntryToFail,
+                DefaultCancellationToken
+            );
+
+        Assert.Equal(bytesStored, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
+    }
+
+    [Fact]
+    public async Task GivenMultipleDicomInstanceEntries_WhenProcessed_ThenTotalBytesTracked()
+    {
+        IDicomInstanceEntry dicomInstanceEntryToSucceed = Substitute.For<IDicomInstanceEntry>();
+        IDicomInstanceEntry dicomInstanceEntryToSucceed2 = Substitute.For<IDicomInstanceEntry>();
+        long bytesStored = 100L;
+        long totalExpectedBytesStored = bytesStored * 2;
+        _storeOrchestrator.StoreDicomInstanceEntryAsync(Arg.Any<IDicomInstanceEntry>(), DefaultCancellationToken).Returns(bytesStored);
+
+        dicomInstanceEntryToSucceed.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset1);
+        dicomInstanceEntryToSucceed2.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+
+        await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToSucceed2);
+
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, DefaultStoreValidationResult, _dicomRequestContext.DataPartition);
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset2, DefaultStoreValidationResult, _dicomRequestContext.DataPartition);
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntryToSucceed,
+                DefaultCancellationToken
+            );
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntryToSucceed2,
+                DefaultCancellationToken
+            );
+
+        Assert.Equal(totalExpectedBytesStored, _dicomRequestContextAccessor.RequestContext.TotalDicomEgressToStorageBytes);
     }
 
     [Fact]

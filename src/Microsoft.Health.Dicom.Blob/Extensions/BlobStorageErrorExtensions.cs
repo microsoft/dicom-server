@@ -6,19 +6,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Azure;
 using Azure.Storage.Blobs.Models;
+using Azure;
 
 namespace Microsoft.Health.Dicom.Blob.Extensions;
 
-internal static class AzureStorageErrorExtensions
+internal static class BlobStorageErrorExtensions
 {
+    private static readonly List<BlobErrorCode> Customer400ErrorCodes = new List<BlobErrorCode>
+    {
+        BlobErrorCode.UnsupportedHeader
+    };
+
+    private static readonly List<BlobErrorCode> Customer401ErrorCodes = new List<BlobErrorCode>
+    {
+        BlobErrorCode.InvalidAuthenticationInfo,
+    };
+
     private static readonly List<BlobErrorCode> Customer403ErrorCodes = new List<BlobErrorCode>
     {
         BlobErrorCode.AuthorizationFailure,
         BlobErrorCode.AuthorizationPermissionMismatch,
         BlobErrorCode.InsufficientAccountPermissions,
         BlobErrorCode.AccountIsDisabled,
+        BlobErrorCode.InvalidAuthenticationInfo,
         "KeyVaultEncryptionKeyNotFound",
         "KeyVaultAccessTokenCannotBeAcquired",
         "KeyVaultVaultNotFound",
@@ -38,14 +49,10 @@ internal static class AzureStorageErrorExtensions
 
     public static bool IsConnectedStoreCustomerError(this RequestFailedException rfe)
     {
-        return (rfe.Status == 403 && Customer403ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
+        return (rfe.Status == 400 && Customer400ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
+            (rfe.Status == 401 && Customer401ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
+            (rfe.Status == 403 && Customer403ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
             (rfe.Status == 404 && Customer404ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase))) ||
             (rfe.Status == 409 && Customer409ErrorCodes.Any(e => e.ToString().Equals(rfe.ErrorCode, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    public static bool IsStorageAccountUnknownHostError(this Exception exception)
-    {
-        return exception.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase) ||
-            (exception is AggregateException ag && ag.InnerExceptions.All(e => e.Message.Contains("No such host is known", StringComparison.OrdinalIgnoreCase)));
     }
 }
