@@ -41,7 +41,7 @@ jobs:
       inputs:
         useGlobalJson: true
 
-    - script: ContinuousIntegrationBuild=true docker-compose -p healthcare -f docker-compose.yml -f docker-compose.ports.azurite.yml up --build -d
+    - script: ContinuousIntegrationBuild=true docker-compose -p healthcare -f docker-compose.yml -f docker-compose.externalstore.yml -f docker-compose.ports.azurite.yml up --build -d
       displayName: 'Run docker-compose'
       workingDirectory: 'docker'
 
