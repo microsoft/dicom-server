@@ -104,9 +104,23 @@ stages:
   jobs:
   - template: pr/run-e2e-tests.yml
 
+- stage: RunE2ETestsWithConnectedStore
+  displayName: 'Run E2E tests with connected store'
+  dependsOn:
+  - BuildDotNet
+  jobs:
+  - template: pr/run-e2e-tests-connected-store.yml
+
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
   dependsOn:
   - BuildDotNet
   jobs:
   - template: pr/run-e2e-features-enabled-tests.yml
+
+- stage: RunE2EFeaturesEnabledTestsWithConnectedStore
+  displayName: 'Run E2E features-enabled tests with connected store'
+  dependsOn:
+  - BuildDotNet
+  jobs:
+  - template: pr/run-e2e-features-enabled-tests-connected-store.yml
