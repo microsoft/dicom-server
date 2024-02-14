@@ -589,7 +589,7 @@ public class BlobFileStore : IFileStore
         {
             var resp = await func();
             EmitTelemetry(operationName, operationType, extractLength?.Invoke(resp));
-            _telemetryClient.ForwardLogTrace(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationSucceeded), partition, fileProperties);
+            _telemetryClient.ForwardLogTrace(DicomCoreResource.ExternalDataStoreOperationSucceeded, partition, fileProperties);
             return resp;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !_blobClient.IsExternal)

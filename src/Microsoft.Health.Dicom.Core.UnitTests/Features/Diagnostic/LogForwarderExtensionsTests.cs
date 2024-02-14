@@ -5,12 +5,12 @@
 
 using System;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Telemetry;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Diagnostic;
@@ -20,7 +20,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetry_ExpectForwardLogFlagIsSetWithNoAdditionalProperties()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
         telemetryClient.ForwardLogTrace("A message");
 
         Assert.Single(channel.Items);
@@ -33,7 +33,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalProperties()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
         var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456", ContentLength = 123 };
         var expectedPartition = new Partition(1, "partitionOne");
         telemetryClient.ForwardLogTrace("A message", expectedPartition, expectedProperties);
@@ -51,7 +51,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalPropertiesWithoutPartition()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
         var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456", ContentLength = 123 };
 
         // because a default partition is being used, we don't log it in telemetry
@@ -70,7 +70,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetryWithIdentifier_ExpectForwardLogFlagIsSetWithAdditionalProperties()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
 
         var expectedIdentifier = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), new Partition(1, "partitionOne"));
         telemetryClient.ForwardLogTrace("A message", expectedIdentifier);
@@ -93,7 +93,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetryWithIdentifier_ExpectForwardLogFlagIsSetWithAdditionalPropertiesWithoutPartition()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
 
         // because a default partition is being used, we don't log it in telemetry
         var expectedIdentifier = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), Partition.Default);
@@ -115,7 +115,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetry_whenForwardOperationLogTraceWithSizeLimit_ExpectForwardLogFlagIsSet()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
 
         var operationId = Guid.NewGuid().ToString();
         var input = "input";
@@ -135,7 +135,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetry_whenForwardOperationLogTraceWithSizeLimitExceeded_ExpectForwardLogFlagIsSetAndMultipleTelemetriesEmitted()
     {
-        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        (TelemetryClient telemetryClient, var channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
 
         var operationId = Guid.NewGuid().ToString();
         var expectedFirstItemInput = "a".PadRight(32 * 1024); // split occurs at 32 kb
@@ -161,21 +161,5 @@ public class LogForwarderExtensionsTests
         Assert.Equal(expectedSecondItemInput, secondItem.Context.Properties["dicomAdditionalInformation_input"]);
         Assert.Equal("update", firstItem.Context.Properties["operationName"]);
 #pragma warning restore CS0618 // Type or member is obsolete
-    }
-
-    private static (TelemetryClient, MockTelemetryChannel) CreateTelemetryClientWithChannel()
-    {
-        MockTelemetryChannel channel = new MockTelemetryChannel();
-
-        TelemetryConfiguration configuration = new TelemetryConfiguration
-        {
-            TelemetryChannel = channel,
-#pragma warning disable CS0618 // Type or member is obsolete
-            InstrumentationKey = Guid.NewGuid().ToString()
-#pragma warning restore CS0618 // Type or member is obsolete
-        };
-        configuration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
-
-        return (new TelemetryClient(configuration), channel);
     }
 }

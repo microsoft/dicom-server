@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights.Channel;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Diagnostic;
+namespace Microsoft.Health.Dicom.Tests.Common.Telemetry;
 
-internal class MockTelemetryChannel : ITelemetryChannel
+public class MockTelemetryChannel : ITelemetryChannel
 {
     public IList<ITelemetry> Items { get; private set; } = new List<ITelemetry>();
 

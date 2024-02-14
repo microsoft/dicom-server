@@ -16,7 +16,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -31,6 +30,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Tests.Common.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -39,13 +39,13 @@ namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Storage;
 
 public class BlobFileStoreTests
 {
-    private const string DefaultBlobName = "foo/123.dcm";
+    protected const string DefaultBlobName = "foo/123.dcm";
     private const string DefaultStorageDirectory = "/test/";
     private const string HealthCheckFilePath = "health";
     private static readonly BlobFileStoreMeter BlobFileStoreMeter = new BlobFileStoreMeter();
     private static readonly Uri BlobContainerUrl = new Uri("https://myBlobAccount.blob.core.net/myContainer");
 
-    private readonly FileProperties _defaultFileProperties = new FileProperties
+    protected readonly FileProperties _defaultFileProperties = new FileProperties
     {
         Path = DefaultBlobName,
         ETag = "45678",
@@ -393,7 +393,7 @@ public class BlobFileStoreTests
     [Fact]
     public async Task GivenExternalStore_WhenGetFilePropertiesAsync_ThenExpectConditionsUsed()
     {
-        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client, out MockTelemetryChannel channel);
 
         FrameRange range = new FrameRange(offset: 0, length: 100);
 
@@ -481,16 +481,30 @@ public class BlobFileStoreTests
         Assert.Equal(DicomCoreResource.DataStoreOperationFailed, ex.Message);
     }
 
-    private static void InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient externalBlobClient)
+    internal static void InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient externalBlobClient)
+    {
+        InitializeInternalBlobFileStore(out BlobFileStore blobFileStoreX,
+            out TestInternalBlobClient externalBlobClientX, out MockTelemetryChannel _);
+        blobFileStore = blobFileStoreX;
+        externalBlobClient = externalBlobClientX;
+    }
+    internal static void InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient externalBlobClient, out MockTelemetryChannel channel)
     {
         externalBlobClient = new TestInternalBlobClient();
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, BlobFileStoreMeter, NullLogger<BlobFileStore>.Instance, new TelemetryClient(new TelemetryConfiguration()));
-
+        (TelemetryClient telemetryClient, channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
+        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, BlobFileStoreMeter, NullLogger<BlobFileStore>.Instance, telemetryClient);
     }
 
-    private static void InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient externalBlobClient, bool partitionsEnabled = false)
+    internal static void InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient externalBlobClient, bool partitionsEnabled = false)
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStoreX, out ExternalBlobClient externalBlobClientX, out MockTelemetryChannel channel, partitionsEnabled);
+        blobFileStore = blobFileStoreX;
+        externalBlobClient = externalBlobClientX;
+    }
+
+    internal static void InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient externalBlobClient, out MockTelemetryChannel channel, bool partitionsEnabled = false)
     {
         var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
         featureConfiguration.Value.Returns(new FeatureConfiguration
@@ -522,10 +536,11 @@ public class BlobFileStoreTests
 
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, BlobFileStoreMeter, NullLogger<BlobFileStore>.Instance, new TelemetryClient(new TelemetryConfiguration()));
+        (TelemetryClient telemetryClient, channel) = MockTelemetryClient.CreateTelemetryClientWithChannel();
+        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, BlobFileStoreMeter, NullLogger<BlobFileStore>.Instance, telemetryClient);
     }
 
-    private class TestInternalBlobClient : IBlobClient
+    internal class TestInternalBlobClient : IBlobClient
     {
         public TestInternalBlobClient()
         {
