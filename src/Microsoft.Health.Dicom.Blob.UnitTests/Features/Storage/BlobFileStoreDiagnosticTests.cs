@@ -40,15 +40,7 @@ public class BlobFileStoreDiagnosticTests : BlobFileStoreTests
 
         await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetFilePropertiesAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None));
 
-        Assert.Single(channel.Items);
-        var firstItem = channel.Items[0];
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Contains(requestFailedException.ErrorCode!, ((Microsoft.ApplicationInsights.DataContracts.TraceTelemetry)firstItem).Message);
-        Assert.Equal(3, firstItem.Context.Properties.Count);
-        Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
-        Assert.Equal(_defaultFileProperties.ETag, firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
-        Assert.Equal(_defaultFileProperties.Path, firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
-#pragma warning restore CS0618 // Type or member is obsolete
+        AssertDiagnosticTelemetryEmitted(channel, requestFailedException.ErrorCode!);
     }
 
     [Fact]
@@ -68,15 +60,7 @@ public class BlobFileStoreDiagnosticTests : BlobFileStoreTests
 
         await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetFilePropertiesAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None));
 
-        Assert.Single(channel.Items);
-        var firstItem = channel.Items[0];
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Contains(requestFailedException.ErrorCode!, ((Microsoft.ApplicationInsights.DataContracts.TraceTelemetry)firstItem).Message);
-        Assert.Equal(3, firstItem.Context.Properties.Count);
-        Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
-        Assert.Equal(_defaultFileProperties.ETag, firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
-        Assert.Equal(_defaultFileProperties.Path, firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
-#pragma warning restore CS0618 // Type or member is obsolete
+        AssertDiagnosticTelemetryEmitted(channel, requestFailedException.ErrorCode!);
     }
 
     [Fact]
@@ -91,18 +75,7 @@ public class BlobFileStoreDiagnosticTests : BlobFileStoreTests
         await Assert.ThrowsAsync<DataStoreException>(() =>
             blobFileStore.GetFilePropertiesAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None));
 
-        Assert.Single(channel.Items);
-        var firstItem = channel.Items[0];
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Contains(DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue,
-            ((Microsoft.ApplicationInsights.DataContracts.TraceTelemetry)firstItem).Message);
-        Assert.Equal(3, firstItem.Context.Properties.Count);
-        Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
-        Assert.Equal(_defaultFileProperties.ETag,
-            firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
-        Assert.Equal(_defaultFileProperties.Path,
-            firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
-#pragma warning restore CS0618 // Type or member is obsolete
+        AssertDiagnosticTelemetryEmitted(channel, DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue);
     }
 
 
@@ -118,18 +91,7 @@ public class BlobFileStoreDiagnosticTests : BlobFileStoreTests
         await Assert.ThrowsAsync<DataStoreException>(() =>
             blobFileStore.GetFilePropertiesAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None));
 
-        Assert.Single(channel.Items);
-        var firstItem = channel.Items[0];
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Contains(DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue,
-            ((Microsoft.ApplicationInsights.DataContracts.TraceTelemetry)firstItem).Message);
-        Assert.Equal(3, firstItem.Context.Properties.Count);
-        Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
-        Assert.Equal(_defaultFileProperties.ETag,
-            firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
-        Assert.Equal(_defaultFileProperties.Path,
-            firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
-#pragma warning restore CS0618 // Type or member is obsolete
+        AssertDiagnosticTelemetryEmitted(channel, DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue);
     }
 
     [Fact]
@@ -147,18 +109,7 @@ public class BlobFileStoreDiagnosticTests : BlobFileStoreTests
 
         await blobFileStore.DeleteFileIfExistsAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None);
 
-        Assert.Single(channel.Items);
-        var firstItem = channel.Items[0];
-#pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Contains(DicomCoreResource.ExternalDataStoreOperationSucceeded,
-            ((Microsoft.ApplicationInsights.DataContracts.TraceTelemetry)firstItem).Message);
-        Assert.Equal(3, firstItem.Context.Properties.Count);
-        Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
-        Assert.Equal(_defaultFileProperties.ETag,
-            firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
-        Assert.Equal(_defaultFileProperties.Path,
-            firstItem.Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
-#pragma warning restore CS0618 // Type or member is obsolete
+        AssertDiagnosticTelemetryEmitted(channel, DicomCoreResource.ExternalDataStoreOperationSucceeded);
     }
 
     [Fact]
@@ -176,10 +127,15 @@ public class BlobFileStoreDiagnosticTests : BlobFileStoreTests
 
         await blobFileStore.DeleteFileIfExistsAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None);
 
+        AssertDiagnosticTelemetryEmitted(channel, DicomCoreResource.ExternalDataStoreOperationSucceeded);
+    }
+
+    private void AssertDiagnosticTelemetryEmitted(MockTelemetryChannel channel, string expectedMessage)
+    {
         Assert.Single(channel.Items);
         var firstItem = channel.Items[0];
 #pragma warning disable CS0618 // Type or member is obsolete
-        Assert.Contains(DicomCoreResource.ExternalDataStoreOperationSucceeded,
+        Assert.Contains(expectedMessage,
             ((Microsoft.ApplicationInsights.DataContracts.TraceTelemetry)firstItem).Message);
         Assert.Equal(3, firstItem.Context.Properties.Count);
         Assert.Equal(Boolean.TrueString, firstItem.Context.Properties["forwardLog"]);
