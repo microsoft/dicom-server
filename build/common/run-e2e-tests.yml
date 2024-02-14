@@ -1,6 +1,3 @@
-parameters:
-  externalStorageTests: true
-
 steps:
 - task: DownloadBuildArtifacts@0
   inputs:

@@ -19,7 +19,7 @@ jobs:
       inputs:
         useGlobalJson: true
 
-    - script: ContinuousIntegrationBuild=true docker-compose -p healthcare -f docker-compose.yml -f docker-compose.ports.azurite.yml up --build -d
+    - script: ContinuousIntegrationBuild=true docker-compose -p healthcare -f docker-compose.yml -f docker-compose.externalstore.yml -f docker-compose.ports.azurite.yml up --build -d
       displayName: 'Run docker-compose'
       workingDirectory: 'docker'
 
@@ -29,14 +29,14 @@ jobs:
     - bash: for i in {1..12}; do curl -fsS "$(testFunctionsUrl)" > /dev/null && exit 0 || sleep 5; done; exit 1
       displayName: 'Wait for DICOM Functions'
 
-    - template: ../common/run-e2e-connected-store-tests.yml
+    - template: ../common/run-e2e-tests.yml
 
-    - script: docker-compose -p healthcare -f docker-compose.yml logs -t
+    - script: docker-compose -p healthcare -f docker-compose.yml -f docker-compose.externalstore.yml logs -t
       displayName: 'docker-compose logs'
       workingDirectory: 'docker'
       condition: always()
 
-    - script: docker-compose -p healthcare -f docker-compose.yml rm -s -f
+    - script: docker-compose -p healthcare -f docker-compose.yml -f docker-compose.externalstore.yml rm -s -f
       displayName: 'Stop docker-compose'
       workingDirectory: 'docker'
       condition: always()
