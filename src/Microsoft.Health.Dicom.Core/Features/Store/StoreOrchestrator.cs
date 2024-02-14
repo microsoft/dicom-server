@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 
@@ -85,7 +86,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         try
         {
             // We have successfully created the index, store the files.
-            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, partition.Name, dicomInstanceEntry, cancellationToken);
+            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, partition, dicomInstanceEntry, cancellationToken);
             Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, version, cancellationToken);
             await Task.WhenAll(
                 storeFileTask,
@@ -119,13 +120,13 @@ public class StoreOrchestrator : IStoreOrchestrator
 
     private async Task<FileProperties> StoreFileAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
-        string partitionName,
+        Partition partition,
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-        return await _fileStore.StoreFileAsync(versionedInstanceIdentifier.Version, partitionName, stream, cancellationToken);
+        return await _fileStore.StoreFileAsync(versionedInstanceIdentifier.Version, partition, stream, cancellationToken);
     }
 
     private Task StoreInstanceMetadataAsync(

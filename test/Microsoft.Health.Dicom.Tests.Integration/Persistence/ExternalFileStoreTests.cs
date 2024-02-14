@@ -193,7 +193,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileAsync(version, Partition.DefaultName, stream, cancellationToken);
+            return await _blobDataStore.StoreFileAsync(version, Partition.Default, stream, cancellationToken);
         }
     }
 

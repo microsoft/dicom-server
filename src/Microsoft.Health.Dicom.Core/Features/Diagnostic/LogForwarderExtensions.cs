@@ -100,12 +100,14 @@ internal static class LogForwarderExtensions
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNull(partition, nameof(partition));
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
 
         var telemetry = new TraceTelemetry(message, severityLevel);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
-        telemetry.Properties.Add(FilePropertiesPath, fileProperties.Path);
-        telemetry.Properties.Add(FilePropertiesETag, fileProperties.ETag);
+        if (fileProperties != null)
+        {
+            telemetry.Properties.Add(FilePropertiesPath, fileProperties.Path);
+            telemetry.Properties.Add(FilePropertiesETag, fileProperties.ETag);
+        }
         if (partition != Partition.Default)
         {
             telemetry.Properties.Add(PartitionName, partition.Name);

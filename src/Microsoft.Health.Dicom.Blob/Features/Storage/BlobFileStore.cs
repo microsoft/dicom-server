@@ -16,6 +16,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -72,13 +73,14 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public Task<FileProperties> StoreFileAsync(
         long version,
-        string partitionName,
+        Partition partition,
         Stream stream,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNull(partition, nameof(partition));
 
-        BlockBlobClient blobClient = GetNewInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blobClient = GetNewInstanceBlockBlobClient(version, partition.Name);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
         stream.Seek(0, SeekOrigin.Begin);
@@ -96,6 +98,8 @@ public class BlobFileStore : IFileStore
             },
             operationName: nameof(StoreFileAsync),
             operationType: OperationType.Input,
+            partition: partition,
+            fileProperties: null,
             extractLength: long? (newBlobFileProperties) => newBlobFileProperties.ContentLength);
     }
 
@@ -168,6 +172,8 @@ public class BlobFileStore : IFileStore
             },
             operationName: nameof(StoreFileInBlocksAsync),
             operationType: OperationType.Input,
+            partition: partition,
+            fileProperties: null,
             extractLength: long? (newBlobFileProperties) => newBlobFileProperties.ContentLength);
     }
 
@@ -219,6 +225,8 @@ public class BlobFileStore : IFileStore
             },
             operationName: nameof(UpdateFileBlockAsync),
             operationType: OperationType.Input,
+            partition: partition,
+            fileProperties: fileProperties,
             extractLength: long? (newBlobFileProperties) => newBlobFileProperties.ContentLength);
     }
 
@@ -248,7 +256,7 @@ public class BlobFileStore : IFileStore
                         conditions: _blobClient.GetConditions(fileProperties),
                         cancellationToken);
                 }
-                catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet && _blobClient.IsExternal)
+                catch (RequestFailedException ex) when ((ex.ErrorCode == BlobErrorCode.ConditionNotMet || ex.ErrorCode == BlobErrorCode.BlobNotFound) && _blobClient.IsExternal)
                 {
                     string message = string.Format(
                         CultureInfo.InvariantCulture,
@@ -269,7 +277,9 @@ public class BlobFileStore : IFileStore
                 return null;
             },
             operationName: nameof(DeleteFileIfExistsAsync),
-            operationType: OperationType.Input);
+            operationType: OperationType.Input,
+            partition: partition,
+            fileProperties: fileProperties);
     }
 
     /// <inheritdoc />
@@ -294,6 +304,8 @@ public class BlobFileStore : IFileStore
             func: () => blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken),
             operationName: nameof(GetFileAsync),
             operationType: OperationType.Output,
+            partition: partition,
+            fileProperties: fileProperties,
             extractLength: long? (stream) => stream.Length);
     }
 
@@ -320,6 +332,8 @@ public class BlobFileStore : IFileStore
             },
             operationName: nameof(GetStreamingFileAsync),
             operationType: OperationType.Output,
+            partition: partition,
+            fileProperties: fileProperties,
             extractLength: long? (result) => result.Details.ContentLength);
 
         return result.Content;
@@ -350,7 +364,9 @@ public class BlobFileStore : IFileStore
                 };
             },
             operationName: nameof(GetFilePropertiesAsync),
-            operationType: OperationType.Output);
+            operationType: OperationType.Output,
+            partition: partition,
+            fileProperties: fileProperties);
     }
 
     /// <inheritdoc />
@@ -382,6 +398,8 @@ public class BlobFileStore : IFileStore
             },
             operationName: nameof(GetFileFrameAsync),
             operationType: OperationType.Output,
+            partition: partition,
+            fileProperties: fileProperties,
             extractLength: long? (result) => result.Details.ContentLength);
 
         return result.Content;
@@ -418,6 +436,8 @@ public class BlobFileStore : IFileStore
             },
             operationName: nameof(GetFileContentInRangeAsync),
             operationType: OperationType.Output,
+            partition: partition,
+            fileProperties: fileProperties,
             extractLength: long? (result) => result.Details.ContentLength);
 
         return result.Content;
@@ -450,7 +470,9 @@ public class BlobFileStore : IFileStore
                 return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
             },
             operationName: nameof(GetFirstBlockPropertyAsync),
-            operationType: OperationType.Output);
+            operationType: OperationType.Output,
+            partition: partition,
+            fileProperties: fileProperties);
     }
 
     /// <inheritdoc />
@@ -488,7 +510,9 @@ public class BlobFileStore : IFileStore
                 return false;
             },
             operationName: nameof(CopyFileAsync),
-            operationType: OperationType.Input);
+            operationType: OperationType.Input,
+            partition: partition,
+            fileProperties: fileProperties);
     }
 
     /// <inheritdoc />
@@ -508,7 +532,9 @@ public class BlobFileStore : IFileStore
                 conditions: null, // SetAccessTierAsync does not support matching on etag
                 cancellationToken: cancellationToken),
             operationName: nameof(SetBlobToColdAccessTierAsync),
-            operationType: OperationType.Input);
+            operationType: OperationType.Input,
+            partition: partition,
+            fileProperties: fileProperties);
     }
 
     /// <summary>
@@ -555,12 +581,15 @@ public class BlobFileStore : IFileStore
         Func<Task<T>> func,
         string operationName,
         OperationType operationType,
+        Partition partition,
+        FileProperties fileProperties,
         Func<T, long?> extractLength = null)
     {
         try
         {
             var resp = await func();
             EmitTelemetry(operationName, operationType, extractLength?.Invoke(resp));
+            _telemetryClient.ForwardLogTrace(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationSucceeded), partition, fileProperties);
             return resp;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !_blobClient.IsExternal)
@@ -571,6 +600,7 @@ public class BlobFileStore : IFileStore
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
+            _telemetryClient.ForwardLogTrace(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, ex.ErrorCode), partition, fileProperties, SeverityLevel.Error);
             throw new DataStoreRequestFailedException(ex, _blobClient.IsExternal);
         }
         catch (AggregateException ex) when (_blobClient.IsExternal && ex.InnerException is RequestFailedException)
@@ -579,11 +609,13 @@ public class BlobFileStore : IFileStore
             _logger.LogError(innerEx,
                     message: "Access to external storage account failed with ErrorCode: {ErrorCode}",
                     innerEx.ErrorCode);
+            _telemetryClient.ForwardLogTrace(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, innerEx.ErrorCode), partition, fileProperties, SeverityLevel.Error);
             throw new DataStoreRequestFailedException(innerEx, _blobClient.IsExternal);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Access to storage account failed");
+            _telemetryClient.ForwardLogTrace(DicomCoreResource.ExternalDataStoreOperationFailedUnknownIssue, partition, fileProperties, SeverityLevel.Error);
             throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }

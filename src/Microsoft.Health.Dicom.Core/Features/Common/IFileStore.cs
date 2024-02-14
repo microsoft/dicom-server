@@ -22,11 +22,11 @@ public interface IFileStore
     /// Asynchronously stores a file to the file store.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
-    /// <param name="partitionName">Name of the partition</param>
+    /// <param name="partition">Partition to use when operating on file</param>
     /// <param name="stream">The DICOM instance stream.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task<FileProperties> StoreFileAsync(long version, string partitionName, Stream stream, CancellationToken cancellationToken = default);
+    Task<FileProperties> StoreFileAsync(long version, Partition partition, Stream stream, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a file from the file store.

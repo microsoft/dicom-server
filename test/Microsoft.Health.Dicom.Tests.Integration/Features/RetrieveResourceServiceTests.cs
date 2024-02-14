@@ -198,7 +198,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             stream.Position = 0;
             await _fileStore.StoreFileAsync(
                 version,
-                Partition.DefaultName,
+                Partition.Default,
                 stream);
         }
 

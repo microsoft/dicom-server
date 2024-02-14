@@ -113,7 +113,7 @@ public class BlobFileStoreTests
         client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws
         (new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Partition.DefaultName, Substitute.For<Stream>(), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Partition.Default, Substitute.For<Stream>(), CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, new System.Exception().Message), ex.Message);
@@ -125,7 +125,7 @@ public class BlobFileStoreTests
         InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
         client.BlockBlobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws(new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Partition.DefaultName, Substitute.For<Stream>(), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Partition.Default, Substitute.For<Stream>(), CancellationToken.None));
 
         Assert.False(ex.IsExternal);
         Assert.Equal(DicomCoreResource.DataStoreOperationFailed, ex.Message);
