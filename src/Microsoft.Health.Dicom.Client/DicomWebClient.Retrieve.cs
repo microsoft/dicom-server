@@ -106,7 +106,7 @@ public partial class DicomWebClient : IDicomWebClient
             cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<DicomWebResponse<Stream>> RetrieveInstanceStreamAsync(
+    public Task<DicomWebResponse<Stream>> RetrieveInstanceStreamAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
@@ -119,11 +119,36 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
-        return await RetrieveInstanceStreamAsync(
-            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
-            dicomTransferSyntax,
-            requestOriginalVersion,
-            cancellationToken).ConfigureAwait(false);
+        Uri url = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName);
+        return RetrieveStreamAsync(url, dicomTransferSyntax, requestOriginalVersion, cancellationToken);
+    }
+
+    public Task<DicomWebResponse<Stream>> RetrieveSeriesStreamAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+        string partitionName = default,
+        bool requestOriginalVersion = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+
+        Uri url = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), partitionName);
+        return RetrieveStreamAsync(url, dicomTransferSyntax, requestOriginalVersion, cancellationToken);
+    }
+
+    public Task<DicomWebResponse<Stream>> RetrieveStudyStreamAsync(
+        string studyInstanceUid,
+        string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+        string partitionName = default,
+        bool requestOriginalVersion = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+
+        Uri url = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName);
+        return RetrieveStreamAsync(url, dicomTransferSyntax, requestOriginalVersion, cancellationToken);
     }
 
     public async Task<DicomWebResponse<Stream>> RetrieveRenderedInstanceAsync(
@@ -288,7 +313,7 @@ public partial class DicomWebClient : IDicomWebClient
             });
     }
 
-    private async Task<DicomWebResponse<Stream>> RetrieveInstanceStreamAsync(
+    private async Task<DicomWebResponse<Stream>> RetrieveStreamAsync(
         Uri requestUri,
         string dicomTransferSyntax,
         bool requestOriginalVersion,
@@ -296,31 +321,21 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(requestUri, nameof(requestUri));
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-
-        request.Headers.TryAddWithoutValidation(
-            "Accept",
-            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax));
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri)
+        {
+            Headers = { { "Accept", CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax) } },
+        };
 
         if (requestOriginalVersion)
-        {
-            request.Headers.TryAddWithoutValidation(DicomWebConstants.RequestOriginalVersion, bool.TrueString);
-        }
+            request.Headers.Add(DicomWebConstants.RequestOriginalVersion, bool.TrueString);
 
-        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+        HttpResponseMessage response = await HttpClient
+            .SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
 
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
-        return new DicomWebResponse<Stream>(
-            response,
-            async content =>
-            {
-                MemoryStream memoryStream = GetMemoryStream();
-                await content.CopyToAsync(memoryStream).ConfigureAwait(false);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                return memoryStream;
-            });
+        return new DicomWebResponse<Stream>(response, c => c.ReadAsStreamAsync());
     }
 
     private async Task<DicomWebResponse<Stream>> RetrieveRenderedAsync(
