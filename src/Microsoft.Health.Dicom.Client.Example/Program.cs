@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Azure.Core;
@@ -40,6 +39,5 @@ DicomWebClient source = new(sourceClient);
 DicomWebClient dest = new(destClient);
 
 // Copy the study from the source to the destination
-using DicomWebResponse<Stream> response = await source.RetrieveStudyStreamAsync(StudyInstanceUid);
-using Stream study = await response.GetValueAsync();
-await dest.StoreAsync(study, StudyInstanceUid);
+using DicomWebResponse response = await source.RetrieveStudyResponseAsync(StudyInstanceUid);
+await dest.StoreAsync(response.Content);

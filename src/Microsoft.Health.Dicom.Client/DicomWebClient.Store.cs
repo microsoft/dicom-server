@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial class DicomWebClient : IDicomWebClient
 {
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+    public Task<DicomWebResponse<DicomDataset>> StoreAsync(
         IEnumerable<DicomFile> dicomFiles,
         string studyInstanceUid,
         string partitionName = default,
@@ -31,13 +31,13 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
 
         using MultipartContent content = DicomContent.CreateMultipart(dicomFiles);
-        return await StoreAsync(
+        return StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
             content,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+    public Task<DicomWebResponse<DicomDataset>> StoreAsync(
         IEnumerable<Stream> streams,
         string studyInstanceUid,
         string partitionName = default,
@@ -46,13 +46,13 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNull(streams, nameof(streams));
 
         using MultipartContent content = CreateMultipartDicomStreamContent(streams);
-        return await StoreAsync(
+        return StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
             content,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+    public Task<DicomWebResponse<DicomDataset>> StoreAsync(
         Stream stream,
         string studyInstanceUid,
         string partitionName = default,
@@ -60,15 +60,13 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        stream.Seek(0, SeekOrigin.Begin);
-
-        return await StoreAsync(
+        return StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
             CreateDicomStreamContent(stream),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+    public Task<DicomWebResponse<DicomDataset>> StoreAsync(
         DicomFile dicomFile,
         string studyInstanceUid,
         string partitionName = default,
@@ -76,21 +74,21 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-        return await StoreAsync(
+        return StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
             new DicomContent(dicomFile),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
+    public Task<DicomWebResponse<DicomDataset>> StoreAsync(
         HttpContent content,
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {
-        return await StoreAsync(
+        return StoreAsync(
             GenerateStoreRequestUri(partitionName),
             content,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default)
@@ -127,18 +125,21 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     private static StreamContent CreateDicomStreamContent(Stream stream)
-    {
-        StreamContent content = new(stream);
-        content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
-
-        return content;
-    }
+        => new StreamContent(stream) { Headers = { ContentType = DicomWebConstants.MediaTypeApplicationDicom } };
 
     [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
     private static MultipartContent CreateMultipartDicomStreamContent(IEnumerable<Stream> streams, DicomWriteOptions options = null)
     {
-        MultipartContent content = new("related");
-        content.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
+        MultipartContent content = new("related")
+        {
+            Headers =
+            {
+                ContentType =
+                {
+                    Parameters = { new NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\"") }
+                }
+            }
+        };
 
         foreach (Stream stream in streams)
             content.Add(CreateDicomStreamContent(stream));

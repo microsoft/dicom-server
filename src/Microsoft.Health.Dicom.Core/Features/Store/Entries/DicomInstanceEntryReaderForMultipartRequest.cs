@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -62,7 +62,8 @@ public class DicomInstanceEntryReaderForMultipartRequest : IDicomInstanceEntryRe
             while ((bodyPart = await multipartReader.ReadNextBodyPartAsync(cancellationToken)) != null)
             {
                 // Check the content type to make sure we can process.
-                if (!KnownContentTypes.ApplicationDicom.Equals(bodyPart.ContentType, StringComparison.OrdinalIgnoreCase))
+                if (!MediaTypeHeaderValue.TryParse(bodyPart.ContentType, out MediaTypeHeaderValue partContentType) ||
+                    !KnownContentTypes.ApplicationDicom.Equals(partContentType.MediaType, StringComparison.OrdinalIgnoreCase))
                 {
                     // TODO: Currently, we only support application/dicom. Support for metadata + bulkdata is coming.
                     throw new UnsupportedMediaTypeException(
