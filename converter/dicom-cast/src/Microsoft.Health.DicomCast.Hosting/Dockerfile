@@ -1,9 +1,9 @@
 # Define the "runtime" image which will run DICOMcast
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.1-alpine3.18-amd64@sha256:b72d219b91c5320b743edcbc31746bf152aaa850884befe5e9d87095d6bd483f AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.2-alpine3.18-amd64@sha256:c8c3e7e5ae616527d87131e681ff5400eb2e603f5f69e485cf764f8fc1a64ac5 AS runtime
 USER $APP_UID
 
 # Copy the DICOMcast project and build it
-FROM mcr.microsoft.com/dotnet/sdk:8.0.101-alpine3.18-amd64@sha256:678ef915d8938fab29b30462188271b885ad389ba9f5887b0018b5cf1bebac7a AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.200-alpine3.18-amd64@sha256:c953a02531ad0befc07fdbc80a82437c2476aaa6228fca6023e93006e09e5939 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 WORKDIR /dicom-server
