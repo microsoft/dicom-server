@@ -392,7 +392,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     }
 
     [Fact]
-    public async Task GivenInstances_WhenBulkUpdateInstancesInAStudyAndFilePropertiesPassed_ThenItShouldInsertNewPropertiesAndReturnCorrectFileProperty()
+    public async Task GivenInstances_WhenBulkUpdateInstancesInAStudyAndFilePropertiesPassed_ThenItShouldReturnCorrectFilePropertyForAllVersions()
     {
         var studyInstanceUID1 = TestUidGenerator.Generate();
         DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
@@ -421,7 +421,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         IReadOnlyList<FileProperty> newFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(retrievedInstance.GetVersion(false));
         Assert.Equal(retrievedInstance.VersionedInstanceIdentifier.Version, newFileProperties[0].Watermark);
 
-        var originalInstanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1, isOriginalVersion: true)).ToList();
+        var originalInstanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1, isInitialVersion: true)).ToList();
         Assert.Single(originalInstanceMetadataList);
         var originalRetrievedInstance = originalInstanceMetadataList[0];
 

@@ -2015,9 +2015,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
             private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _originalVersion = new ParameterDefinition<System.Nullable<System.Boolean>>("@originalVersion", global::System.Data.SqlDbType.Bit, true);
+            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _initialVersion = new ParameterDefinition<System.Nullable<System.Boolean>>("@initialVersion", global::System.Data.SqlDbType.Bit, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Nullable<System.Boolean> originalVersion)
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Nullable<System.Boolean> initialVersion)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetInstanceWithPropertiesV58";
@@ -2026,7 +2026,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
                 _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-                _originalVersion.AddParameter(command.Parameters, originalVersion);
+                _initialVersion.AddParameter(command.Parameters, initialVersion);
             }
         }
 

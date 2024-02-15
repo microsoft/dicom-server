@@ -220,7 +220,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         _logger.LogInformation("Downloading the entire instance for frame parsing");
 
         // Get file properties again for transcoding
-        instance = await GetInstanceMetadata(instanceIdentifier, isOriginalVersion: false, cancellationToken);
+        instance = await GetInstanceMetadata(instanceIdentifier, isInitialVersion: false, cancellationToken);
 
         FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, _logger, cancellationToken);
         LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
@@ -386,7 +386,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,
-                isOriginalVersion: true, // Setting the flag to default true, since with or without update we always use the first/original version. This is optimize fast frame fetch.
+                isInitialVersion: true, // Setting the flag to default true. For update we will always use the initial version.
                 cancellationToken);
 
         if (!retrieveInstances.Any())
@@ -397,7 +397,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         return retrieveInstances.First();
     }
 
-    private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, bool isOriginalVersion, CancellationToken cancellationToken)
+    private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, bool isInitialVersion, CancellationToken cancellationToken)
     {
         var partition = new Partition(instanceIdentifier.Partition.Key, instanceIdentifier.Partition.Name);
         IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
@@ -406,7 +406,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,
-                isOriginalVersion,
+                isInitialVersion,
                 cancellationToken);
 
         if (!retrieveInstances.Any())

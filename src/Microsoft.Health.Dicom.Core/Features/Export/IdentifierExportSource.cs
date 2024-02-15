@@ -48,7 +48,7 @@ internal sealed class IdentifierExportSource : IExportSource
                 identifier.StudyInstanceUid,
                 identifier.SeriesInstanceUid,
                 identifier.SopInstanceUid,
-                isOriginalVersion: false,
+                isInitialVersion: false,
                 cancellationToken);
 
             if (instances.Count == 0)

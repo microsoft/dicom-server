@@ -209,7 +209,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, isOriginalVersion: isOriginalVersion, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, isInitialVersion: isOriginalVersion, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {
@@ -220,7 +220,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         else
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, seriesInstanceUid, isOriginalVersion: isOriginalVersion, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, seriesInstanceUid, isInitialVersion: isOriginalVersion, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {

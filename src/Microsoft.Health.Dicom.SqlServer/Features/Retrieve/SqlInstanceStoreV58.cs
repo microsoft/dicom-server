@@ -29,7 +29,7 @@ internal class SqlInstanceStoreV58 : SqlInstanceStoreV55
 
     public override SchemaVersion Version => SchemaVersion.V58;
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, bool isOriginalVersion = false, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, bool isInitialVersion = false, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -45,7 +45,7 @@ internal class SqlInstanceStoreV58 : SqlInstanceStoreV55
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid,
-                    isOriginalVersion);
+                    isInitialVersion);
 
                 using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {

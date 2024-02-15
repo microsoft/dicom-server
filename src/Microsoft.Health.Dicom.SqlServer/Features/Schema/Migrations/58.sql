@@ -2680,7 +2680,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.GetInstanceWithPropertiesV58
-@validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL, @originalVersion BIT=0
+@validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL, @initialVersion BIT=0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2699,7 +2699,7 @@ BEGIN
            LEFT OUTER JOIN
            dbo.FileProperty AS f
            ON f.InstanceKey = i.InstanceKey
-              AND f.Watermark = IIF (@originalVersion = 1, ISNULL(i.OriginalWatermark, i.Watermark), i.Watermark)
+              AND f.Watermark = IIF (@initialVersion = 1, ISNULL(i.OriginalWatermark, i.Watermark), i.Watermark)
     WHERE  i.PartitionKey = @partitionKey
            AND i.StudyInstanceUid = @studyInstanceUid
            AND i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
