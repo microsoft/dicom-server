@@ -86,7 +86,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         {
             // this call throws NotFound when zero instance found
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance, partition, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
+                ResourceType.Instance, partition, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, isInitialVersion: false, cancellationToken))[0];
 
             FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, true, _logger, cancellationToken);
             _logger.LogInformation(

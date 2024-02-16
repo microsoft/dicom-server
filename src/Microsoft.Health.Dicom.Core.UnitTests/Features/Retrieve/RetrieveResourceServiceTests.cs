@@ -168,7 +168,8 @@ public class RetrieveResourceServiceTests
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Study,
-            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 5 });
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 5 },
+            isOriginalVersion: true);
 
         _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default, null, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
@@ -218,7 +219,8 @@ public class RetrieveResourceServiceTests
                 OriginalVersion = originalVersion,
                 TransferSyntaxUid = "1.2.840.10008.1.2.4.90",
                 FileProperties = fileProperties
-            });
+            },
+            isOriginalVersion: true);
         _fileStore.GetFilePropertiesAsync(originalVersion, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition, fileProperties, DefaultCancellationToken)
             .Returns(new FileProperties { ContentLength = new RetrieveConfiguration().MaxDicomFileSize });
 
@@ -257,7 +259,7 @@ public class RetrieveResourceServiceTests
     {
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         var instanceMetadata = new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, Partition.Default), new InstanceProperties());
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, null, null, false, DefaultCancellationToken).Returns(new[] { instanceMetadata });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instanceMetadata.VersionedInstanceIdentifier), _recyclableMemoryStreamManager);
@@ -829,7 +831,7 @@ public class RetrieveResourceServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, Partition partition = null, InstanceProperties instanceProperty = null, bool withFileProperties = false)
+    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, Partition partition = null, InstanceProperties instanceProperty = null, bool withFileProperties = false, bool isOriginalVersion = false)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
@@ -842,18 +844,18 @@ public class RetrieveResourceServiceTests
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partition), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 1, partition), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 2, partition), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, null, null, isOriginalVersion, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Series:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partition), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 1, partition), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _firstSeriesInstanceUid, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _firstSeriesInstanceUid, null, isOriginalVersion, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Instance:
             case ResourceType.Frames:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 3, partition), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 4, partition), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1).ToList());
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Arg.Is<Partition>(x => x.Key == partition.Key), _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, isOriginalVersion, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1).ToList());
                 var identifier = new InstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, partition);
                 _instanceMetadataCache.GetAsync(Arg.Any<object>(), identifier, Arg.Any<Func<InstanceIdentifier, CancellationToken, Task<InstanceMetadata>>>(), Arg.Any<CancellationToken>()).Returns(dicomInstanceIdentifiersList.First());
                 break;

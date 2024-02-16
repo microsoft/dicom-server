@@ -171,7 +171,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     {
         using var tokenSource = new CancellationTokenSource();
 
-        (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
+        (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, isOriginalVersion: true, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
         // Add metadata for all instances in the given list
@@ -185,6 +185,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     // Note that tests must use unique watermarks to ensure their metadata files do not collide with each other
     private (VersionedDicomDataset First, VersionedDicomDataset Second) SetupDatasetList(
         ResourceType resourceType,
+        bool isOriginalVersion = false,
         CancellationToken cancellationToken = default)
     {
         var instanceProperty1 = new InstanceProperties { OriginalVersion = _firstOriginalVersion };
@@ -208,7 +209,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, isInitialVersion: isOriginalVersion, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {
@@ -219,7 +220,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         else
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, seriesInstanceUid, isInitialVersion: isOriginalVersion, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {

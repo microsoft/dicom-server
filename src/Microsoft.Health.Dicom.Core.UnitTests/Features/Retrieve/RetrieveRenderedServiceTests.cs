@@ -400,7 +400,7 @@ public class RetrieveRenderedServiceTests
         partition ??= Partition.Default;
 
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partition), instanceProperty));
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(dicomInstanceIdentifiersList[0].VersionedInstanceIdentifier.Partition, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(dicomInstanceIdentifiersList[0].VersionedInstanceIdentifier.Partition, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, false, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
 
         return dicomInstanceIdentifiersList;
     }

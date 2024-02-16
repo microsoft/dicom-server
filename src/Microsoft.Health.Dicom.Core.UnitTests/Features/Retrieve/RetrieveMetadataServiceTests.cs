@@ -156,7 +156,8 @@ public class RetrieveMetadataServiceTests
     {
         IReadOnlyList<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Study,
-            instanceProperty: new InstanceProperties() { OriginalVersion = 5 });
+            instanceProperty: new InstanceProperties() { OriginalVersion = 5 },
+            isInitialVersion: true);
 
         _metadataStore.GetInstanceMetadataAsync(5, DefaultCancellationToken).Returns(new DicomDataset());
 
@@ -226,7 +227,7 @@ public class RetrieveMetadataServiceTests
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
-    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, Partition partition = null, InstanceProperties instanceProperty = null)
+    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, Partition partition = null, InstanceProperties instanceProperty = null, bool isInitialVersion = false)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
@@ -238,16 +239,16 @@ public class RetrieveMetadataServiceTests
             case ResourceType.Study:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 0), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Arg.Is<Partition>(x => x.Key == partition.Key), _studyInstanceUid, isInitialVersion: isInitialVersion, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Series:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 0), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 1), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _seriesInstanceUid, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Arg.Is<Partition>(x => x.Key == partition.Key), _studyInstanceUid, _seriesInstanceUid, isInitialVersion: isInitialVersion, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Instance:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, version: 0), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Arg.Is<Partition>(x => x.Key == partition.Key), _studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, isInitialVersion: isInitialVersion, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
         }
 

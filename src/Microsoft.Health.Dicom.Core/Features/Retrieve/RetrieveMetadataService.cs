@@ -56,6 +56,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
             studyInstanceUid,
             seriesInstanceUid: null,
             sopInstanceUid: null,
+            isOriginalVersionRequested,
             cancellationToken);
 
         string eTag = _eTagGenerator.GetETag(ResourceType.Study, retrieveInstances);
@@ -71,6 +72,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid: null,
+                isOriginalVersionRequested,
                 cancellationToken);
 
         string eTag = _eTagGenerator.GetETag(ResourceType.Series, retrieveInstances);
@@ -86,6 +88,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
             studyInstanceUid,
             seriesInstanceUid,
             sopInstanceUid,
+            isOriginalVersionRequested,
             cancellationToken);
 
         string eTag = _eTagGenerator.GetETag(ResourceType.Instance, retrieveInstances);

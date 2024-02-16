@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -60,24 +60,24 @@ public class IdentifierExportSourceTests
             new InstanceMetadata(new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition), new InstanceProperties()),
         };
         _store
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "10", null, null, tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "10", null, null, false, tokenSource.Token)
             .Returns(expected[..3]);
         _store
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "11", null, null, tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "11", null, null, false, tokenSource.Token)
             .Returns(Array.Empty<InstanceMetadata>());
 
         _store
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "200", null, tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "200", null, false, tokenSource.Token)
             .Returns(expected[3..6]);
         _store
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "201", null, tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "201", null, false, tokenSource.Token)
             .Returns(Array.Empty<InstanceMetadata>());
 
         _store
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3000", tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3000", false, tokenSource.Token)
             .Returns(new[] { expected[6] });
         _store
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3001", tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3001", false, tokenSource.Token)
             .Returns(Array.Empty<InstanceMetadata>());
 
         // Enumerate
@@ -88,22 +88,22 @@ public class IdentifierExportSourceTests
         // Check Results
         await _store
             .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "10", null, null, tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "10", null, null, false, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "11", null, null, tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "11", null, null, false, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "200", null, tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "200", null, false, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "201", null, tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "201", null, false, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3000", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3000", false, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3001", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3001", false, tokenSource.Token);
 
         Assert.Same(expected[0], actual[0].Instance);
         Assert.Same(expected[1], actual[1].Instance);

@@ -391,6 +391,46 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         Assert.Empty(inBetweenFileProperties);
     }
 
+    [Fact]
+    public async Task GivenInstances_WhenBulkUpdateInstancesInAStudyAndFilePropertiesPassed_ThenItShouldReturnCorrectFilePropertyForAllVersions()
+    {
+        var studyInstanceUID1 = TestUidGenerator.Generate();
+        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
+        dataset1.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
+
+        var originalInstance = await CreateInstanceIndexAsync(dataset1, createFileProperties: true);
+
+        // Update the instances with newWatermark
+        IReadOnlyList<InstanceMetadata> updatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(
+            new Partition(originalInstance.PartitionKey, Partition.UnknownName),
+            studyInstanceUID1);
+
+        Assert.Single(updatedInstanceMetadata);
+        var updatedInstance = updatedInstanceMetadata[0];
+
+        var dicomDataset = new DicomDataset();
+        dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
+
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(updatedInstance) }, Array.Empty<QueryTag>());
+
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        Assert.Single(instanceMetadataList);
+        var retrievedInstance = instanceMetadataList[0];
+
+        // ensure new property inserted
+        IReadOnlyList<FileProperty> newFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(retrievedInstance.GetVersion(false));
+        Assert.Equal(retrievedInstance.VersionedInstanceIdentifier.Version, newFileProperties[0].Watermark);
+
+        var originalInstanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1, isInitialVersion: true)).ToList();
+        Assert.Single(originalInstanceMetadataList);
+        var originalRetrievedInstance = originalInstanceMetadataList[0];
+
+        // ensure original property matches
+        IReadOnlyList<FileProperty> originalFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(retrievedInstance.GetVersion(true));
+        Assert.Equal(originalRetrievedInstance.InstanceProperties.OriginalVersion, originalFileProperties[0].Watermark);
+        Assert.Equal(originalRetrievedInstance.InstanceProperties.FileProperties.Path, originalFileProperties[0].FilePath);
+    }
+
     private static InstanceMetadata CreateExpectedInstance(InstanceMetadata updatedInstance) =>
         new(
             updatedInstance.VersionedInstanceIdentifier,

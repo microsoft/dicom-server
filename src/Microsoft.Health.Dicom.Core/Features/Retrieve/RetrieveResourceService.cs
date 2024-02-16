@@ -109,7 +109,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
             // this call throws NotFound when zero instance found
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                message.ResourceType, partition, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
+                message.ResourceType, partition, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, message.IsOriginalVersionRequested, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
             long version = instance.GetVersion(message.IsOriginalVersionRequested);
 
@@ -218,6 +218,9 @@ public class RetrieveResourceService : IRetrieveResourceService
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
         _logger.LogInformation("Downloading the entire instance for frame parsing");
+
+        // Get file properties again for transcoding
+        instance = await GetInstanceMetadata(instanceIdentifier, isInitialVersion: false, cancellationToken);
 
         FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.FileProperties, render: false, _logger, cancellationToken);
         LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
@@ -383,6 +386,27 @@ public class RetrieveResourceService : IRetrieveResourceService
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,
+                isInitialVersion: true, // Setting the flag to default true. For update we will always use the initial version.
+                cancellationToken);
+
+        if (!retrieveInstances.Any())
+        {
+            throw new InstanceNotFoundException();
+        }
+
+        return retrieveInstances.First();
+    }
+
+    private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, bool isInitialVersion, CancellationToken cancellationToken)
+    {
+        var partition = new Partition(instanceIdentifier.Partition.Key, instanceIdentifier.Partition.Name);
+        IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
+                ResourceType.Instance,
+                partition,
+                instanceIdentifier.StudyInstanceUid,
+                instanceIdentifier.SeriesInstanceUid,
+                instanceIdentifier.SopInstanceUid,
+                isInitialVersion,
                 cancellationToken);
 
         if (!retrieveInstances.Any())

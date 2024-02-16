@@ -112,6 +112,7 @@ public interface IInstanceStore
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="sopInstanceUid">The instance identifier.</param>
+    /// <param name="isInitialVersion">True, if requesting original version. If original version is null it will uses the version.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(
@@ -119,6 +120,7 @@ public interface IInstanceStore
         string studyInstanceUid,
         string seriesInstanceUid = null,
         string sopInstanceUid = null,
+        bool isInitialVersion = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>
