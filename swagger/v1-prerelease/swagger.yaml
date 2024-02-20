@@ -3038,6 +3038,7 @@ components:
         - reindex
         - unknown
         - update
+        - deleteExtendedQueryTag
       type: string
     DicomOperationIOperationState:
       type: object

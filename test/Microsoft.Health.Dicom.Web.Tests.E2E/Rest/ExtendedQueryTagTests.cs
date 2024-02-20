@@ -103,6 +103,19 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _v2Client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
         DicomDataset[] instances = await queryResponse.ToArrayAsync();
         Assert.Contains(instances, instance => instance.ToInstanceIdentifier(Partition.Default).Equals(instance2.ToInstanceIdentifier(Partition.Default)));
+
+        // Delete these extended query tags.
+        await _tagManager.DeleteExtendedQueryTagAsync(genderTag.GetPath());
+        await _tagManager.DeleteExtendedQueryTagAsync(filmTag.GetPath());
+
+        // Check specific tag
+        DicomWebResponse<GetExtendedQueryTagEntry> getResponseNotFound;
+
+        getResponseNotFound = await _v2Client.GetExtendedQueryTagAsync(genderTag.GetPath());
+        Assert.Equal(HttpStatusCode.NotFound, getResponseNotFound.StatusCode);
+
+        getResponseNotFound = await _v2Client.GetExtendedQueryTagAsync(filmTag.GetPath());
+        Assert.Equal(HttpStatusCode.NotFound, getResponseNotFound.StatusCode);
     }
 
     [Fact]
