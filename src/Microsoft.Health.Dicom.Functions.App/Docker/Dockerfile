@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:c34f66eb1ebb8bedd510f4205938db7266e75b2c372cfe6789b3b824957e492e AS az-func-runtime
+FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:125fc7d5f7b1aff5f2f5e5a1cde3318e89c745fb40e5c25df4670aa297cec756 AS az-func-runtime
 ENV ASPNETCORE_URLS=http://+:8080 \
     AzureWebJobsScriptRoot=/home/site/wwwroot \
     LANG=en_US.UTF-8 \
