@@ -12,7 +12,7 @@
     <PackageVersion Include="Azure.Storage.Common" Version="12.18.1" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.1.2" />
-    <PackageVersion Include="fo-dicom.Codecs" Version="5.11.0" />
+    <PackageVersion Include="fo-dicom.Codecs" Version="5.12.0" />
     <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.2" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="4.3.0" />
