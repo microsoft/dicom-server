@@ -1,7 +1,7 @@
 # Medical Imaging Server for DICOM
 
 > [!IMPORTANT]
-> 📢 **We plan to archive the DICOM server project on April 30, 2024**
+> 📢 **After more than 3 years, our team is planning to archive the DICOM server project to allow us to focus on delivering customer value to our [managed service offering on Azure](https://learn.microsoft.com/en-us/azure/healthcare-apis/dicom/overview). We plan to archive the DICOM server project on April 30, 2024**
 > 
 > Learn more in our recent [discussion post](https://github.com/microsoft/dicom-server/discussions/3401)
 
