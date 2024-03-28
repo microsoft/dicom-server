@@ -1,5 +1,10 @@
 # Medical Imaging Server for DICOM
 
+> [!IMPORTANT]
+> 📢 **We plan to archive the DICOM server project on April 30, 2024**
+> 
+> Learn more in our recent [discussion post](https://github.com/microsoft/dicom-server/discussions/3401)
+
 The Medical Imaging Server for DICOM is an open source DICOM server that is easily deployed on Azure. It allows standards-based communication with any DICOMweb&trade; enabled systems, and injects DICOM metadata into a FHIR server to create a holistic view of patient data. The Medical Imaging Server for DICOM integrates tightly with the [FHIR Server for Azure](https://github.com/microsoft/fhir-server) enabling healthcare professionals, ISVs, and medical device vendors to create new and innovative solutions. FHIR is becoming an important standard for clinical data and provides extensibility to support integration of other types of data directly, or through references. By using the Medical Imaging Server for DICOM, organizations can store references to imaging data in FHIR and enable queries across clinical and imaging datasets.
 
 ![Architecture](docs/images/DICOM-arch.png)
