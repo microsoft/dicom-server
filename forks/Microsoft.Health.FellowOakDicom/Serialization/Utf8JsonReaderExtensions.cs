@@ -3,22 +3,21 @@
 
 using System.Text.Json;
 
-namespace Microsoft.Health.FellowOakDicom.Serialization
-{
-    internal static class Utf8JsonReaderExtensions
-    {
-        public static void Assume(this ref Utf8JsonReader reader, JsonTokenType tokenType)
-        {
-            if (reader.TokenType != tokenType)
-            {
-                throw new JsonException($"invalid: {tokenType} expected at position {reader.TokenStartIndex}, instead found {reader.TokenType}");
-            }
-        }
+namespace Microsoft.Health.FellowOakDicom.Serialization;
 
-        public static void AssumeAndSkip(this ref Utf8JsonReader reader, JsonTokenType tokenType)
+internal static class Utf8JsonReaderExtensions
+{
+    public static void Assume(this ref Utf8JsonReader reader, JsonTokenType tokenType)
+    {
+        if (reader.TokenType != tokenType)
         {
-            Assume(ref reader, tokenType);
-            reader.Read();
+            throw new JsonException($"invalid: {tokenType} expected at position {reader.TokenStartIndex}, instead found {reader.TokenType}");
         }
+    }
+
+    public static void AssumeAndSkip(this ref Utf8JsonReader reader, JsonTokenType tokenType)
+    {
+        Assume(ref reader, tokenType);
+        reader.Read();
     }
 }

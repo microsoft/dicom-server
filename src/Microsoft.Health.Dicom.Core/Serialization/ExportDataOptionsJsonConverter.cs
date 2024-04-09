@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,12 +21,18 @@ internal sealed class ExportDataOptionsJsonConverter : JsonConverterFactory
     {
         Type arg = EnsureArg.IsNotNull(typeToConvert, nameof(typeToConvert)).GetGenericArguments()[0];
         if (arg == typeof(ExportSourceType))
+        {
             return new ExportDataOptionsJsonConverter<ExportSourceType>(MapSourceType);
+        }
         else if (arg == typeof(ExportDestinationType))
+        {
             return new ExportDataOptionsJsonConverter<ExportDestinationType>(MapDestinationType);
+        }
         else
+        {
             throw new JsonException(
                 string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidType, typeToConvert));
+        }
     }
 
     private static Type MapSourceType(ExportSourceType type)
