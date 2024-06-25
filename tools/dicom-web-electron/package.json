@@ -38,6 +38,6 @@
     "jquery": "^3.7.0"
   },
   "overrides": {
-    "minimatch": "9.0.4"
+    "minimatch": "9.0.5"
   }
 }
