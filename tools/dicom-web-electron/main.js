@@ -38,6 +38,7 @@ async function createWindow() {
     win.loadFile(path.join(__dirname, "index.html"));
 
     // Used to allow self signed certificates
+    // CodeQL [SM03616]: Suppress warning for disabling certificate validation
     const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     // Set the maximum content length size in bytes and megabytes
