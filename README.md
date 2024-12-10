@@ -40,9 +40,6 @@ provided by the bot. You will only need to do this once across all repositories 
 
 There are many other ways to contribute to Medical Imaging Server for DICOM.
 * Join the [#dicomonazure](https://twitter.com/hashtag/dicomonazure?f=tweets&vertical=default) discussion on Twitter.
-* [Contribute bug fixes](CONTRIBUTING.md).
-
-See [Contributing to Medical Imaging Server for DICOM](CONTRIBUTING.md) for more information.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
