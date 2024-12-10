@@ -2,23 +2,12 @@
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
-    <TargetFrameworks>$(LibraryFrameworks);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'netstandard2.0'">
-      <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
-        <PackageReference Include="System.Text.Json" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="fo-dicom" />
@@ -32,10 +21,6 @@
     <None Include="IDicomWebClient.*.cs">
       <DependentUpon>IDicomWebClient.cs</DependentUpon>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,7 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.FellowOakDicom.Serialization;
+using FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client.Serialization;
 using Microsoft.Net.Http.Headers;

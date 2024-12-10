@@ -1,7 +1,0 @@
-version: "3.8"
-
-services:
-  dicomserver:
-    environment:
-      DicomServer__Features__EnableDataPartitions: "true"
-      DicomServer__Features__EnableLatestApiVersion: "true"
