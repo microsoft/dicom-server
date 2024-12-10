@@ -21,11 +21,11 @@ To access the archived code:
 
 1. Clone the repository if you haven't already:
 
-    `git clone <repository-url>`
+    `git clone https://github.com/microsoft/dicom-server.git`
 
 2. Switch to the archive branch:
 
-    `git checkout archive`
+    `git checkout archived`
 
 
 ## Contributing
