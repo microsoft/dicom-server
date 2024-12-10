@@ -13,7 +13,7 @@ This repository has undergone a significant cleanup. All code except for the cli
 
 **Current State**: Only the client code remains in the main branch.
 
-**Archived Code**: All other components have been moved to the `archived` branch.
+**Archived Code**: All other components have been moved to the [`archived`](https://github.com/microsoft/dicom-server/tree/archived) branch.
 
 ### Accessing the Archived Code
 
