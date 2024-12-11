@@ -1,4 +1,3 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31825.309
@@ -10,79 +9,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{404C6C33
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
 		.config\dotnet-tools.json = .config\dotnet-tools.json
-		GitVersion.yml = GitVersion.yml
 		global.json = global.json
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker\docker-compose.dcproj", "{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {BFB96311-9B1A-41C1-ABF1-4F6522660084}
-		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941} = {C71E1BDD-2B8E-47F3-8801-AE95F5F39941}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api", "src\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj", "{B0570D75-E376-44AC-870B-87ECB54F0AE3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api.UnitTests", "src\Microsoft.Health.Dicom.Api.UnitTests\Microsoft.Health.Dicom.Api.UnitTests.csproj", "{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob", "src\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj", "{1FFFABFB-B30A-4AB8-8193-67016B1C5276}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core", "src\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj", "{E15123F6-5A28-4D86-A28D-30FCB699B9EE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core.UnitTests", "src\Microsoft.Health.Dicom.Core.UnitTests\Microsoft.Health.Dicom.Core.UnitTests.csproj", "{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Abstractions", "src\Microsoft.Health.Dicom.Functions.Abstractions\Microsoft.Health.Dicom.Functions.Abstractions.csproj", "{CFAD96C4-1AA3-442D-BADE-A93E4E936742}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Abstractions.UnitTests", "src\Microsoft.Health.Dicom.Functions.Abstractions.UnitTests\Microsoft.Health.Dicom.Functions.Abstractions.UnitTests.csproj", "{2D442B4F-C40A-4102-A332-8048A0655FDC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.App", "src\Microsoft.Health.Dicom.Functions.App\Microsoft.Health.Dicom.Functions.App.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client.UnitTests", "src\Microsoft.Health.Dicom.Functions.Client.UnitTests\Microsoft.Health.Dicom.Functions.Client.UnitTests.csproj", "{3D5D7F69-C766-450A-AA3D-00A50E115E9C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.UnitTests", "src\Microsoft.Health.Dicom.Functions.UnitTests\Microsoft.Health.Dicom.Functions.UnitTests.csproj", "{3D679950-A578-45AD-AF89-FAF89580375F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Common", "src\Microsoft.Health.Dicom.Tests.Common\Microsoft.Health.Dicom.Tests.Common.csproj", "{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Tests.Integration", "test\Microsoft.Health.Dicom.Tests.Integration\Microsoft.Health.Dicom.Tests.Integration.csproj", "{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer", "src\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj", "{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SqlServer.UnitTests", "src\Microsoft.Health.Dicom.SqlServer.UnitTests\Microsoft.Health.Dicom.SqlServer.UnitTests.csproj", "{ECC018C1-BFA8-44BE-B560-ACB05CA57251}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Web", "src\Microsoft.Health.Dicom.Web\Microsoft.Health.Dicom.Web.csproj", "{BFB96311-9B1A-41C1-ABF1-4F6522660084}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Web.Tests.E2E", "test\Microsoft.Health.Dicom.Web.Tests.E2E\Microsoft.Health.Dicom.Web.Tests.E2E.csproj", "{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8C9A0050-5D22-4398-9F93-DDCD80B3BA51}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azure", "src\Microsoft.Health.Dicom.Azure\Microsoft.Health.Dicom.Azure.csproj", "{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azure.UnitTests", "src\Microsoft.Health.Dicom.Azure.UnitTests\Microsoft.Health.Dicom.Azure.UnitTests.csproj", "{5571FE42-1EDB-4E25-992A-A37467487DB3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob.UnitTests", "src\Microsoft.Health.Dicom.Blob.UnitTests\Microsoft.Health.Dicom.Blob.UnitTests.csproj", "{E2BD0627-CC6C-40D4-B875-00654FD059CF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager", "src\Microsoft.Health.Dicom.SchemaManager\Microsoft.Health.Dicom.SchemaManager.csproj", "{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.UnitTests", "src\Microsoft.Health.Dicom.SchemaManager.UnitTests\Microsoft.Health.Dicom.SchemaManager.UnitTests.csproj", "{C8BB8AF3-DCD1-49A4-A082-9152686AD222}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.Console", "src\Microsoft.Health.Dicom.SchemaManager.Console\Microsoft.Health.Dicom.SchemaManager.Console.csproj", "{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forks", "forks", "{AEDC6C96-15FF-4AFB-BD49-3549211AACCF}"
-	ProjectSection(SolutionItems) = preProject
-		forks\.globalconfig = forks\.globalconfig
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{ADD2B971-3C5C-429A-B954-A55FA0FA987D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.WebUtilities", "src\Microsoft.Health.Dicom.WebUtilities\Microsoft.Health.Dicom.WebUtilities.csproj", "{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -90,153 +23,19 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Debug|x64.Build.0 = Debug|Any CPU
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|x64.ActiveCfg = Release|Any CPU
-		{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}.Release|x64.Build.0 = Release|Any CPU
-		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Debug|x64.ActiveCfg = Debug|x64
-		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Debug|x64.Build.0 = Debug|x64
-		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Release|x64.ActiveCfg = Release|x64
-		{B0570D75-E376-44AC-870B-87ECB54F0AE3}.Release|x64.Build.0 = Release|x64
-		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}.Debug|x64.ActiveCfg = Debug|x64
-		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}.Debug|x64.Build.0 = Debug|x64
-		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}.Release|x64.ActiveCfg = Release|x64
-		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE}.Release|x64.Build.0 = Release|x64
-		{1FFFABFB-B30A-4AB8-8193-67016B1C5276}.Debug|x64.ActiveCfg = Debug|x64
-		{1FFFABFB-B30A-4AB8-8193-67016B1C5276}.Debug|x64.Build.0 = Debug|x64
-		{1FFFABFB-B30A-4AB8-8193-67016B1C5276}.Release|x64.ActiveCfg = Release|x64
-		{1FFFABFB-B30A-4AB8-8193-67016B1C5276}.Release|x64.Build.0 = Release|x64
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|x64.ActiveCfg = Debug|x64
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|x64.Build.0 = Debug|x64
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|x64.ActiveCfg = Release|x64
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|x64.Build.0 = Release|x64
-		{E15123F6-5A28-4D86-A28D-30FCB699B9EE}.Debug|x64.ActiveCfg = Debug|x64
-		{E15123F6-5A28-4D86-A28D-30FCB699B9EE}.Debug|x64.Build.0 = Debug|x64
-		{E15123F6-5A28-4D86-A28D-30FCB699B9EE}.Release|x64.ActiveCfg = Release|x64
-		{E15123F6-5A28-4D86-A28D-30FCB699B9EE}.Release|x64.Build.0 = Release|x64
-		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Debug|x64.ActiveCfg = Debug|x64
-		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Debug|x64.Build.0 = Debug|x64
-		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|x64.ActiveCfg = Release|x64
-		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D}.Release|x64.Build.0 = Release|x64
-		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|x64.ActiveCfg = Debug|x64
-		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|x64.Build.0 = Debug|x64
-		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.ActiveCfg = Release|x64
-		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.Build.0 = Release|x64
-		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Debug|x64.ActiveCfg = Debug|x64
-		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Debug|x64.Build.0 = Debug|x64
-		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Release|x64.ActiveCfg = Release|x64
-		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Release|x64.Build.0 = Release|x64
-		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Debug|x64.ActiveCfg = Debug|x64
-		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Debug|x64.Build.0 = Debug|x64
-		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Release|x64.ActiveCfg = Release|x64
-		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Release|x64.Build.0 = Release|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.ActiveCfg = Debug|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.Build.0 = Debug|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.ActiveCfg = Release|x64
-		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.Build.0 = Release|x64
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|x64.ActiveCfg = Debug|x64
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Debug|x64.Build.0 = Debug|x64
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|x64.ActiveCfg = Release|x64
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}.Release|x64.Build.0 = Release|x64
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Debug|x64.ActiveCfg = Debug|x64
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Debug|x64.Build.0 = Debug|x64
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Release|x64.ActiveCfg = Release|x64
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C}.Release|x64.Build.0 = Release|x64
-		{3D679950-A578-45AD-AF89-FAF89580375F}.Debug|x64.ActiveCfg = Debug|x64
-		{3D679950-A578-45AD-AF89-FAF89580375F}.Debug|x64.Build.0 = Debug|x64
-		{3D679950-A578-45AD-AF89-FAF89580375F}.Release|x64.ActiveCfg = Release|x64
-		{3D679950-A578-45AD-AF89-FAF89580375F}.Release|x64.Build.0 = Release|x64
-		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|x64.ActiveCfg = Debug|x64
-		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Debug|x64.Build.0 = Debug|x64
-		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|x64.ActiveCfg = Release|x64
-		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5}.Release|x64.Build.0 = Release|x64
-		{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA}.Debug|x64.ActiveCfg = Debug|x64
-		{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA}.Debug|x64.Build.0 = Debug|x64
-		{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA}.Release|x64.ActiveCfg = Release|x64
-		{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA}.Release|x64.Build.0 = Release|x64
-		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|x64.ActiveCfg = Debug|x64
-		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Debug|x64.Build.0 = Debug|x64
-		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|x64.ActiveCfg = Release|x64
-		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C}.Release|x64.Build.0 = Release|x64
-		{ECC018C1-BFA8-44BE-B560-ACB05CA57251}.Debug|x64.ActiveCfg = Debug|x64
-		{ECC018C1-BFA8-44BE-B560-ACB05CA57251}.Debug|x64.Build.0 = Debug|x64
-		{ECC018C1-BFA8-44BE-B560-ACB05CA57251}.Release|x64.ActiveCfg = Release|x64
-		{ECC018C1-BFA8-44BE-B560-ACB05CA57251}.Release|x64.Build.0 = Release|x64
-		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Debug|x64.ActiveCfg = Debug|x64
-		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Debug|x64.Build.0 = Debug|x64
-		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Release|x64.ActiveCfg = Release|x64
-		{BFB96311-9B1A-41C1-ABF1-4F6522660084}.Release|x64.Build.0 = Release|x64
-		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Debug|x64.ActiveCfg = Debug|x64
-		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Debug|x64.Build.0 = Debug|x64
-		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Release|x64.ActiveCfg = Release|x64
-		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1}.Release|x64.Build.0 = Release|x64
-		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Debug|x64.ActiveCfg = Debug|x64
-		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Debug|x64.Build.0 = Debug|x64
-		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Release|x64.ActiveCfg = Release|x64
-		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Release|x64.Build.0 = Release|x64
-		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Debug|x64.ActiveCfg = Debug|x64
-		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Debug|x64.Build.0 = Debug|x64
-		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Release|x64.ActiveCfg = Release|x64
-		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Release|x64.Build.0 = Release|x64
-		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.ActiveCfg = Debug|x64
-		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.Build.0 = Debug|x64
-		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.ActiveCfg = Release|x64
-		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.Build.0 = Release|x64
-		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Debug|x64.ActiveCfg = Debug|x64
-		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Debug|x64.Build.0 = Debug|x64
-		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Release|x64.ActiveCfg = Release|x64
-		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Release|x64.Build.0 = Release|x64
-		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Debug|x64.ActiveCfg = Debug|x64
-		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Debug|x64.Build.0 = Debug|x64
-		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Release|x64.ActiveCfg = Release|x64
-		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Release|x64.Build.0 = Release|x64
-		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Debug|x64.ActiveCfg = Debug|x64
-		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Debug|x64.Build.0 = Debug|x64
-		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.ActiveCfg = Release|x64
-		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.Build.0 = Release|x64
-		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Debug|x64.ActiveCfg = Debug|x64
-		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Debug|x64.Build.0 = Debug|x64
-		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Release|x64.ActiveCfg = Release|x64
-		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Release|x64.Build.0 = Release|x64
-		{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8}.Debug|x64.ActiveCfg = Debug|x64
-		{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8}.Debug|x64.Build.0 = Debug|x64
-		{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8}.Release|x64.ActiveCfg = Release|x64
-		{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B0570D75-E376-44AC-870B-87ECB54F0AE3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{D7B538E5-8B3B-487C-8F6A-475F80C50DFE} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{1FFFABFB-B30A-4AB8-8193-67016B1C5276} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{E15123F6-5A28-4D86-A28D-30FCB699B9EE} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{CFAD96C4-1AA3-442D-BADE-A93E4E936742} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{2D442B4F-C40A-4102-A332-8048A0655FDC} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{BB88616C-6208-43D0-B9EF-79FC0652A151} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{3D5D7F69-C766-450A-AA3D-00A50E115E9C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{3D679950-A578-45AD-AF89-FAF89580375F} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{0F57D85C-8FA4-4DBE-BF44-1CA5109125A5} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{DFB41ECC-726C-4DBA-8AD3-17FB0A2546CA} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
-		{A88DAB6A-BE0E-41BD-AB48-D1156FB6443C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{ECC018C1-BFA8-44BE-B560-ACB05CA57251} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
-		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{5571FE42-1EDB-4E25-992A-A37467487DB3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{E2BD0627-CC6C-40D4-B875-00654FD059CF} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{C8BB8AF3-DCD1-49A4-A082-9152686AD222} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88} = {176641B3-297C-4E04-A83D-8F80F80485E8}
-		{ADD2B971-3C5C-429A-B954-A55FA0FA987D} = {AEDC6C96-15FF-4AFB-BD49-3549211AACCF}
-		{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal
