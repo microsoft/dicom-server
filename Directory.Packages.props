@@ -4,9 +4,9 @@
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.1.5" />
     <PackageVersion Include="Microsoft.Health.Operations" Version="7.1.198" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.10.0" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.13.0" />
   </ItemGroup>
 
 </Project>
