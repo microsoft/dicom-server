@@ -23,21 +23,21 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4.1.6
+      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
     - name: 'Setup dotnet 6.x'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       if: ${{ matrix.language == 'csharp' }}
       with:
         dotnet-version: '6.x'
 
     - name: Setup dotnet from global.json
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       if: ${{ matrix.language == 'csharp' }}
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@42947a340483f03ba47bb1a039b2c519aab3df85 # v3.37.8
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -52,4 +52,4 @@ jobs:
       if: ${{ matrix.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@42947a340483f03ba47bb1a039b2c519aab3df85 # v3.37.8
