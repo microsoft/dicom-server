@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{404C6C33
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{D100EA60-8DC8-4576-A177-56BC7193BF4A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client.UnitTests", "src\Microsoft.Health.Dicom.Client.UnitTests\Microsoft.Health.Dicom.Client.UnitTests.csproj", "{8F2A1C90-3B47-4D6E-9E11-2C8F0A7B5D33}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{176641B3-297C-4E04-A83D-8F80F80485E8}"
 EndProject
 Global
@@ -27,12 +29,17 @@ Global
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Debug|x64.Build.0 = Debug|x64
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|x64.ActiveCfg = Release|x64
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A}.Release|x64.Build.0 = Release|x64
+		{8F2A1C90-3B47-4D6E-9E11-2C8F0A7B5D33}.Debug|x64.ActiveCfg = Debug|x64
+		{8F2A1C90-3B47-4D6E-9E11-2C8F0A7B5D33}.Debug|x64.Build.0 = Debug|x64
+		{8F2A1C90-3B47-4D6E-9E11-2C8F0A7B5D33}.Release|x64.ActiveCfg = Release|x64
+		{8F2A1C90-3B47-4D6E-9E11-2C8F0A7B5D33}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D100EA60-8DC8-4576-A177-56BC7193BF4A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{8F2A1C90-3B47-4D6E-9E11-2C8F0A7B5D33} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True
