@@ -595,9 +595,17 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                     {
                         writer.WriteNullValue();
                     }
-                    else if (val is float f && float.IsNaN(f))
+                    else if ((val is float f && float.IsNaN(f)) || (val is double d && double.IsNaN(d)))
                     {
                         writer.WriteStringValue("NaN");
+                    }
+                    else if ((val is double dp && double.IsPositiveInfinity(dp)) || (val is float fp && float.IsPositiveInfinity(fp)))
+                    {
+                        writer.WriteStringValue("Infinity");
+                    }
+                    else if ((val is double dn && double.IsNegativeInfinity(dn)) || (val is float fn && float.IsNegativeInfinity(fn)))
+                    {
+                        writer.WriteStringValue("-Infinity");
                     }
                     else
                     {
@@ -893,9 +901,9 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 {
                     childValues.Add(getValue(reader));
                 }
-                else if (reader.TokenType == JsonTokenType.String && reader.GetString() == "NaN")
+                else if (reader.TokenType == JsonTokenType.String && TryReadIeeeSpecialFloatingPoint<T>(reader.GetString(), out T special))
                 {
-                    childValues.Add((T)(float.NaN as object));
+                    childValues.Add(special);
                 }
                 else if (reader.TokenType == JsonTokenType.String && tryParse(reader.GetString(), out T parsed))
                 {
@@ -962,9 +970,9 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 {
                     childValues.Add(getValue(reader));
                 }
-                else if (reader.TokenType == JsonTokenType.String && reader.GetString() == "NaN")
+                else if (reader.TokenType == JsonTokenType.String && TryReadIeeeSpecialFloatingPoint<T>(reader.GetString(), out T special))
                 {
-                    childValues.Add((T)(float.NaN as object));
+                    childValues.Add(special);
                 }
                 else
                 {
@@ -978,6 +986,43 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             return data;
         }
 
+        // JSON cannot represent IEEE NaN / Infinity as a number, so DICOM JSON encodes them as strings.
+        // Same behavior as fo-dicom #1726.
+        private static bool TryReadIeeeSpecialFloatingPoint<T>(string value, out T special)
+        {
+            if (typeof(T) != typeof(float) && typeof(T) != typeof(double))
+            {
+                special = default;
+                return false;
+            }
+
+            if (value == "NaN")
+            {
+                special = typeof(T) == typeof(double)
+                    ? (T)(double.NaN as object)
+                    : (T)(float.NaN as object);
+                return true;
+            }
+
+            if (value == "Infinity")
+            {
+                special = typeof(T) == typeof(double)
+                    ? (T)(double.PositiveInfinity as object)
+                    : (T)(float.PositiveInfinity as object);
+                return true;
+            }
+
+            if (value == "-Infinity")
+            {
+                special = typeof(T) == typeof(double)
+                    ? (T)(double.NegativeInfinity as object)
+                    : (T)(float.NegativeInfinity as object);
+                return true;
+            }
+
+            special = default;
+            return false;
+        }
 
         private string[] ReadJsonPersonName(ref Utf8JsonReader reader)
         {

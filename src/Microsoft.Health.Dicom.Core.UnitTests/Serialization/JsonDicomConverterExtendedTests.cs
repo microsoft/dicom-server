@@ -149,6 +149,84 @@ public class JsonDicomConverterExtendedTests
         Assert.NotNull(tagValue.GetDicomItem<DicomFloatingPointSingle>(DicomTag.SelectorFLValue));
     }
 
+    [Theory]
+    [InlineData("FL", "00720076", "Infinity")]
+    [InlineData("FL", "00720076", "-Infinity")]
+    [InlineData("FD", "00720074", "Infinity")]
+    [InlineData("FD", "00720074", "-Infinity")]
+    public static void GivenDicomJsonDatasetWithFloatingVRContainsInfinity_WhenDeserialized_IsSuccessful(string vr, string tag, string infinity)
+    {
+        string json = $@"
+            {{
+                ""{tag}"": {{
+                    ""vr"": ""{vr}"",
+                    ""Value"": [""{infinity}""]
+                }}
+            }}";
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+        Assert.NotNull(dataset);
+
+        if (vr == "FL")
+        {
+            float value = dataset.GetSingleValue<float>(DicomTag.SelectorFLValue);
+            Assert.True(infinity == "Infinity" ? float.IsPositiveInfinity(value) : float.IsNegativeInfinity(value));
+        }
+        else
+        {
+            double value = dataset.GetSingleValue<double>(DicomTag.SelectorFDValue);
+            Assert.True(infinity == "Infinity" ? double.IsPositiveInfinity(value) : double.IsNegativeInfinity(value));
+        }
+    }
+
+    [Fact]
+    public static void GivenDicomJsonDatasetWithFlMixedInfinityAndNumber_WhenDeserialized_IsSuccessful()
+    {
+        // AHDS emits FL -Infinity as a JSON string because JSON has no numeric infinity.
+        // A sibling finite number in the same Value array must still parse.
+        const string json = @"
+            {
+                ""00720076"": {
+                    ""vr"": ""FL"",
+                    ""Value"": [""-Infinity"", -1]
+                }
+            }";
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+        float[] values = dataset.GetValues<float>(DicomTag.SelectorFLValue);
+
+        Assert.Equal(2, values.Length);
+        Assert.True(float.IsNegativeInfinity(values[0]));
+        Assert.Equal(-1f, values[1]);
+    }
+
+    [Fact]
+    public static void GivenDatasetWithFlAndFdInfinity_WhenSerialized_RoundTripsSpecialsAsStrings()
+    {
+        var dicomDataset = new DicomDataset
+        {
+            { DicomTag.SelectorFLValue, float.NegativeInfinity, -1f },
+            { DicomTag.SelectorFDValue, double.PositiveInfinity, double.NaN },
+        };
+
+        string json = JsonSerializer.Serialize(dicomDataset, SerializerOptions);
+        using JsonDocument document = JsonDocument.Parse(json);
+
+        Assert.Equal("-Infinity", document.RootElement.GetProperty("00720076").GetProperty("Value")[0].GetString());
+        Assert.Equal(-1, document.RootElement.GetProperty("00720076").GetProperty("Value")[1].GetDouble());
+        Assert.Equal("Infinity", document.RootElement.GetProperty("00720074").GetProperty("Value")[0].GetString());
+        Assert.Equal("NaN", document.RootElement.GetProperty("00720074").GetProperty("Value")[1].GetString());
+
+        DicomDataset roundTripped = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+        float[] fl = roundTripped.GetValues<float>(DicomTag.SelectorFLValue);
+        double[] fd = roundTripped.GetValues<double>(DicomTag.SelectorFDValue);
+
+        Assert.True(float.IsNegativeInfinity(fl[0]));
+        Assert.Equal(-1f, fl[1]);
+        Assert.True(double.IsPositiveInfinity(fd[0]));
+        Assert.True(double.IsNaN(fd[1]));
+    }
+
 
     [Fact]
     public void DeserializeDSWithNonNumericValueAsStringDoesNotThrowException()
