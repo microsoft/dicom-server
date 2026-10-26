@@ -29,7 +29,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       if: ${{ matrix.language == 'csharp' }}
       with:
-        dotnet-version: '6.x'
+        dotnet-version: '10.x'
 
     - name: Setup dotnet from global.json
       uses: actions/setup-dotnet@v4
